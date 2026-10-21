@@ -1,0 +1,386 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "プレビュー(ui/js/sim.js) と 栞(shiori/src/interp.cpp) の出力が一致するか調べるための材料です。",
+    "parity.js が、ここにある OnP** イベントを両方に流して、出てきたさくらスクリプトを見くらべます。",
+    "",
+    "ここに入れてよいのは「毎回おなじ結果になるブロック」だけです。",
+    "・時計を読むもの（いまの時・分・秒 など）は、走らせた瞬間でズレるので入れません",
+    "・ランダムなものは、結果が1つに決まる形（0%/100%、最小=最大、枝が全部おなじ）でだけ入れます",
+    "・変数は、そのかたまりの中で作ってから使います（栞は値を保存して次に持ちこすため）"
+  ],
+  "meta": { "name": "一致テスト", "sakuraName": "さくら", "keroName": "うにゅう" },
+  "settings": { "randomTalkEnabled": false },
+  "variables": [
+    { "name": "初期値つき", "value": 7 },
+    { "name": "文字の初期値", "value": "あい" }
+  ],
+  "scripts": [
+    {
+      "id": "p01", "kind": "event", "event": "OnP01",
+      "_": "セリフ・表情・改行",
+      "blocks": [
+        { "type": "surface", "who": 0, "id": 3 },
+        { "type": "say", "who": 0, "text": "いちぎょうめ。", "nl": 1 },
+        { "type": "say", "who": 0, "text": "つづき", "nl": 0 },
+        { "type": "say", "who": 1, "text": "うにゅうです。", "nl": 1 },
+        { "type": "newline", "count": 3 },
+        { "type": "say", "who": 0, "text": "もどった。", "nl": 1 }
+      ]
+    },
+    {
+      "id": "p02", "kind": "event", "event": "OnP02",
+      "_": "間・待ち・消去・バルーン・音",
+      "blocks": [
+        { "type": "wait", "ms": 750 },
+        { "type": "click_wait" },
+        { "type": "clear" },
+        { "type": "balloon", "id": 2 },
+        { "type": "sound", "file": "pon.wav" },
+        { "type": "sound", "file": "" },
+        { "type": "say", "who": 0, "text": "おわり", "nl": 0 }
+      ]
+    },
+    {
+      "id": "p03", "kind": "event", "event": "OnP03",
+      "_": "選択肢・リンク・そのまま出す",
+      "blocks": [
+        { "type": "choice", "label": "うん", "target": "こたえ" },
+        { "type": "choice", "label": "", "target": "でない" },
+        { "type": "link", "label": "ホームページ", "url": "https://example.com" },
+        { "type": "link", "label": "", "url": "https://example.org" },
+        { "type": "raw", "text": "\\![raise,OnTest]" }
+      ]
+    },
+    {
+      "id": "p04", "kind": "event", "event": "OnP04",
+      "_": "もし / そうでなければ",
+      "blocks": [
+        { "type": "if", "cond": { "type": "compare", "op": "<", "a": 1, "b": 2 },
+          "then": [ { "type": "say", "who": 0, "text": "とおった", "nl": 1 } ] },
+        { "type": "if", "cond": { "type": "compare", "op": ">", "a": 1, "b": 2 },
+          "then": [ { "type": "say", "who": 0, "text": "でない", "nl": 1 } ] },
+        { "type": "if_else", "cond": { "type": "compare", "op": "=", "a": "あ", "b": "あ" },
+          "then": [ { "type": "say", "who": 0, "text": "こっち", "nl": 1 } ],
+          "else": [ { "type": "say", "who": 0, "text": "でない", "nl": 1 } ] },
+        { "type": "if_else", "cond": { "type": "compare", "op": "=", "a": "あ", "b": "い" },
+          "then": [ { "type": "say", "who": 0, "text": "でない", "nl": 1 } ],
+          "else": [ { "type": "say", "who": 0, "text": "そうでないほう", "nl": 1 } ] }
+      ]
+    },
+    {
+      "id": "p05", "kind": "event", "event": "OnP05",
+      "_": "くりかえし",
+      "blocks": [
+        { "type": "repeat", "count": 3,
+          "body": [ { "type": "say", "who": 0, "text": "ぐるぐる", "nl": 1 } ] },
+        { "type": "set", "name": "カウンタ", "value": 0 },
+        { "type": "while", "cond": { "type": "compare", "op": "<", "a": { "type": "var", "name": "カウンタ" }, "b": 4 },
+          "body": [
+            { "type": "change", "name": "カウンタ", "value": 1 },
+            { "type": "say", "who": 0, "text": { "type": "var", "name": "カウンタ" }, "nl": 1 }
+          ] },
+        { "type": "repeat", "count": 2,
+          "body": [ { "type": "repeat", "count": 2,
+            "body": [ { "type": "say", "who": 0, "text": "なか", "nl": 0 } ] } ] }
+      ]
+    },
+    {
+      "id": "p06", "kind": "event", "event": "OnP06",
+      "_": "変数と四則演算（0わり・マイナスのあまりも）",
+      "blocks": [
+        { "type": "set", "name": "あたい", "value": 10 },
+        { "type": "change", "name": "あたい", "value": -3 },
+        { "type": "say", "who": 0, "text": { "type": "var", "name": "あたい" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "+", "a": 2, "b": 3 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "-", "a": 2, "b": 5 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "*", "a": 4, "b": 2.5 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "/", "a": 7, "b": 2 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "/", "a": 7, "b": 0 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "%", "a": 7, "b": 3 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "%", "a": -7, "b": 3 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "arith", "op": "%", "a": 7, "b": 0 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "var", "name": "初期値つき" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "var", "name": "ないへんすう" }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p07", "kind": "event", "event": "OnP07",
+      "_": "くらべる・かつ・または・ではない",
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "compare", "op": "<", "a": "10", "b": "9" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "compare", "op": "<", "a": "あ", "b": "い" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "compare", "op": "!=", "a": 1, "b": 2 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "compare", "op": ">", "a": 2, "b": 1 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "compare", "op": "=", "a": "1.0", "b": 1 }, "nl": 1 },
+        { "type": "if", "cond": { "type": "logic", "op": "and",
+            "a": { "type": "compare", "op": "=", "a": 1, "b": 1 },
+            "b": { "type": "compare", "op": "=", "a": 2, "b": 2 } },
+          "then": [ { "type": "say", "who": 0, "text": "かつ", "nl": 1 } ] },
+        { "type": "if", "cond": { "type": "logic", "op": "or",
+            "a": { "type": "compare", "op": "=", "a": 1, "b": 9 },
+            "b": { "type": "compare", "op": "=", "a": 2, "b": 2 } },
+          "then": [ { "type": "say", "who": 0, "text": "または", "nl": 1 } ] },
+        { "type": "if", "cond": { "type": "not", "a": { "type": "compare", "op": "=", "a": 1, "b": 9 } },
+          "then": [ { "type": "say", "who": 0, "text": "ではない", "nl": 1 } ] }
+      ]
+    },
+    {
+      "id": "p08", "kind": "event", "event": "OnP08",
+      "_": "文字をつなぐ・ふくむ・文字数・まるめ",
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "join", "a": "こんにちは", "b": "さん" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "contains", "a": "あいうえお", "b": "うえ" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "contains", "a": "あいうえお", "b": "かき" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "contains", "a": "あいうえお", "b": "" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "length", "a": "あいうえお" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "length", "a": "abc" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "round", "op": "round", "a": 2.5 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "round", "op": "round", "a": -2.5 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "round", "op": "floor", "a": 2.9 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "round", "op": "ceil", "a": 2.1 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "round", "op": "abs", "a": -3.5 }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p09", "kind": "event", "event": "OnP09",
+      "_": "イベントの情報（Reference）",
+      "refs": ["ぜろ", "いち", "に"],
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "ref", "index": 0 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "ref", "index": 2 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "ref", "index": 5 }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p10", "kind": "event", "event": "OnP10",
+      "_": "話しかけてきた相手・言われたこと",
+      "refs": ["さくらんぼ", "こんにちは"],
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "sys", "key": "commfrom" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "sys", "key": "commtext" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "sys", "key": "ghostname" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "sys", "key": "shellname" }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p11", "kind": "event", "event": "OnP11",
+      "_": "トークをよぶ（入れ子・存在しない名前・自分をよぶ）",
+      "blocks": [
+        { "type": "call", "name": "そとがわ" },
+        { "type": "call", "name": "ないなまえ" },
+        { "type": "say", "who": 0, "text": "もどってきた", "nl": 1 }
+      ]
+    },
+    { "id": "f_outer", "kind": "function", "name": "そとがわ",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "そと", "nl": 1 },
+        { "type": "call", "name": "うちがわ" }
+      ] },
+    { "id": "f_inner", "kind": "function", "name": "うちがわ",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "うち", "nl": 1 },
+        { "type": "call", "name": "そとがわ" }
+      ] },
+    {
+      "id": "p12", "kind": "event", "event": "OnP12",
+      "_": "ここでおわる（あとのブロックは動かない）",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "ここまで", "nl": 1 },
+        { "type": "end" },
+        { "type": "say", "who": 0, "text": "でない", "nl": 1 }
+      ]
+    },
+    {
+      "id": "p13", "kind": "event", "event": "OnP13",
+      "_": "ゴーストを終了する",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "またね", "nl": 1 },
+        { "type": "close" }
+      ]
+    },
+    {
+      "id": "p14", "kind": "event", "event": "OnP14",
+      "_": "他のゴーストに話しかける",
+      "refs": ["さくらんぼ", "やあ"],
+      "blocks": [
+        { "type": "communicate", "who": 0, "to": { "type": "sys", "key": "commfrom" }, "text": "やあ、そちらも元気？" }
+      ]
+    },
+    {
+      "id": "p15", "kind": "event", "event": "OnP15",
+      "_": "文字のエスケープ（バックスラッシュ・改行）と、無効にしたブロック",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "え\\んと%username", "nl": 1 },
+        { "type": "say", "who": 0, "text": "いち\nに", "nl": 1 },
+        { "type": "say", "who": 0, "text": "でない", "nl": 1, "disabled": true },
+        { "type": "raw", "text": "\\s[5]" }
+      ]
+    },
+    {
+      "id": "p16", "kind": "event", "event": "OnP16",
+      "_": "結果が1つに決まる形のランダム",
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "random", "min": 5, "max": 5 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "chance", "a": 0 }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "chance", "a": 100 }, "nl": 1 },
+        { "type": "random_one", "branches": [
+          [ { "type": "say", "who": 0, "text": "どれでもおなじ", "nl": 1 } ],
+          [ { "type": "say", "who": 0, "text": "どれでもおなじ", "nl": 1 } ],
+          [ { "type": "say", "who": 0, "text": "どれでもおなじ", "nl": 1 } ]
+        ] }
+      ]
+    },
+    {
+      "id": "p18", "kind": "event", "event": "OnP18",
+      "_": "3人目以降のキャラ（バックスラッシュ p）",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "さくら", "nl": 1 },
+        { "type": "chara", "id": 2 },
+        { "type": "say", "who": 0, "text": "これは who=0 なので戻る", "nl": 1 },
+        { "type": "chara", "id": 3 },
+        { "type": "raw", "text": "3人目" },
+        { "type": "chara", "id": 3 },
+        { "type": "raw", "text": "同じなら出ない" },
+        { "type": "chara", "id": 0 },
+        { "type": "raw", "text": "もどる" }
+      ]
+    },
+    {
+      "id": "p19", "kind": "event", "event": "OnP19",
+      "_": "SAORIは本物の DLL が無いので、両方とも空を返す",
+      "blocks": [
+        { "type": "say", "who": 0, "text": { "type": "saori", "file": "nai.dll", "a": "x" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "saori", "file": "", "a": "" }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p20", "kind": "event", "event": "OnP20",
+      "_": "SERIKO のうごきを再生する",
+      "blocks": [
+        { "type": "anim", "id": 0 },
+        { "type": "anim", "id": 3 },
+        { "type": "anim", "id": -5 }
+      ]
+    },
+    {
+      "id": "p28", "kind": "event", "event": "OnP28",
+      "_": "長い文字は上限で切る（つなげ続けてもメモリを食いつぶさない）",
+      "blocks": [
+        { "type": "set", "name": "文字の初期値", "value": "abcd" },
+        { "type": "repeat", "count": 15, "body": [
+          { "type": "set", "name": "文字の初期値",
+            "value": { "type": "join",
+                       "a": { "type": "var", "name": "文字の初期値" },
+                       "b": { "type": "var", "name": "文字の初期値" } } }
+        ] },
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "length", "a": { "type": "var", "name": "文字の初期値" } } },
+        { "type": "set", "name": "文字の初期値", "value": "あいう" },
+        { "type": "repeat", "count": 14, "body": [
+          { "type": "set", "name": "文字の初期値",
+            "value": { "type": "join",
+                       "a": { "type": "var", "name": "文字の初期値" },
+                       "b": { "type": "var", "name": "文字の初期値" } } }
+        ] },
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "length", "a": { "type": "var", "name": "文字の初期値" } } }
+      ]
+    },
+    {
+      "id": "p27", "kind": "event", "event": "OnP27",
+      "refs": ["わるいゴースト", "やあ]\\![open]"],
+      "_": "外から来た言葉を、リンク・音・選択肢にはめても、命令として読ませない",
+      "blocks": [
+        { "type": "link", "label": { "type": "sys", "key": "commtext" },
+          "url": { "type": "sys", "key": "commtext" } },
+        { "type": "sound", "file": { "type": "sys", "key": "commtext" } },
+        { "type": "choice", "label": { "type": "sys", "key": "commtext" },
+          "target": { "type": "sys", "key": "commtext" } }
+      ]
+    },
+    {
+      "id": "p25", "kind": "event", "event": "OnP25",
+      "_": "いまごろ・季節・曜日の名前（どちらも同じ時計を見るので、同じ答えになるはず）",
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join",
+                    "a": { "type": "sys", "key": "daypart" },
+                    "b": { "type": "sys", "key": "season" } } },
+        { "type": "say", "who": 0, "text": { "type": "sys", "key": "weekdayname" }, "nl": 1 }
+      ]
+    },
+    {
+      "id": "p26", "kind": "event", "event": "OnP26",
+      "_": "まとまりからトークをよぶ（1 つしか入れていないので、結果は決まる）",
+      "blocks": [
+        { "type": "call_group", "group": "あさ" },
+        { "type": "call_group", "group": "ないまとまり" }
+      ]
+    },
+    {
+      "id": "t_asa", "kind": "talk", "name": "あさのあいさつ", "weight": 1, "group": "あさ",
+      "blocks": [{ "type": "say", "who": 0, "text": "おはよう", "nl": 1 }]
+    },
+    {
+      "id": "p23", "kind": "event", "event": "OnP23",
+      "_": "たずねる・ブラウザ・イベントを自分で起こす（カンマや角かっこは落とす）",
+      "blocks": [
+        { "type": "ask", "into": "こたえ", "initial": "なまえ" },
+        { "type": "ask", "into": "", "initial": "入れ先が空なので出ない" },
+        { "type": "open_browser", "url": "https://example.com/a,b[c]" },
+        { "type": "raise", "event": "OnMyEvent", "a": "おまけ" },
+        { "type": "raise", "event": "OnNoRef", "a": "" },
+        { "type": "later", "sec": 5, "name": "あとで" },
+        { "type": "say", "who": 0, "text": "きいた", "nl": 1 }
+      ]
+    },
+    {
+      "id": "p24", "kind": "event", "event": "OnP24",
+      "_": "交代したら、あとのブロックは動かない",
+      "blocks": [
+        { "type": "change_ghost", "name": "みかん" },
+        { "type": "say", "who": 0, "text": "ここは出ない", "nl": 1 }
+      ]
+    },
+    {
+      "id": "f_later", "kind": "function", "name": "あとで",
+      "blocks": [{ "type": "say", "who": 0, "text": "おまたせ", "nl": 1 }]
+    },
+    {
+      "id": "p22", "kind": "event", "event": "OnP22",
+      "_": "答えを待たない SAORI。呼んだ時点では、どちらも何も出さない",
+      "blocks": [
+        { "type": "saori_call", "file": "nai.dll", "a": "1", "into": "" },
+        { "type": "say", "who": 0, "text": "よんだ", "nl": 1 }
+      ]
+    },
+    {
+      "id": "p21", "kind": "event", "event": "OnP21",
+      "_": "ネットワーク更新をはじめる",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "新しくなってるか見てくるね。", "nl": 1 },
+        { "type": "update" }
+      ]
+    },
+    {
+      "id": "p17", "kind": "event", "event": "OnP17",
+      "_": "ランダムトークの間隔を変える（見た目の出力は無いが、変数を書きかえる）",
+      "blocks": [
+        { "type": "talk_interval", "sec": 90 },
+        { "type": "say", "who": 0, "text": "かえた", "nl": 1 }
+      ]
+    },
+    {
+      "id": "p29", "kind": "event", "event": "OnP29",
+      "_": "出すさくらスクリプトの長さの上限。こえたかたまりは、どちらも丸ごと落ちるはず",
+      "blocks": [
+        { "type": "repeat", "count": 400, "body": [
+          { "type": "say", "who": 0, "nl": 1,
+            "text": "あいうえおかきくけこあいうえおかきくけこあいうえおかきくけこ" }
+        ] },
+        { "type": "say", "who": 0, "text": "しっぽ", "nl": 0 }
+      ]
+    }
+  ]
+}

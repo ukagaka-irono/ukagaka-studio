@@ -1,0 +1,33 @@
+# ビルド成果物・作業ファイル
+shiori/obj/
+shiori/dist/
+studio/obj/
+ukagaka-studio.exe
+ukagaka-studio.json
+webview-data/
+projects/
+output/
+**/ikaga_save.json
+**/ikaga_debug.txt
+.vs/
+
+# git bundle などの手元バックアップ（リポジトリには入れない）
+*.bundle
+
+# テストが作業用に置くもの
+shiori/test/fixture/ikaga.dll
+shiori/test/*/ikaga.dll
+shiori/test/*/*/ikaga.dll
+shiori/test/*/slow_saori.dll
+shiori/test/*/*/slow_saori.dll
+# 名前を一つずつ書くと、テスト用の exe を増やしたとき書き忘れます
+studio/test/*_host.exe
+studio/test/render_out/
+
+# 配布用のまとめ（-Release で作る）
+/dist/
+obj/
+
+# IDE・手元の設定
+.idea/
+.claude/settings.local.json
