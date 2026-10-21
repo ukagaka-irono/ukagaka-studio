@@ -34,6 +34,7 @@ private:
     std::string RunHandlers(const std::string& eventId, const ShioriRequest& req, bool* found);
     std::string PlayRandomTalk(const ShioriRequest& req);
     std::string BuiltinDefault(const std::string& eventId, const ShioriRequest& req);
+    bool English() const;      // 英語で書き出したゴーストか（ghost.json の meta.lang）
     void MaybeReload();
     void LoadSave();
     void SaveSave();

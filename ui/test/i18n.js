@@ -10,6 +10,7 @@
  *   2. t() に、文字そのものではなく変数を渡していないか（それだと 3・4 で見られないため）
  *   3. en.js の訳が、どこにも使われていない文のものになっていないか（文を書きかえたあとの残り）
  *   4. 訳に、元の文と同じ {差しこみ} と %欄 がそろっているか
+ *   5. exe（studio/src）が返すエラーのコードが、すべて画面の表（ui/js/core/api.js）にあるか
  *
  * を見ます。訳がまだ無い文の数は、お知らせとして出すだけです（無いものは日本語のまま出ます）。
  */
@@ -152,6 +153,32 @@ for (const [ja, eng] of Object.entries(en)) {
 bad('英語の辞書に、使われていない文の訳が残っています', stale);
 bad('英語の訳と元の文で、{差しこみ} や %欄 がそろっていません', slots);
 
+// -------------------------------------------------- 5. exe が返すエラーのコード
+// exe（studio/src）はエラーを文ではなくコードで返し、画面が core/api.js の表で文にします。
+// 表に無いコードは、画面にコードのまま出てしまいます。
+let errorCodes = 0;
+{
+  const { ERROR_CODES } = require(path.join(jsDir, 'core', 'api.js'));
+  const srcDir = path.join(root, 'studio', 'src');
+  const used = new Map();
+  const patterns = [
+    /JsonError\(res,\s*\d+,\s*"([a-z_]+)"/g,              // JsonError(res, 400, "bad_json")
+    /\?\s*"([a-z_]+)"\s*:\s*r\.error/g,                  // r.error.empty() ? "export_failed" : r.error
+    /\b(?:r|out)\.error\s*=\s*"([a-z_]+)"/g,             // r.error = "mkdir_failed"（書き出し・SSTP・ためす）
+  ];
+  for (const name of fs.readdirSync(srcDir).filter((n) => n.endsWith('.cpp')).sort()) {
+    const src = fs.readFileSync(path.join(srcDir, name), 'utf8');
+    for (const re of patterns) {
+      for (const m of src.matchAll(re)) if (!used.has(m[1])) used.set(m[1], name);
+    }
+  }
+  bad('exe が返すエラーのコードに、画面の文がありません（ui/js/core/api.js の ERRORS に足してください）',
+    [...used].filter(([code]) => !ERROR_CODES.includes(code)).map(([code, file]) => `${code} … studio\\src\\${file}`));
+  bad('画面のエラーの表に、exe がどこからも返さないコードが残っています',
+    ERROR_CODES.filter((code) => !used.has(code)));
+  errorCodes = used.size;
+}
+
 // ---------------------------------------------------------------------- 表示
 console.log('');
 for (const p of problems) {
@@ -166,5 +193,6 @@ if (problems.length) {
 const translated = [...catalog.keys()].filter((k) => typeof en[k] === 'string' && en[k] !== '').length;
 console.log(`${C.green}  OK  ${C.off}画面の日本語はすべて t() を通っています ${C.dim}(${catalog.size} 文)${C.off}`);
 console.log(`${C.green}  OK  ${C.off}英語の辞書に、古い訳や欄のずれはありません`);
+console.log(`${C.green}  OK  ${C.off}exe が返すエラーのコードは、すべて画面の文になります ${C.dim}(${errorCodes} 個)${C.off}`);
 console.log(`${C.yellow}  お知らせ${C.off} ${C.dim}英語の訳があるのは ${translated} / ${catalog.size} 文です（無いものは日本語のまま出ます）${C.off}`);
 console.log(`${C.green}[i18n] 画面の言葉は、点検のかぎり問題ありません。${C.off}`);

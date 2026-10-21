@@ -19,13 +19,15 @@ PreviewResult RunPreview(const PreviewRequest& req) {
 
     Program prog;
     if (!prog.Adopt(req.project)) {
-        out.error = prog.error();
+        out.error = "bad_project";
+        out.detail = prog.error();
         return out;
     }
 
     const JValue* script = FindScript(prog, req.scriptId);
     if (!script) {
-        out.error = "そのかたまりが見つかりません: " + req.scriptId;
+        out.error = "script_not_found";
+        out.detail = req.scriptId;
         return out;
     }
 

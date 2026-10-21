@@ -1,5 +1,6 @@
 #include "sstp.h"
 #include "fsutil.h"
+#include "lang.h"
 #include "util.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -72,13 +73,13 @@ SstpResult Exchange(const std::string& request) {
     SstpResult r;
     WinsockScope winsock;
     if (!winsock.ok) {
-        r.error = "ネットワーク機能を初期化できませんでした";
+        r.error = "net_init_failed";
         return r;
     }
 
     SOCKET s = INVALID_SOCKET;
     if (!ConnectLocal(s, kConnectTimeoutMs)) {
-        r.error = "SSP につながりません（SSP が起動しているか、SSTP を受け付ける設定かを確認してください）";
+        r.error = "ssp_unreachable";
         return r;
     }
 
@@ -87,7 +88,7 @@ SstpResult Exchange(const std::string& request) {
         int n = send(s, request.c_str() + sent, (int)(request.size() - sent), 0);
         if (n <= 0) {
             closesocket(s);
-            r.error = "SSP へ送信できませんでした";
+            r.error = "ssp_send_failed";
             return r;
         }
         sent += (size_t)n;
@@ -104,7 +105,7 @@ SstpResult Exchange(const std::string& request) {
     closesocket(s);
 
     if (response.empty()) {
-        r.error = "SSP から応答がありませんでした";
+        r.error = "ssp_no_response";
         return r;
     }
 
@@ -117,7 +118,10 @@ SstpResult Exchange(const std::string& request) {
     if (bodyStart != std::string::npos) r.body = Trim(response.substr(bodyStart + 4));
 
     r.ok = (r.status >= 200 && r.status < 300);
-    if (!r.ok) r.error = "SSP が受け付けませんでした: " + first;
+    if (!r.ok) {
+        r.error = "ssp_rejected";
+        r.detail = first;
+    }
     return r;
 }
 
@@ -143,7 +147,7 @@ bool SstpAvailable() {
 SstpResult SstpSend(const std::string& scriptUtf8, const std::string& sender) {
     std::string req = "SEND SSTP/1.4\r\n";
     req += HeaderLine("Charset", "UTF-8");
-    req += HeaderLine("Sender", sender.empty() ? "伺かスタジオ" : sender);
+    req += HeaderLine("Sender", sender.empty() ? AppName() : sender);
     req += HeaderLine("Script", scriptUtf8);
     req += HeaderLine("Option", "nodescript");
     req += "\r\n";
@@ -153,7 +157,7 @@ SstpResult SstpSend(const std::string& scriptUtf8, const std::string& sender) {
 SstpResult SstpExecute(const std::string& command, const std::string& sender) {
     std::string req = "EXECUTE SSTP/1.4\r\n";
     req += HeaderLine("Charset", "UTF-8");
-    req += HeaderLine("Sender", sender.empty() ? "伺かスタジオ" : sender);
+    req += HeaderLine("Sender", sender.empty() ? AppName() : sender);
     req += HeaderLine("Command", command);
     req += "\r\n";
     return Exchange(req);
@@ -164,7 +168,7 @@ SstpResult SstpExecute(const std::string& command, const std::string& sender) {
 SstpResult SstpCommunicate(const std::string& sentence, const std::string& sender) {
     std::string req = "COMMUNICATE SSTP/1.1\r\n";
     req += HeaderLine("Charset", "UTF-8");
-    req += HeaderLine("Sender", sender.empty() ? "伺かスタジオ" : sender);
+    req += HeaderLine("Sender", sender.empty() ? AppName() : sender);
     req += HeaderLine("Sentence", sentence);
     req += "\r\n";
     return Exchange(req);
@@ -174,7 +178,7 @@ SstpResult SstpNotify(const std::string& eventName, const std::vector<std::strin
                       const std::string& sender) {
     std::string req = "NOTIFY SSTP/1.1\r\n";
     req += HeaderLine("Charset", "UTF-8");
-    req += HeaderLine("Sender", sender.empty() ? "伺かスタジオ" : sender);
+    req += HeaderLine("Sender", sender.empty() ? AppName() : sender);
     req += HeaderLine("Event", eventName);
     for (size_t i = 0; i < refs.size() && i < 32; i++) {
         char key[24];
@@ -250,7 +254,7 @@ SspInfo DetectSsp(const std::wstring& hint) {
 
     info.sstp = SstpAvailable();
     if (info.sstp) {
-        SstpResult name = SstpExecute("GetName", "伺かスタジオ");
+        SstpResult name = SstpExecute("GetName", AppName());
         if (name.ok && !name.body.empty()) info.ghostName = name.body;
     }
     return info;

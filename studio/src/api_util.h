@@ -10,7 +10,11 @@
 namespace ikaga {
 
 void Json(HttpResponse& res, int status, const JValue& v);
-void JsonError(HttpResponse& res, int status, const std::string& message);
+// エラーは文ではなく、コード（bad_json など）で返します: {"error": コード, "detail": 補足}。
+// 文にするのは画面です（ui/js/core/api.js の表。画面の言語で出すため）。
+// detail は、そのまま見せる補足（ファイル名・SSP の返事など）で、無ければ付けません。
+void JsonError(HttpResponse& res, int status, const std::string& code,
+               const std::string& detail = std::string());
 bool ParseBody(const HttpRequest& req, JValue& out);
 
 JValue SspToJson(const SspInfo& ssp);

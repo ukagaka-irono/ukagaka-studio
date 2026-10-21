@@ -87,12 +87,12 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 |---|---|
 | `node tools\check-blocks.js` | ブロックが 4 か所にそろっているか（書き忘れ探し） |
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
-| `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
-| `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
+| `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語で書き出したゴーストの既定の反応も |
+| `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。画面が英語のときの readme.txt・既定の名前・`meta.lang` も |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`） |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
-| `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通っているか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか |
+| `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通っているか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか。exe が返すエラーのコードが、すべて画面の文になるか |
 
 `parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
 `studio\test\preview_host.exe` を使うので、**先にビルドが要ります**（`.\build.ps1 -Test`）。
@@ -210,6 +210,20 @@ ui/js/
   そのため、ブロックの定義のようにファイルの外側で作る文も `t()` で書けます。
 * `ui/js/i18n/` は、いちばん下の層です（どこからでも import でき、ほかを import しません）。
   node のテストは、`globalThis.IKAGA_LANG = 'ja'` で日本語に決めうちしています（node の言語は en-US のため）。
+* 上のバーの「English」／「日本語」（`panels/language.js`）で切りかえると、画面を読みなおします。開いているプロジェクトは
+  （保存していない変更も、見ていた画面も）`sessionStorage` にあずけて、読みなおしたあとの起動（`main.js` の `boot`）で受けとります。
+  元にもどす記録は引きつぎません。
+* **exe が自分で出す言葉**（メッセージボックス・ファイルをえらぶ窓・書き出す readme.txt など）は、`studio/src/lang.h` の
+  `Tr("日本語", "English")` で書きます。exe の言語は、起動したときに設定（`ukagaka-studio.json` の `lang`）→ Windows の表示言語で決まり、
+  画面が読みこまれると `main.js` が `lang:ja` / `lang:en` を送って合わせます（exe は設定にも覚えます）。
+  メッセージボックスのボタン（はい・いいえ）は Windows の言語のままです。
+* **`/api/*` のエラーは、exe では訳しません。** `JsonError(res, 400, "bad_json")` のようにコードで返し、
+  画面が `ui/js/core/api.js` の `ERRORS` で文にします（補足は `detail` で）。エラーを足したら `ERRORS` にも足してください。
+  足し忘れは `ui\test\i18n.js` が止めます。
+* **書き出すものは、書き出したときの画面の言語**です。英語なら readme.txt・名前が空のときの名前（New Ghost・Sakura・Kero）・
+  バルーンの名前が英語になり、`ghost.json` の `meta.lang` が `"en"` になります（日本語のときは書きません）。
+  栞は `meta.lang` を見て、自分で言う決まり文句（ブロックが無いイベントの反応・更新の知らせ）を英語にします（`shiori.cpp`）。
+  `いまの季節` などの情報ブロックが返す値（春・朝 など）は、ゴーストの中で比べる「値」なので、言語では変えません。
 
 ### 色（明るい表示と暗い表示）
 
@@ -255,7 +269,8 @@ node のテストは ES モジュールを `require()` で読むので、**Node.
 1. `api.h` の `Api` に、`void Xxx(const HttpRequest& req, HttpResponse& res);` を書く
    （用事ごとにまとめてあるので、近いもののところへ）。
 2. 中身を、近い用事の `api_*.cpp` に書く。返すのは `Json(res, 200, o)`、
-   失敗は `JsonError(res, 400, "…")`（どちらも `api_util.h`）。
+   失敗は `JsonError(res, 400, "コード")`（どちらも `api_util.h`）。エラーは文ではなくコード（`bad_json` など）で返し、
+   新しいコードなら `ui/js/core/api.js` の `ERRORS` に画面の文を足します。
 3. `api.cpp` の **`kRoutes`** に `{ "POST", "/api/…", &Api::Xxx }` を 1 行足す。
 
 よそのページからの要求を断る確かめは、`kRoutes` を引く前に `Api::HandleApi` が 1 か所でしています。
@@ -266,6 +281,8 @@ node のテストは ES モジュールを `require()` で読むので、**Node.
 `export_*.cpp` どうしで使うものは `export_parts.h` に、ほかからも使うものは `exporter.h` に書きます。
 書き出しテスト（`studio\test\export.js`）がバイトで見くらべているので、中身を変えたときは
 目で確かめてから `--update` で期待値を作りなおしてください。
+
+**exe が自分で見せる文**（メッセージボックスなど）は、`Tr("日本語", "English")`（`lang.h`）で両方を書きます。
 
 **`.cpp` を足したら、`studio\build.ps1` の一覧にも足します**（`$apiSources` / `$exportSources`。
 書き出しまわりは、書き出しテスト用コンソールにも同じ一覧が入ります）。

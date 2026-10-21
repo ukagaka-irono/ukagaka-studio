@@ -19,7 +19,8 @@
     "craftman": "作者名",
     "craftmanUrl": "",
     "homeUrl": "",                 // ネットワーク更新のありか（descript.txt の homeurl）
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "lang": "en"                   // 英語の画面で書き出したときだけ入る（下の「既定動作」が英語になる）
   },
 
   "settings": {
@@ -152,9 +153,15 @@
 | `OnBoot` | 「おかえりなさい。」 |
 | `OnClose` / `OnCloseAll` | 「またね。」＋`\-` |
 | `OnMouseDoubleClick` | 「なに？」など 3 種からランダム |
+| `OnNadeNade` | あたまなら「えへへ。」など 3 種から、ほかの場所なら「……あんまり触らないで。」 |
+| `OnUpdateComplete` / `OnUpdateFailure` | 更新できた・できなかったことだけ知らせる |
 | その他 | 応答なし（204 No Content） |
 
-`ghost.json` が読めなかったときは、起動時にその旨とエラー内容をしゃべります。
+`meta.lang` が `"en"` のときは、これらを英語で言います（「Welcome back.」など）。
+無いときは日本語です（伺かスタジオは、画面が英語のときだけ `"en"` を書きます）。
+
+`ghost.json` が読めなかったときは、起動時にその旨とエラー内容をしゃべります
+（どちらの言語で書き出したか分からないので、日本語と英語の両方で）。
 
 ## デバッグ
 

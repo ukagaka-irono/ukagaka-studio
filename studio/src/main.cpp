@@ -14,6 +14,7 @@
 #include "api.h"
 #include "assets.h"
 #include "fsutil.h"
+#include "lang.h"
 #include "util.h"
 #include "webview.h"
 
@@ -115,8 +116,9 @@ static void AskThenClose(HWND hwnd) {
             if (!dirty) { FinishClose(hwnd); return; }
 
             int answer = MessageBoxW(hwnd,
-                                     L"保存していない変更があります。\n保存して終了しますか？",
-                                     L"伺かスタジオ",
+                                     Tr(L"保存していない変更があります。\n保存して終了しますか？",
+                                        L"You have unsaved changes.\nSave them before closing?"),
+                                     AppNameW(),
                                      MB_YESNOCANCEL | MB_ICONWARNING | MB_DEFBUTTON1);
             if (answer == IDCANCEL) return;
             if (answer == IDNO) { FinishClose(hwnd); return; }
@@ -181,6 +183,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     g_api.Init();
+    // exe が自分で出す言葉の言語。画面が読みこまれたら、画面から lang:… が届いて合わせます
+    SetLang(ParseLang(g_api.LoadConfig()["lang"].asStr(), SystemLang()));
 
     WNDCLASSEXW wc;
     ZeroMemory(&wc, sizeof(wc));
@@ -199,11 +203,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
                                    16, 16, 0);
     RegisterClassExW(&wc);
 
-    g_hwnd = CreateWindowExW(0, kWindowClass, L"伺かスタジオ", WS_OVERLAPPEDWINDOW,
+    g_hwnd = CreateWindowExW(0, kWindowClass, AppNameW(), WS_OVERLAPPEDWINDOW,
                              CW_USEDEFAULT, CW_USEDEFAULT, 1440, 920,
                              NULL, NULL, hInstance, NULL);
     if (!g_hwnd) {
-        MessageBoxW(NULL, L"ウィンドウを作れませんでした。", L"伺かスタジオ", MB_ICONERROR);
+        MessageBoxW(NULL, Tr(L"ウィンドウを作れませんでした。", L"Could not create the window."),
+                    AppNameW(), MB_ICONERROR);
         return 1;
     }
     SetDarkTitleBar(g_hwnd, dark);
@@ -213,6 +218,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
         if (message == L"saved" && g_waitingSave) FinishClose(g_hwnd);
         // 画面が明るい／暗いを切りかえたら、タイトルバーもそろえる（core/theme.js）
         if (message == L"theme:dark" || message == L"theme:light") SetDarkTitleBar(g_hwnd, message == L"theme:dark");
+        // 画面の言語（main.js が起動のたびに知らせる）。次に起動したとき、画面が出る前のメッセージにも使うので覚えておく
+        if (message == L"lang:ja" || message == L"lang:en") {
+            Lang lang = message == L"lang:en" ? Lang::En : Lang::Ja;
+            SetLang(lang);
+            if (g_api.LoadConfig()["lang"].asStr() != LangCode(lang)) {
+                g_api.SaveConfig("lang", JValue::makeStr(LangCode(lang)));
+            }
+        }
     };
 
     bool started = g_web.Create(
@@ -224,10 +237,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
                 g_web.Focus();
                 return;
             }
-            std::wstring text = message +
+            std::wstring text = message + Tr(
                 L"\n\nこのアプリは Microsoft Edge WebView2 ランタイムを使います。\n"
-                L"「OK」を押すと配布ページを開きます。";
-            if (MessageBoxW(g_hwnd, text.c_str(), L"伺かスタジオ", MB_OKCANCEL | MB_ICONERROR) == IDOK) {
+                L"「OK」を押すと配布ページを開きます。",
+                L"\n\nThis app uses the Microsoft Edge WebView2 Runtime.\n"
+                L"Press OK to open its download page.");
+            if (MessageBoxW(g_hwnd, text.c_str(), AppNameW(), MB_OKCANCEL | MB_ICONERROR) == IDOK) {
                 ShellExecuteW(NULL, L"open",
                               L"https://developer.microsoft.com/microsoft-edge/webview2/",
                               NULL, NULL, SW_SHOWNORMAL);
@@ -236,7 +251,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
             DestroyWindow(g_hwnd);
         },
         [](const std::wstring& title) {
-            std::wstring t = title.empty() ? L"伺かスタジオ" : title;
+            std::wstring t = title.empty() ? std::wstring(AppNameW()) : title;
             SetWindowTextW(g_hwnd, t.c_str());
         });
 

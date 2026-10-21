@@ -450,41 +450,53 @@ void Shiori::DrainSaori() {
     }
 }
 
+// 書き出したときの画面が英語なら、ghost.json の meta.lang が "en" になっています（無ければ日本語）。
+// 栞が自分で言うこと（ブロックが無いイベントの既定の反応など）だけ、これで言葉を変えます。
+bool Shiori::English() const {
+    return prog_.meta()["lang"].asStr() == "en";
+}
+
 std::string Shiori::BuiltinDefault(const std::string& id, const ShioriRequest& req) {
     const JValue& meta = prog_.meta();
-    std::string name = meta["name"].asStr("ゴースト");
-    std::string sakura = meta["sakuraName"].asStr("さくら");
+    const bool en = English();
+    std::string name = meta["name"].asStr(en ? "Ghost" : "ゴースト");
+    std::string sakura = meta["sakuraName"].asStr(en ? "Sakura" : "さくら");
 
     if (!prog_.loaded()) {
+        // ghost.json が読めないと、どちらの言語で書き出したかも分からないので、両方で言う
         if (id == "OnBoot" || id == "OnFirstBoot") {
             return "\\0\\s[0]ghost.json が読み込めませんでした。\\n" +
-                   EscapeText(prog_.error()) + "\\n（エディタから書き出し直してください）";
+                   EscapeText(prog_.error()) + "\\n（エディタから書き出し直してください）"
+                   "\\n\\nCould not read ghost.json. Please export the ghost again from the editor.";
         }
         if (id == "OnClose" || id == "OnCloseAll") return "\\0\\s[0]またね。\\-";
         return std::string();
     }
 
     if (id == "OnFirstBoot") {
+        if (en) return "\\0\\s[0]Nice to meet you.\\nI'm " + EscapeText(sakura) + ".\\nLet's get along!";
         return "\\0\\s[0]はじめまして。\\n" + EscapeText(sakura) + "です。\\nよろしくね。";
     }
     if (id == "OnBoot") {
-        return "\\0\\s[0]おかえりなさい。";
+        return en ? "\\0\\s[0]Welcome back." : "\\0\\s[0]おかえりなさい。";
     }
     if (id == "OnClose" || id == "OnCloseAll") {
-        return "\\0\\s[0]またね。\\-";
+        return en ? "\\0\\s[0]See you.\\-" : "\\0\\s[0]またね。\\-";
     }
     if (id == "OnMouseDoubleClick") {
-        static const char* lines[] = { "なに？", "呼んだ？", "どうしたの？" };
-        return std::string("\\0\\s[0]") + lines[RandInt(0, 2)];
+        static const char* ja[] = { "なに？", "呼んだ？", "どうしたの？" };
+        static const char* enLines[] = { "What is it?", "Did you call me?", "What's up?" };
+        return std::string("\\0\\s[0]") + (en ? enLines : ja)[RandInt(0, 2)];
     }
     if (id == "OnNadeNade") {
         std::string area = req.refs.size() > 4 ? req.refs[4] : std::string();
         std::string low = LowerAscii(area);
         if (low == "head") {
-            static const char* lines[] = { "えへへ。", "くすぐったいよ。", "なでなでされちゃった。" };
-            return std::string("\\0\\s[1]") + lines[RandInt(0, 2)];
+            static const char* ja[] = { "えへへ。", "くすぐったいよ。", "なでなでされちゃった。" };
+            static const char* enLines[] = { "Hehe.", "That tickles.", "You patted my head." };
+            return std::string("\\0\\s[1]") + (en ? enLines : ja)[RandInt(0, 2)];
         }
-        return "\\0\\s[2]……あんまり触らないで。";
+        return en ? "\\0\\s[2]...Please don't touch me so much." : "\\0\\s[2]……あんまり触らないで。";
     }
     // ネットワーク更新。ブロックを書いていなくても、結果だけは知らせる。
     // 途中経過（OnUpdateBegin / OnUpdateReady / OnUpdate.On…）は毎回しゃべると
@@ -493,13 +505,14 @@ std::string Shiori::BuiltinDefault(const std::string& id, const ShioriRequest& r
         std::string how = req.refs.empty() ? std::string() : req.refs[0];
         // "none" = 新しいものは無かった。黙っておく（起動のたびに言うとうるさい）
         if (how != "changed") return std::string();
+        if (en) return "\\0\\s[0]Update complete.\\nThe new parts take effect the next time I start.";
         return "\\0\\s[0]更新できたよ。\\n新しくなったところは、つぎに起動したときからだよ。";
     }
     if (id == "OnUpdateFailure") {
         std::string why = req.refs.empty() ? std::string() : req.refs[0];
         if (why == "artificial") return std::string();      // 自分でやめたときは黙る
-        std::string out = "\\0\\s[0]更新できなかったみたい。";
-        if (!why.empty()) out += "\\n（" + EscapeText(why) + "）";
+        std::string out = en ? "\\0\\s[0]Looks like the update didn't work." : "\\0\\s[0]更新できなかったみたい。";
+        if (!why.empty()) out += en ? "\\n(" + EscapeText(why) + ")" : "\\n（" + EscapeText(why) + "）";
         return out;
     }
 
@@ -626,7 +639,7 @@ std::string Shiori::Dispatch(const ShioriRequest& req) {
     if (!out.empty()) secondsSinceTalk_ = 0;
 
     if (id == "OnClose" || id == "OnCloseAll") {
-        if (out.empty()) out = "\\0\\s[0]またね。";
+        if (out.empty()) out = English() ? "\\0\\s[0]See you." : "\\0\\s[0]またね。";
         out = CloseScript(out, true);
         SaveSave();
     }

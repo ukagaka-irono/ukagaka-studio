@@ -32,7 +32,8 @@ struct PreviewRequest {
 
 struct PreviewResult {
     bool ok = false;
-    std::string error;
+    std::string error;     // うまくいかなかったときのコード（script_not_found など。文は画面が出す）
+    std::string detail;    // その補足
     std::string script;    // 出てきたさくらスクリプト
     std::string commTo;    // 話しかける相手（いれば）
     JValue vars;           // 動かしたあとの変数

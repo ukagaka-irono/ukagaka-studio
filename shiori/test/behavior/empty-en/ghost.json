@@ -1,0 +1,8 @@
+{
+  "format": "ikaga/1",
+  "_comment": "英語の画面で書き出した（meta.lang が en の）、ブロックが1つも無いゴースト。既定の反応が英語になるかを確かめるためのもの。",
+  "meta": { "name": "Empty", "sakuraName": "Ikaga", "keroName": "Shiori", "lang": "en" },
+  "settings": { "randomTalkEnabled": false },
+  "variables": [],
+  "scripts": []
+}

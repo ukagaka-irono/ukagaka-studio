@@ -165,8 +165,9 @@ async function ghostLog(action) {
       box.textContent = t('いまは記録していません。「記録をはじめる」を押すと、つぎに動かしたときから残ります。');
       return;
     }
+    // 長い記録は、exe がうしろの方だけ返します（truncated）
     box.textContent = r.text && r.text.trim()
-      ? r.text
+      ? (r.truncated ? t('（古いところは省いています）') + '\n' : '') + r.text
       : t('記録中です（{path}）。まだ何も書かれていません。\nゴーストを動かしてから、もう一度「読む」を押してください。', { path: r.path });
     box.scrollTop = box.scrollHeight;
     if (action === 'start') toast(t('記録をはじめました'));

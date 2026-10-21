@@ -16,9 +16,10 @@ void Json(HttpResponse& res, int status, const JValue& v) {
     res.body = v.dump(0);
 }
 
-void JsonError(HttpResponse& res, int status, const std::string& message) {
+void JsonError(HttpResponse& res, int status, const std::string& code, const std::string& detail) {
     JValue o = JValue::makeObj();
-    o.set("error", JValue::makeStr(message));
+    o.set("error", JValue::makeStr(code));
+    if (!detail.empty()) o.set("detail", JValue::makeStr(detail));
     Json(res, status, o);
 }
 
@@ -169,7 +170,7 @@ void Api::HandleApi(const HttpRequest& req, HttpResponse& res) {
     std::map<std::string, std::string>::const_iterator it = req.headers.find("x-ikaga");
     bool marked = (it != req.headers.end() && it->second == "1");
     if (!marked && !req.sameOrigin) {
-        JsonError(res, 403, "unexpected origin");
+        JsonError(res, 403, "bad_origin");
         return;
     }
 
@@ -179,7 +180,7 @@ void Api::HandleApi(const HttpRequest& req, HttpResponse& res) {
             return;
         }
     }
-    JsonError(res, 404, "unknown endpoint");
+    JsonError(res, 404, "unknown_endpoint", req.path);
 }
 
 } // namespace ikaga

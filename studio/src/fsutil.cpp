@@ -1,4 +1,5 @@
 #include "fsutil.h"
+#include "lang.h"
 
 #include <commdlg.h>
 #include <wincrypt.h>          // MD5（ネットワーク更新の照合表づくり）
@@ -176,10 +177,11 @@ std::vector<std::wstring> PickPngFiles() {
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.hwndOwner = GetActiveWindow();
-    ofn.lpstrFilter = L"PNG 画像 (*.png)\0*.png\0すべてのファイル\0*.*\0";
+    ofn.lpstrFilter = Tr(L"PNG 画像 (*.png)\0*.png\0すべてのファイル\0*.*\0",
+                         L"PNG images (*.png)\0*.png\0All files\0*.*\0");
     ofn.lpstrFile = buf.data();
     ofn.nMaxFile = (DWORD)buf.size();
-    ofn.lpstrTitle = L"立ち絵に使う PNG をえらぶ";
+    ofn.lpstrTitle = Tr(L"立ち絵に使う PNG をえらぶ", L"Choose PNG images for the surfaces");
     ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST |
                 OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR;
 

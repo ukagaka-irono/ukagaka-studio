@@ -1,4 +1,5 @@
 #include "webview.h"
+#include "lang.h"
 #include "util.h"
 
 #include <wrl.h>
@@ -69,7 +70,7 @@ bool WebView::Create(HWND parent,
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [this, parent, onReady](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result) || !env) {
-                    if (onReady) onReady(false, L"WebView2 を初期化できませんでした。");
+                    if (onReady) onReady(false, Tr(L"WebView2 を初期化できませんでした。", L"Could not initialize WebView2."));
                     return S_OK;
                 }
                 env->AddRef();
@@ -81,7 +82,7 @@ bool WebView::Create(HWND parent,
                         [this, parent, onReady](HRESULT result2,
                                                 ICoreWebView2Controller* controller) -> HRESULT {
                             if (FAILED(result2) || !controller) {
-                                if (onReady) onReady(false, L"WebView2 のウィンドウを作れませんでした。");
+                                if (onReady) onReady(false, Tr(L"WebView2 のウィンドウを作れませんでした。", L"Could not create the WebView2 window."));
                                 return S_OK;
                             }
                             controller->AddRef();
@@ -90,7 +91,7 @@ bool WebView::Create(HWND parent,
                             ComPtr<ICoreWebView2> web;
                             controller->get_CoreWebView2(&web);
                             if (!web) {
-                                if (onReady) onReady(false, L"WebView2 を取得できませんでした。");
+                                if (onReady) onReady(false, Tr(L"WebView2 を取得できませんでした。", L"Could not get WebView2."));
                                 return S_OK;
                             }
                             web->AddRef();
@@ -271,8 +272,9 @@ bool WebView::Create(HWND parent,
     if (FAILED(hr)) {
         if (onReady) {
             onReady(false, hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)
-                               ? L"WebView2 ランタイムが見つかりませんでした。"
-                               : L"WebView2 を開始できませんでした。");
+                               ? Tr(L"WebView2 ランタイムが見つかりませんでした。",
+                                    L"The WebView2 Runtime was not found.")
+                               : Tr(L"WebView2 を開始できませんでした。", L"Could not start WebView2."));
         }
         return false;
     }

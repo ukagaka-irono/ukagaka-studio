@@ -10,7 +10,8 @@ struct SstpResult {
     bool ok = false;
     int status = 0;          // 200 / 204 など
     std::string body;        // 応答本文（GetName など）
-    std::string error;       // つながらなかったときの説明
+    std::string error;       // うまくいかなかったときのコード（ssp_unreachable など。文は画面が出す）
+    std::string detail;      // その補足（SSP が受け付けなかったときの返事の 1 行目）
 };
 
 // SSP が SSTP を受け付けているか（127.0.0.1:9801）

@@ -16,7 +16,7 @@ void Api::GetState(const HttpRequest&, HttpResponse& res) {
     JValue o = JValue::makeObj();
     std::string dll = DllBytes();
     o.set("dllFound", JValue::makeBool(!dll.empty()));
-    o.set("dll", JValue::makeStr(dll.empty() ? "" : "ikaga.dll (exe に同梱)"));
+    o.set("dll", JValue::makeStr(dll.empty() ? "" : "ikaga.dll"));
     o.set("version", JValue::makeStr(kStudioVersion));
 
     JValue list = JValue::makeArr();
@@ -59,7 +59,7 @@ void Api::GetProject(const HttpRequest& req, HttpResponse& res) {
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
     std::string text;
     if (name.empty() || !ReadBinaryFile(file, text)) {
-        JsonError(res, 404, "プロジェクトが見つかりません");
+        JsonError(res, 404, "project_not_found");
         return;
     }
     res.status = 200;
@@ -70,15 +70,15 @@ void Api::GetProject(const HttpRequest& req, HttpResponse& res) {
 // POST /api/project … projects\<名前>.json に保存する
 void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string name = body["name"].asStr();
     if (name.empty()) name = body["project"]["meta"]["name"].asStr();
     name = SafeFolderName(name, "");
-    if (name.empty()) { JsonError(res, 400, "名前がありません"); return; }
+    if (name.empty()) { JsonError(res, 400, "no_name"); return; }
     EnsureDir(projectsDir_);
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
     if (!WriteBinaryFile(file, body["project"].dump(2))) {
-        JsonError(res, 500, "保存できませんでした");
+        JsonError(res, 500, "save_failed");
         return;
     }
     WriteConfig(configPath_, "lastProject", name);
@@ -91,11 +91,11 @@ void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
 // POST /api/project/delete
 void Api::DeleteProject(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string name = SafeFolderName(body["name"].asStr(), "");
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
     if (name.empty() || !DeleteFileIfExists(file)) {
-        JsonError(res, 404, "プロジェクトが見つかりません");
+        JsonError(res, 404, "project_not_found");
         return;
     }
     JValue o = JValue::makeObj();
@@ -106,9 +106,9 @@ void Api::DeleteProject(const HttpRequest& req, HttpResponse& res) {
 // POST /api/import … ghost.json のファイルか、書き出したゴーストのフォルダから読みこむ
 void Api::ImportProject(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string raw = Unquote(body["path"].asStr());
-    if (raw.empty()) { JsonError(res, 400, "パスがありません"); return; }
+    if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
     std::wstring target = Utf8ToWide(raw);
     if (IsDirectory(target)) {
         const wchar_t* rel[] = { L"ghost.json", L"ghost\\master\\ghost.json", L"master\\ghost.json" };
@@ -118,11 +118,11 @@ void Api::ImportProject(const HttpRequest& req, HttpResponse& res) {
         }
     }
     std::string text;
-    if (!ReadBinaryFile(target, text)) { JsonError(res, 400, "読み込めませんでした"); return; }
+    if (!ReadBinaryFile(target, text)) { JsonError(res, 400, "read_failed", raw); return; }
     JValue project;
     std::string err;
     if (!JsonParse(ToUtf8(text), project, err)) {
-        JsonError(res, 400, "JSON を読めませんでした: " + err);
+        JsonError(res, 400, "json_unreadable", err);
         return;
     }
     JValue o = JValue::makeObj();

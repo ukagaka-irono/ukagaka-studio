@@ -3,6 +3,7 @@
 #include "api_util.h"
 #include "exporter.h"
 #include "fsutil.h"
+#include "lang.h"
 #include "sstp.h"
 #include "util.h"
 
@@ -18,7 +19,7 @@ void Api::GetSsp(const HttpRequest&, HttpResponse& res) {
 // POST /api/ssp/path … ssp.exe の場所を覚える
 void Api::SetSspPath(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     WriteConfig(configPath_, "sspPath", Unquote(body["path"].asStr()));
     sspCacheTick_ = 0;                       // すぐ探しなおす
     Json(res, 200, SspToJson(Ssp()));
@@ -28,7 +29,7 @@ void Api::SetSspPath(const HttpRequest& req, HttpResponse& res) {
 void Api::LaunchSsp(const HttpRequest&, HttpResponse& res) {
     SspInfo ssp = Ssp();
     if (ssp.exePath.empty()) {
-        JsonError(res, 404, "ssp.exe が見つかりません。SSP の場所を指定してください。");
+        JsonError(res, 404, "ssp_exe_not_found");
         return;
     }
     if (!ssp.running) {
@@ -43,11 +44,11 @@ void Api::LaunchSsp(const HttpRequest&, HttpResponse& res) {
 // POST /api/ssp/script … いま動いているゴーストに、さくらスクリプトをしゃべらせる
 void Api::SendScript(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string script = body["script"].asStr();
-    if (script.empty()) { JsonError(res, 400, "スクリプトがありません"); return; }
-    SstpResult r = SstpSend(script, "伺かスタジオ");
-    if (!r.ok) { JsonError(res, 502, r.error); return; }
+    if (script.empty()) { JsonError(res, 400, "no_script"); return; }
+    SstpResult r = SstpSend(script, AppName());
+    if (!r.ok) { JsonError(res, 502, r.error, r.detail); return; }
     JValue o = JValue::makeObj();
     o.set("ok", JValue::makeBool(true));
     o.set("status", JValue::makeNum(r.status));
@@ -57,14 +58,14 @@ void Api::SendScript(const HttpRequest& req, HttpResponse& res) {
 // POST /api/ssp/notify … イベントを送る
 void Api::NotifyEvent(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string eventName = body["event"].asStr();
-    if (eventName.empty()) { JsonError(res, 400, "イベント名がありません"); return; }
+    if (eventName.empty()) { JsonError(res, 400, "no_event"); return; }
     std::vector<std::string> refs;
     const JValue& list = body["refs"];
     for (size_t i = 0; i < list.size(); i++) refs.push_back(list.at(i).asStr());
-    SstpResult r = SstpNotify(eventName, refs, "伺かスタジオ");
-    if (!r.ok) { JsonError(res, 502, r.error); return; }
+    SstpResult r = SstpNotify(eventName, refs, AppName());
+    if (!r.ok) { JsonError(res, 502, r.error, r.detail); return; }
     JValue o = JValue::makeObj();
     o.set("ok", JValue::makeBool(true));
     o.set("status", JValue::makeNum(r.status));
@@ -74,13 +75,13 @@ void Api::NotifyEvent(const HttpRequest& req, HttpResponse& res) {
 // POST /api/ssp/communicate … 他のゴーストのふりをして話しかける（OnCommunicate の確認）
 void Api::Communicate(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string sentence = body["sentence"].asStr();
-    if (sentence.empty()) { JsonError(res, 400, "話しかける内容がありません"); return; }
+    if (sentence.empty()) { JsonError(res, 400, "no_sentence"); return; }
     std::string sender = body["sender"].asStr();
-    if (sender.empty()) sender = "伺かスタジオ";
+    if (sender.empty()) sender = AppName();
     SstpResult r = SstpCommunicate(sentence, sender);
-    if (!r.ok) { JsonError(res, 502, r.error); return; }
+    if (!r.ok) { JsonError(res, 502, r.error, r.detail); return; }
     JValue o = JValue::makeObj();
     o.set("ok", JValue::makeBool(true));
     o.set("status", JValue::makeNum(r.status));
@@ -90,13 +91,13 @@ void Api::Communicate(const HttpRequest& req, HttpResponse& res) {
 // POST /api/ssp/install … SSP の ghost フォルダに書き出して、切りかえる（または読みなおさせる）
 void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     const JValue& project = body["project"];
-    if (!project.isObj()) { JsonError(res, 400, "プロジェクトがありません"); return; }
+    if (!project.isObj()) { JsonError(res, 400, "no_project"); return; }
 
     SspInfo ssp = Ssp();
     if (ssp.ghostDir.empty()) {
-        JsonError(res, 404, "SSP が見つかりません。SSP の場所を指定してください。");
+        JsonError(res, 404, "ssp_not_found");
         return;
     }
 
@@ -104,7 +105,7 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
     ExportResult r = ExportToDir(project, ssp.ghostDir, dll,
                                  body["includeShell"].asBool(true),
                                  body["overwriteShell"].asBool(false));
-    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "書き出しに失敗しました" : r.error); return; }
+    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
 
     std::string name = project["meta"]["name"].asStr();
     std::string action = "none";
@@ -113,8 +114,8 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
                        (ssp.ghostName == name ||
                         ssp.ghostName == project["meta"]["sakuraName"].asStr());
         SstpResult sent = already
-            ? SstpSend("\\![reload,shiori]", "伺かスタジオ")
-            : SstpSend("\\![change,ghost," + name + "]", "伺かスタジオ");
+            ? SstpSend("\\![reload,shiori]", AppName())
+            : SstpSend("\\![change,ghost," + name + "]", AppName());
         if (sent.ok) action = already ? "reload" : "change";
         else action = "failed";
     }

@@ -12,9 +12,9 @@ namespace ikaga {
 // POST /api/export … ゴースト一式をフォルダか .nar に書き出す
 void Api::Export(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     const JValue& project = body["project"];
-    if (!project.isObj()) { JsonError(res, 400, "プロジェクトがありません"); return; }
+    if (!project.isObj()) { JsonError(res, 400, "no_project"); return; }
 
     std::string outUtf8 = body["outDir"].asStr();
     std::wstring outDir = outUtf8.empty() ? outputDir_ : Utf8ToWide(outUtf8);
@@ -25,7 +25,7 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
 
     ExportResult r = nar ? ExportToNar(project, outDir, dll, includeShell)
                          : ExportToDir(project, outDir, dll, includeShell, overwriteShell);
-    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "書き出しに失敗しました" : r.error); return; }
+    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
     WriteConfig(configPath_, "lastOutDir", WideToUtf8(outDir));
 
     JValue o = JValue::makeObj();
@@ -46,9 +46,9 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
 // POST /api/reveal … エクスプローラで開く（ファイルなら、そのフォルダを）
 void Api::Reveal(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::wstring path = Utf8ToWide(body["path"].asStr());
-    if (path.empty() || !PathExists(path)) { JsonError(res, 404, "見つかりません"); return; }
+    if (path.empty() || !PathExists(path)) { JsonError(res, 404, "not_found"); return; }
     if (!IsDirectory(path)) path = ParentDir(path);
     ShellExecuteW(NULL, L"open", L"explorer.exe", (L"\"" + path + L"\"").c_str(), NULL, SW_SHOWNORMAL);
     JValue o = JValue::makeObj();

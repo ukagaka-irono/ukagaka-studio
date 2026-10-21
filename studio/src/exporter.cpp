@@ -10,6 +10,7 @@
 #include "export_parts.h"
 #include "zip.h"
 #include "fsutil.h"
+#include "lang.h"
 #include "util.h"
 
 namespace ikaga {
@@ -39,8 +40,11 @@ std::string GhostFolderName(const JValue& project) {
 
 std::string GhostName(const JValue& project) {
     std::string name = project["meta"]["name"].asStr();
-    return Trim(name).empty() ? std::string("あたらしいゴースト") : name;
+    return Trim(name).empty() ? std::string(Tr("あたらしいゴースト", "New Ghost")) : name;
 }
+
+const char* DefaultSakuraName() { return Tr("さくら", "Sakura"); }
+const char* DefaultKeroName() { return Tr("うにゅう", "Kero"); }
 
 std::string DescriptLine(const char* key, const std::string& value) {
     std::string v = value;
@@ -75,23 +79,27 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     }
     files.push_back(f);
 
+    // readme.txt は、書き出したときの画面の言語で書きます（lang.h）
     f.name = "readme.txt";
     f.data = GhostName(project);
     f.data += "\r\n\r\n";
-    f.data += "作者      : " + meta["craftman"].asStr("(未設定)") + "\r\n";
-    f.data += "バージョン: " + meta["version"].asStr("1.0.0") + "\r\n\r\n";
+    f.data += Tr("作者      : ", "Author : ") + meta["craftman"].asStr(Tr("(未設定)", "(not set)")) + "\r\n";
+    f.data += Tr("バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
     f.data += meta["description"].asStr("") + "\r\n\r\n";
     f.data += "----\r\n";
-    f.data += "このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n";
-    f.data += "会話の中身は ghost/master/ghost.json にブロック形式で入っています。\r\n";
-    f.data += "伺かスタジオで読み込むと編集できます。\r\n";
+    f.data += Tr("このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n"
+                 "会話の中身は ghost/master/ghost.json にブロック形式で入っています。\r\n"
+                 "伺かスタジオで読み込むと編集できます。\r\n",
+                 "This ghost runs on ikaga SHIORI (ikaga.dll).\r\n"
+                 "Its dialogue is stored as blocks in ghost/master/ghost.json.\r\n"
+                 "Open it in Ukagaka Studio to edit it.\r\n");
     files.push_back(f);
 
     f.name = "ghost/master/descript.txt";
     f.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "ghost") +
              DescriptLine("name", GhostName(project)) +
-             DescriptLine("sakura.name", meta["sakuraName"].asStr("さくら")) +
-             DescriptLine("kero.name", meta["keroName"].asStr("うにゅう")) +
+             DescriptLine("sakura.name", meta["sakuraName"].asStr(DefaultSakuraName())) +
+             DescriptLine("kero.name", meta["keroName"].asStr(DefaultKeroName())) +
              DescriptLine("craftman", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanw", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanurl", meta["craftmanUrl"].asStr("")) +
@@ -132,7 +140,7 @@ ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, cons
     r.root = PathJoin(outDir, Utf8ToWide(folder));
 
     if (!EnsureDir(r.root)) {
-        r.error = "フォルダを作れませんでした";
+        r.error = "mkdir_failed";
         return r;
     }
 
@@ -147,7 +155,8 @@ ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, cons
             continue;
         }
         if (!WriteBinaryFile(dest, files[i].data)) {
-            r.error = "書き込みに失敗しました: " + files[i].name;
+            r.error = "write_failed";
+            r.detail = files[i].name;
             return r;
         }
         r.written.push_back(files[i].name);
@@ -183,12 +192,12 @@ ExportResult ExportToNar(const JValue& project, const std::wstring& outDir, cons
     std::string zip = CreateZip(entries);
 
     if (!EnsureDir(outDir)) {
-        r.error = "フォルダを作れませんでした";
+        r.error = "mkdir_failed";
         return r;
     }
     r.root = PathJoin(outDir, Utf8ToWide(folder) + L".nar");
     if (!WriteBinaryFile(r.root, zip)) {
-        r.error = ".nar を書き込めませんでした";
+        r.error = "nar_write_failed";
         return r;
     }
     r.written.push_back(folder + ".nar");

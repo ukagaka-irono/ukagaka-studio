@@ -37,8 +37,9 @@ import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
 import { Ssp } from './panels/ssp.js';
 import { Guide } from './panels/guide.js';
+import { Language } from './panels/language.js';
 import { Shortcuts } from './shortcuts.js';
-import { t, translateDom } from './i18n/i18n.js';
+import { t, getLang, translateDom } from './i18n/i18n.js';
 
 // ---------------------------------------------------------------- 再描画
 let renderQueued = false;
@@ -112,7 +113,10 @@ function showState(state) {
 // ------------------------------------------------------------------- 起動
 async function boot() {
   translateDom(document.body);   // index.html に直に書いた文（日本語のときは何もしない）
+  // exe が自分で出すもの（閉じるときの確認・書き出す readme など）も、画面と同じ言語にする（studio/src/lang.h）
+  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('lang:' + getLang());
   Theme.init();
+  Language.init();
   Pages.init();
   Pages.onShow(scheduleRender);  // 切りかえた画面を描く
   Palette.init();
@@ -133,8 +137,10 @@ async function boot() {
   Session.state = state;
   showState(state);
 
-  let loaded = null;
-  if (state && state.lastProject) {
+  // 言語を切りかえて読みなおしたときは、切りかえる前に開いていたものをそのまま開く（panels/language.js）
+  const carried = Language.takeCarried();
+  let loaded = carried ? carried.project : null;
+  if (!carried && state && state.lastProject) {
     try { loaded = await api('/api/project?name=' + encodeURIComponent(state.lastProject)); } catch { /* 新規 */ }
   }
   try {
@@ -142,7 +148,12 @@ async function boot() {
   } catch (e) {
     // 前に開いていたものが読めない形（新しい版で保存した、など）。ファイルはそのまま残し、ひな形で始める
     Model.init(sampleProject());
-    toast(t('「{name}」を開けませんでした: {message}', { name: state.lastProject, message: e.message }), true);
+    const name = carried ? (carried.project.meta || {}).name || '' : state.lastProject;
+    toast(t('「{name}」を開けませんでした: {message}', { name, message: e.message }), true);
+  }
+  if (carried) {
+    Model.dirty = !!carried.dirty;
+    Session.projectName = carried.name || '';
   }
   Zoom.setZoom(1);
   Tabs.switchTab('run');
@@ -161,6 +172,7 @@ async function boot() {
   Picker.init();
   Guide.init();
   Shortcuts.init();
+  if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面
 
   window.addEventListener('beforeunload', (e) => {
     if (!Model.dirty) return;

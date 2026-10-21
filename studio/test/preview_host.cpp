@@ -85,7 +85,7 @@ int wmain(int argc, wchar_t** argv) {
         printf("---- %s\n", id.c_str());
         if (!r.ok) {
             printf("SHIORI/3.0 500 Internal Server Error\n");
-            printf("Error: %s\n", r.error.c_str());
+            printf("Error: %s %s\n", r.error.c_str(), r.detail.c_str());
             continue;
         }
         vars = r.vars;

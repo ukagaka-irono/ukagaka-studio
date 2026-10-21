@@ -13,11 +13,11 @@ namespace ikaga {
 // 同じ規則を画面側にもう一度書くと、片方だけ直したときに静かにズレます。
 void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
 
     PreviewRequest pr;
     pr.project = body["project"];
-    if (!pr.project.isObj()) { JsonError(res, 400, "プロジェクトがありません"); return; }
+    if (!pr.project.isObj()) { JsonError(res, 400, "no_project"); return; }
     pr.scriptId = body["scriptId"].asStr();
     pr.vars = body["vars"];
 
@@ -35,7 +35,7 @@ void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     pr.shellName = sys.has("shellName") ? sys["shellName"].asStr() : "master";
 
     PreviewResult r = RunPreview(pr);
-    if (!r.ok) { JsonError(res, 400, r.error); return; }
+    if (!r.ok) { JsonError(res, 400, r.error, r.detail); return; }
 
     JValue o = JValue::makeObj();
     o.set("script", JValue::makeStr(r.script));
@@ -48,9 +48,9 @@ void Api::Preview(const HttpRequest& req, HttpResponse& res) {
 // 好感度などが変な値で固まったとき、手でファイルを消さずにやり直せるように。
 void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     const JValue& project = body["project"];
-    if (!project.isObj()) { JsonError(res, 400, "プロジェクトがありません"); return; }
+    if (!project.isObj()) { JsonError(res, 400, "no_project"); return; }
 
     std::wstring wfolder = Utf8ToWide(GhostFolderName(project));
 
@@ -84,9 +84,9 @@ void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
 //   action 無し … 読む   "start" … 空のファイルを作って記録を始める   "clear" … 消す
 void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
     JValue body;
-    if (!ParseBody(req, body)) { JsonError(res, 400, "JSON が壊れています"); return; }
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     const JValue& project = body["project"];
-    if (!project.isObj()) { JsonError(res, 400, "プロジェクトがありません"); return; }
+    if (!project.isObj()) { JsonError(res, 400, "no_project"); return; }
 
     std::wstring wfolder = Utf8ToWide(GhostFolderName(project));
 
@@ -103,6 +103,7 @@ void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
     JValue places = JValue::makeArr();
     std::string text;
     bool recording = false;
+    bool truncated = false;
     std::wstring shown;
 
     for (size_t i = 0; i < roots.size(); i++) {
@@ -121,9 +122,12 @@ void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
             recording = true;
             std::string raw;
             if (ReadBinaryFile(p, raw)) {
-                // 長くなるので、うしろの方だけ見せる
+                // 長くなるので、うしろの方だけ見せる（省いたことは画面が書き添えます）
                 const size_t kMax = 24000;
-                if (raw.size() > kMax) raw = "（古いところは省いています）\r\n" + raw.substr(raw.size() - kMax);
+                if (raw.size() > kMax) {
+                    raw = raw.substr(raw.size() - kMax);
+                    truncated = true;
+                }
                 text = raw;
             }
         }
@@ -132,6 +136,7 @@ void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
     o.set("ok", JValue::makeBool(true));
     o.set("recording", JValue::makeBool(recording));
     o.set("text", JValue::makeStr(text));
+    o.set("truncated", JValue::makeBool(truncated));
     o.set("path", JValue::makeStr(WideToUtf8(shown)));
     o.set("places", places);
     Json(res, 200, o);

@@ -16,7 +16,8 @@ struct OutFile {
 
 struct ExportResult {
     bool ok = false;
-    std::string error;
+    std::string error;     // うまくいかなかったときのコード（mkdir_failed など。文は画面が出す）
+    std::string detail;    // その補足（書けなかったファイルの名前）
     std::wstring root;
     std::string folder;
     std::vector<std::string> written;
@@ -32,7 +33,12 @@ std::string GhostFolderName(const JValue& project);
 // （名前の欄を消して書き出しても、install.txt や descript.txt の name が空にならないように）
 std::string GhostName(const JValue& project);
 
-// 栞が読む ghost.json の中身（エディタ専用の項目を落としたもの）
+// 名前の欄が無いときの、さくら側・うにゅう側の名前（書き出したときの画面の言語で）
+const char* DefaultSakuraName();
+const char* DefaultKeroName();
+
+// 栞が読む ghost.json の中身（エディタ専用の項目を落としたもの）。
+// 画面が英語のときは meta.lang を "en" にします（栞が自分で言う決まり文句を英語にするため。shiori.cpp）
 std::string RuntimeProgramJson(const JValue& project);
 
 // 仮シェルの立ち絵を1枚だけ描いて PNG で返す（エディタのリアルタイム表示用）。

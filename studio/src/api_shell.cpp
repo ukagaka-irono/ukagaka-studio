@@ -53,7 +53,7 @@ void Api::GetShellFile(const HttpRequest& req, HttpResponse& res) {
     std::string data;
     int w = 0, h = 0;
     if (path.empty() || !ReadBinaryFile(path, data) || !PngSize(data, &w, &h)) {
-        JsonError(res, 404, "画像が読めません");
+        JsonError(res, 404, "image_unreadable");
         return;
     }
     res.status = 200;

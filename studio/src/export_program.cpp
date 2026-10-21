@@ -1,5 +1,6 @@
 // 伺かスタジオ - 書き出し: 栞が読む ghost.json（エディタ専用の項目を落としたもの）
 #include "exporter.h"
+#include "lang.h"
 #include "util.h"
 
 namespace ikaga {
@@ -13,11 +14,13 @@ std::string RuntimeProgramJson(const JValue& project) {
 
     JValue m = JValue::makeObj();
     m.set("name", JValue::makeStr(GhostName(project)));
-    m.set("sakuraName", JValue::makeStr(meta["sakuraName"].asStr("さくら")));
-    m.set("keroName", JValue::makeStr(meta["keroName"].asStr("うにゅう")));
+    m.set("sakuraName", JValue::makeStr(meta["sakuraName"].asStr(DefaultSakuraName())));
+    m.set("keroName", JValue::makeStr(meta["keroName"].asStr(DefaultKeroName())));
     m.set("craftman", JValue::makeStr(meta["craftman"].asStr("")));
     m.set("craftmanUrl", JValue::makeStr(meta["craftmanUrl"].asStr("")));
     m.set("version", JValue::makeStr(meta["version"].asStr("1.0.0")));
+    // 日本語のときは書きません（無ければ日本語。前に書き出したものと同じ中身のままにするため）
+    if (CurrentLang() == Lang::En) m.set("lang", JValue::makeStr("en"));
     root.set("meta", m);
 
     JValue s = JValue::makeObj();
