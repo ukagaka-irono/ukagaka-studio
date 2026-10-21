@@ -12,7 +12,7 @@ function renderCategories() {
   for (const cat of CATEGORIES) {
     const b = Render.el('button', 'cat-btn' + (cat.id === Session.category ? ' is-active' : ''));
     const dot = Render.el('span', 'cat-dot');
-    dot.style.background = cat.color;
+    dot.style.background = `var(--cat-${cat.id})`;
     b.appendChild(dot);
     b.appendChild(Render.el('span', null, cat.name));
     b.addEventListener('click', () => {
@@ -27,7 +27,7 @@ function renderCategories() {
     for (const cat of CATEGORIES) {
       const row = Render.div('help-cat');
       const i = Render.el('i');
-      i.style.background = cat.color;
+      i.style.background = `var(--cat-${cat.id})`;
       row.appendChild(i);
       row.appendChild(Render.el('span', null, cat.name));
       help.appendChild(row);

@@ -87,7 +87,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`） |
-| `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか |
+| `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
 
 `parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
@@ -177,6 +177,17 @@ ui/js/
   その部品自身の `init()` で、`main.js` は順に呼ぶだけです。描きなおしは、`Model` が
   変わるたびに `main.js` の `renderAll()` が各部品の `render()` を呼びます。
 * `model/` は DOM を触らないので、node のテスト（`ui\test\editor.js`）からそのまま使えます。
+
+### 色（明るい表示と暗い表示）
+
+* **色は `ui/style.css` の `:root` にあるトークンだけを使います**（`var(--surface)` `var(--text-muted)` など）。
+  各トークンは `light-dark(明るいとき, 暗いとき)` の形で、両方の色をそこに書きます。
+  新しい色が要るときは、まず似たトークンが無いかを見て、無ければ `:root` に足します。
+* 直に書いてよいのは、ブロックの上に重ねる白と黒の半透明（`#fff`・`rgba(0,0,0,…)`・`rgba(255,255,255,…)`）だけです。
+  それ以外を直に書くと、暗い表示のときにそこだけ明るいまま残ります（`ui\test\modules.js` が止めます）。
+* JS から色を付けるときも `var(--danger)` のようにトークンを使います。ブロックのカテゴリの色は `--cat-<id>` です。
+* どちらの表示にするかは `core/theme.js` が `html` の `data-theme` で決めます（無ければ Windows の設定に合わせる）。
+  exe にも `theme:dark` / `theme:light` を送って、タイトルバーの色をそろえています（`studio/src/main.cpp`）。
 
 ### そのほか
 

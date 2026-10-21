@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <shellapi.h>
 #include <objbase.h>
+#include <dwmapi.h>
 #include <cstdio>
 
 #include "api.h"
@@ -20,6 +21,7 @@
 #pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "dwmapi.lib")
 
 using namespace ikaga;
 
@@ -28,6 +30,25 @@ static const wchar_t* kMutexName = L"Local\\UkagakaStudioSingleInstance";
 static const UINT kSaveTimeoutTimer = 1;
 
 static Api g_api;
+
+// タイトルバーを暗い色にする（Windows 10 20H1 以降。古い Windows では何もしない）
+static void SetDarkTitleBar(HWND hwnd, bool dark) {
+    const DWORD kUseImmersiveDarkMode = 20;   // DWMWA_USE_IMMERSIVE_DARK_MODE
+    BOOL on = dark ? TRUE : FALSE;
+    DwmSetWindowAttribute(hwnd, kUseImmersiveDarkMode, &on, sizeof(on));
+}
+
+// Windows の「アプリのモード」が暗いか。画面が読みこまれるまでの下地とタイトルバーに使う
+// （画面が読みこまれたあとは、画面のほうから theme:dark / theme:light が届きます）
+static bool SystemPrefersDark() {
+    DWORD light = 1, size = sizeof(light);
+    if (RegGetValueW(HKEY_CURRENT_USER,
+                     L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                     L"AppsUseLightTheme", RRF_RT_REG_DWORD, NULL, &light, &size) != ERROR_SUCCESS) {
+        return false;
+    }
+    return light == 0;
+}
 static WebView g_web;
 static HWND g_hwnd = NULL;
 static bool g_closing = false;
@@ -169,7 +190,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     wc.hInstance = hInstance;
     wc.lpszClassName = kWindowClass;
     wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(RGB(233, 238, 244));
+    // ui/style.css の --bg と同じ色（明るい / 暗い）
+    const bool dark = SystemPrefersDark();
+    wc.hbrBackground = CreateSolidBrush(dark ? RGB(20, 24, 30) : RGB(233, 238, 244));
     wc.hIcon = (HICON)LoadImageW(hInstance, MAKEINTRESOURCEW(IDI_IKAGA_APP), IMAGE_ICON,
                                  0, 0, LR_DEFAULTSIZE);
     wc.hIconSm = (HICON)LoadImageW(hInstance, MAKEINTRESOURCEW(IDI_IKAGA_APP), IMAGE_ICON,
@@ -183,10 +206,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
         MessageBoxW(NULL, L"ウィンドウを作れませんでした。", L"伺かスタジオ", MB_ICONERROR);
         return 1;
     }
+    SetDarkTitleBar(g_hwnd, dark);
     RestorePlacement(g_hwnd);
 
     g_web.onMessage = [](const std::wstring& message) {
         if (message == L"saved" && g_waitingSave) FinishClose(g_hwnd);
+        // 画面が明るい／暗いを切りかえたら、タイトルバーもそろえる（core/theme.js）
+        if (message == L"theme:dark" || message == L"theme:light") SetDarkTitleBar(g_hwnd, message == L"theme:dark");
     };
 
     bool started = g_web.Create(

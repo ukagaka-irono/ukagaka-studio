@@ -12,6 +12,7 @@
  *   4. おたがいに import しあうところ（輪）が無いか
  *   5. どのファイルを最初に読みこんでも落ちないか（構文まちがい・無い名前の import）
  *   6. import した `Xxx.yyy(...)` の呼び先が、ほんとうにあるか
+ *   7. style.css の色が、:root のトークンを通っているか（暗い表示で色がぬけないように）
  *
  * を見ます。6 は、ファイルを分けたときの**移し忘れ**を捕まえるためのものです。
  * 中身が正しいかまでは見ません（それは動かして確かめてください）。
@@ -248,6 +249,27 @@ if (loadedOk) {
 }
 if (dangling.length) bad('呼んでいる先がありません（分けたときの移し忘れ）', dangling);
 
+// ------------------------------------------- 7. style.css の色はトークンを通す
+// 色を直に書くと、暗い表示のときにそこだけ明るいまま残ります。:root（トークンを決めるところ）の
+// 外では、ブロックの上に重ねる白と黒（#fff・rgba(0,0,0,…)・rgba(255,255,255,…)）だけを許します。
+const styleColors = [];
+{
+  const css = fs.readFileSync(path.join(root, 'ui', 'style.css'), 'utf8');
+  const lines = css.split('\n');
+  let inRoot = false;
+  lines.forEach((line, i) => {
+    if (/^:root\s*\{/.test(line)) inRoot = true;
+    if (inRoot) { if (/^\}/.test(line)) inRoot = false; return; }
+    const code = line.replace(/\/\*.*?\*\//g, '');
+    const found = (code.match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g) || [])
+      .filter((c) => !/^#fff$/i.test(c)
+        && !/^rgba\(\s*0\s*,\s*0\s*,\s*0\s*,/.test(c)
+        && !/^rgba\(\s*255\s*,\s*255\s*,\s*255\s*,/.test(c));
+    for (const c of found) styleColors.push(`ui\\style.css:${i + 1}  ${c} … :root にトークンを作って var(--…) で使ってください`);
+  });
+}
+if (styleColors.length) bad('style.css に色が直に書いてあります', styleColors);
+
 // ---------------------------------------------------------------------- 表示
 console.log('');
 for (const p of problems) {
@@ -267,4 +289,5 @@ console.log(`${C.green}  OK  ${C.off}main.js から ${reached.length} ファイ�
 console.log(`${C.green}  OK  ${C.off}import は上から下へだけ向いていて、輪がありません`);
 console.log(`${C.green}  OK  ${C.off}どのファイルを最初に読みこんでも落ちません`);
 console.log(`${C.green}  OK  ${C.off}呼び出し先はすべてそろっています`);
+console.log(`${C.green}  OK  ${C.off}style.css の色はすべてトークンを通っています`);
 console.log(`${C.green}[modules] 画面のコードは、読みこみのかぎり問題ありません。${C.off}`);

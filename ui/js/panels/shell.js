@@ -340,7 +340,7 @@ function renderShellSlots() {
       // ファイルが動いた・消えたときは、ここで気づけるようにする
       pic.addEventListener('error', () => {
         file.textContent = 'ファイルが見つかりません';
-        file.style.color = '#e2664a';
+        file.style.color = 'var(--danger)';
         thumb.textContent = '？';
       });
     }

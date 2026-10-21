@@ -18,6 +18,7 @@ import { api } from './core/api.js';
 import { toast } from './core/toast.js';
 import { Session } from './core/session.js';
 import { updateTitle } from './core/title.js';
+import { Theme } from './core/theme.js';
 import { Render } from './editor/render.js';
 import { Drag } from './editor/drag.js';
 import { Palette } from './editor/palette.js';
@@ -92,6 +93,7 @@ function showState(state) {
 
 // ------------------------------------------------------------------- 起動
 async function boot() {
+  Theme.init();
   Palette.init();
   Ghost.init();
   ContextMenu.init();

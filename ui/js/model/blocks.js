@@ -3,14 +3,15 @@
  */
 
 // ------------------------------------------------------------ categories
+// 色は ui/style.css の --cat-<id> にあります（明るい表示でも暗い表示でも同じ色）。
 export const CATEGORIES = [
-  { id: 'events',    name: 'イベント', color: '#ffbf00' },
-  { id: 'talk',      name: 'セリフ',   color: '#ff6680' },
-  { id: 'looks',     name: '見た目',   color: '#9966ff' },
-  { id: 'control',   name: '制御',     color: '#ffab19' },
-  { id: 'variables', name: '変数',     color: '#ff8c1a' },
-  { id: 'operators', name: '演算',     color: '#59c059' },
-  { id: 'info',      name: '情報',     color: '#5cb1d6' },
+  { id: 'events',    name: 'イベント' },
+  { id: 'talk',      name: 'セリフ' },
+  { id: 'looks',     name: '見た目' },
+  { id: 'control',   name: '制御' },
+  { id: 'variables', name: '変数' },
+  { id: 'operators', name: '演算' },
+  { id: 'info',      name: '情報' },
 ];
 
 export const EVENTS = [
