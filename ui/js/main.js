@@ -25,6 +25,7 @@ import { Palette } from './editor/palette.js';
 import { Scripts } from './editor/scripts.js';
 import { Zoom } from './editor/zoom.js';
 import { ContextMenu } from './editor/contextmenu.js';
+import { Picker } from './editor/picker.js';
 import { Pages } from './panels/pages.js';
 import { Tabs } from './panels/tabs.js';
 import { Run } from './panels/run.js';
@@ -35,6 +36,7 @@ import { Ghost } from './panels/ghost.js';
 import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
 import { Ssp } from './panels/ssp.js';
+import { Guide } from './panels/guide.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, translateDom } from './i18n/i18n.js';
 
@@ -59,6 +61,7 @@ function renderAll() {
   switch (Pages.current) {
     case 'talk':
       Render.renderWorkspace($('#canvas'), project);
+      Drag.reselect();           // えらんでいたブロックを、描きなおした見た目の上でえらびなおす
       Palette.render();
       $('#canvas-hint').style.display = project.scripts.length ? 'none' : '';
       Vars.render();
@@ -155,6 +158,8 @@ async function boot() {
   Dialog.init();
   Ssp.init();
   Search.init();
+  Picker.init();
+  Guide.init();
   Shortcuts.init();
 
   window.addEventListener('beforeunload', (e) => {

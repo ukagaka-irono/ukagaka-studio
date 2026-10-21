@@ -9,6 +9,7 @@ import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
 import { updateTitle } from '../core/title.js';
+import { Events } from '../core/events.js';
 import { Render } from '../editor/render.js';
 import { t } from '../i18n/i18n.js';
 
@@ -117,6 +118,7 @@ async function openSampleDialog() {
         Session.vars = {};
         closeModal();
         toast(t('お手本「{title}」を開きました。保存すると自分のものになります', { title: s.title }));
+        Events.emit('sample-opened');
       } catch (e) { toast(t('お手本を読めませんでした'), true); }
     });
     list.appendChild(row);
@@ -161,6 +163,7 @@ async function doExport(mode) {
     p.appendChild(open);
     box.appendChild(p);
     toast(t('書き出しました'));
+    Events.emit('exported');
   } catch (e) {
     box.textContent = '';
     box.appendChild(Render.div('status-line status-ng', e.message));

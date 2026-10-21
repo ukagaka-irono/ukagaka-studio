@@ -4,8 +4,9 @@
  *
  * 画面を出さずに、ui/js の中の「判断しているところ」だけを動かします。
  *
- *   model.js … 読みこんだプロジェクトの整形（normalize）と、かたまりの名前
- *   lint.js  … チェックタブが出す注意
+ *   model.js      … 読みこんだプロジェクトの整形（normalize）と、かたまりの名前
+ *   lint.js       … チェックタブが出す注意
+ *   blockindex.js … 「ブロックを探して置く」（/ キー）で、字からブロックをさがすところ
  *
  * ブロックを動かすところは栞（shiori/src/interp.cpp）にしかないので、ここでは見ません
  * （そちらは shiori/test/parity と shiori/test/behavior が見ています）。
@@ -19,11 +20,13 @@ const root = path.resolve(__dirname, '..', '..');
 const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0m' };
 const { red, green, dim, off } = COLOR;
 
-// 画面のモジュールをそのまま読みこむ（この 2 つは DOM を触りません）
+// 画面のモジュールをそのまま読みこむ（どれも DOM を触りません）
 // node の navigator.language は en-US なので、日本語に決めうちにします（ui/js/i18n/i18n.js）
 globalThis.IKAGA_LANG = 'ja';
 const { Model } = require('../js/model/model.js');
 const { Lint } = require('../js/model/lint.js');
+const { EVENTS, PALETTE } = require('../js/model/blocks.js');
+const { buildBlockIndex, searchBlocks } = require('../js/model/blockindex.js');
 
 let failed = 0;
 let checked = 0;
@@ -256,6 +259,36 @@ check('◯秒後によぶ先が空',
 check('どこでも使われていない変数は言う',
   issuesOf(withScript([{ type: 'say', who: 0, text: 'やあ' }]), 'どこでも使われていません'),
   ['warn']);
+
+// ================================== ブロックを字でさがす（editor/picker.js が使う）
+section('ブロックを字でさがす (blockindex)');
+{
+  const index = buildBlockIndex(['好感度']);
+  const idOf = (e) => e.key || e.event || e.name || e.kind;
+  const found = (q, n) => searchBlocks(index, q).slice(0, n || 1).map(idOf);
+
+  check('イベントは 1 つずつ別の行（「その他（自分で書く）」はのぞく）',
+    index.filter((e) => e.kind === 'event').map((e) => e.event),
+    EVENTS.map((e) => e[1]).filter((ev) => ev !== '__custom__'));
+  check('トークの帽子も入る', index.filter((e) => e.kind === 'talk' || e.kind === 'function').length, 2);
+  check('変数は、いまのプロジェクトのものが入る', index.filter((e) => e.kind === 'var').map((e) => e.name), ['好感度']);
+  const keys = Object.values(PALETTE).flat().filter((x) => typeof x === 'string' && x[0] !== '@');
+  check('パレットのブロックは全部さがせる', keys.filter((k) => !index.some((e) => e.key === k)), []);
+  check('同じ見た目の行がない', index.map((e) => e.label).filter((l, i, a) => a.indexOf(l) !== i), []);
+
+  check('「話す」→ 話すブロック（キャラが話す、より先）', found('話す', 2), ['say', 'chara']);
+  check('「改行」→ 改行するブロック（話すブロックの欄の既定値より先）', found('改行', 2), ['newline', 'say']);
+  check('「なで」→ なでられたとき', found('なで'), ['OnNadeNade']);
+  check('カタカナ・半角カナでもさがせる（ﾅﾃﾞ）', found('ﾅﾃﾞ'), ['OnNadeNade']);
+  check('中の名前でもさがせる（onnade・SAY）', [found('onnade')[0], found('SAY')[0]], ['OnNadeNade', 'say']);
+  check('言葉を 2 つ（さくら 話す）', found('さくら 話す', 9), ['say']);
+  check('カテゴリの名前（せりふ）', found('せりふ', 2), ['say', 'newline']);
+  check('「変数」→ 変数のブロックが先', found('変数', 2), ['set', 'change']);
+  check('変数の名前', found('好感'), ['好感度']);
+  check('はじめに出てくるほうが先（もし）', found('もし', 2), ['if', 'if_else']);
+  check('見つからなければ空', searchBlocks(index, 'xyz'), []);
+  check('空なら全部、パレットの順', searchBlocks(index, '  ').map(idOf), index.map(idOf));
+}
 
 // ============================================== お手本ゴースト（ui/samples）
 section('お手本ゴースト');

@@ -16,6 +16,48 @@ function viewCenter() {
   };
 }
 
+/**
+ * いま見えているキャンバスの中で、ほかのかたまりと重ならない場所（左上から、たて・よこの順にさがす）。
+ * キャンバスの上に浮かんでいるもの（はじめてガイド・右下のボタン・ごみ箱）の下にも置きません。
+ * 見えているところに空きが無ければ、その下をさがします（見えるところまで動かすのは、置いた側の仕事）。
+ * キャンバスの下のはしまで埋まっていたら、viewCenter() にします。
+ */
+function freeSpot(w = 320, h = 160) {
+  const ws = $('#workspace');
+  if (!ws || !ws.clientWidth) return viewCenter();
+  const z = Session.zoom;
+  const left = ws.scrollLeft / z + 40;
+  const top = ws.scrollTop / z + 40;
+  const right = Math.max(left, (ws.scrollLeft + ws.clientWidth) / z - w - 20);
+  const bottom = Math.max(top, (ws.scrollTop + ws.clientHeight) / z - h - 20);
+  const boxes = [...document.querySelectorAll('#canvas > .script')].map((el) => ({
+    l: el.offsetLeft, t: el.offsetTop, r: el.offsetLeft + el.offsetWidth, b: el.offsetTop + el.offsetHeight,
+  }));
+  const wr = ws.getBoundingClientRect();
+  for (const el of document.querySelectorAll('#workspace-wrap > :not(#workspace):not(#canvas-hint)')) {
+    if (!el.offsetWidth) continue;   // 閉じているもの
+    const r = el.getBoundingClientRect();
+    boxes.push({
+      l: (r.left - wr.left + ws.scrollLeft) / z, t: (r.top - wr.top + ws.scrollTop) / z,
+      r: (r.right - wr.left + ws.scrollLeft) / z, b: (r.bottom - wr.top + ws.scrollTop) / z,
+    });
+  }
+  const GAP = 24;
+  const hit = (x, y) => boxes.some((b) => x < b.r + GAP && b.l - GAP < x + w && y < b.b + GAP && b.t - GAP < y + h);
+  for (let x = left; x <= right; x += 40) {
+    for (let y = top; y <= bottom; y += 40) {
+      if (!hit(x, y)) return { x: Math.round(x), y: Math.round(y) };
+    }
+  }
+  const end = $('#canvas').offsetHeight - h - 20;
+  for (let y = bottom + 40; y <= end; y += 40) {
+    for (let x = left; x <= right; x += 40) {
+      if (!hit(x, y)) return { x: Math.round(x), y: Math.round(y) };
+    }
+  }
+  return viewCenter();
+}
+
 function duplicateScript(script) {
   Model.act(() => {
     const copy = Model.clone(script);
@@ -108,4 +150,4 @@ function init() {
   $('#btn-tidy').addEventListener('click', () => { tidy(); toast(t('整列しました')); });
 }
 
-export const Scripts = { init, duplicateScript, deleteScript, promptNewFunction, tidy };
+export const Scripts = { init, duplicateScript, deleteScript, promptNewFunction, tidy, freeSpot, viewCenter };

@@ -4,7 +4,6 @@ import { BLOCKS, createBlock, getDef, isReporter } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { toast } from '../core/toast.js';
 import { Render } from './render.js';
-import { ContextMenu } from './contextmenu.js';
 import { t } from '../i18n/i18n.js';
 
 const SNAP_STACK = 46;   // スタック接続の吸着距離(px)
@@ -40,6 +39,34 @@ function select(blockEl) {
   if (!blockEl) { D.selected = null; return; }
   blockEl.classList.add('selected');
   D.selected = { el: blockEl, block: blockEl._blk, stack: blockEl._stack, index: blockEl._index };
+}
+
+/**
+ * 描きなおしたあと、えらんでいたブロック（帽子ならそのかたまり）を、新しい見た目の上でえらびなおす。
+ * キャンバスは変わるたびに作りなおすので、こうしないと何かを変えるたびに選択が外れます。
+ * 消えていれば、えらんでいない状態にします。
+ */
+function reselect() {
+  const s = D.selected;
+  if (!s || !D.canvas) return;
+  if (s.el && s.el.isConnected) return;               // 描きなおしていない
+  let found = null;
+  for (const el of D.canvas.querySelectorAll('.blk')) {
+    if (s.block ? el._blk === s.block : (el._isHat && s.el && el._script === s.el._script)) { found = el; break; }
+  }
+  select(found);
+}
+
+/**
+ * えらんでいるものの「すぐ下」。ブロックならその次、帽子ならかたまりのいちばん上です。
+ * えらんでいないとき・下につなげられないもの（欄の中のブロックなど）のときは null。
+ */
+function insertTarget() {
+  const s = D.selected;
+  if (!s || !s.el || !s.el.isConnected) return null;
+  if (s.el._isHat && s.el._script) return { stack: s.el._script.blocks, index: 0 };
+  if (Array.isArray(s.stack)) return { stack: s.stack, index: s.index + 1 };
+  return null;
 }
 
 // ------------------------------------------------------------ drag start
@@ -360,8 +387,7 @@ function cleanupEmptyScripts() {
 
 // --------------------------------------------------------------- pointer
 function onPointerDown(e) {
-  if (e.button === 2) return;                       // 右クリックはメニュー
-  ContextMenu.close();
+  if (e.button === 2) return;                       // 右クリックはメニュー（開いているメニューは contextmenu.js が閉じます）
 
   const inPalette = !!(e.target.closest && e.target.closest('#palette'));
   const inCanvas = !!(e.target.closest && e.target.closest('#canvas'));
@@ -432,4 +458,4 @@ function init(opts) {
 function setZoom(z) { D.zoom = z; }
 function getSelected() { return D.selected; }
 
-export const Drag = { init, setZoom, select, getSelected, cleanupEmptyScripts, D };
+export const Drag = { init, setZoom, select, reselect, getSelected, insertTarget, uniqueName, cleanupEmptyScripts, D };

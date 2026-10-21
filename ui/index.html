@@ -61,9 +61,10 @@
           <li>「セリフ」の <i>◯が □ と話す</i> を、その下につなげる</li>
           <li>右の <i>ためす</i> の ▶ で確かめて、上の <i>書き出し</i> で SSP に入れる</li>
         </ol>
-        こまったら右上の <i>？</i> を押してください
+        キーボードなら <i>/</i> でブロックを探して置けます。こまったら右上の <i>？</i> を押してください
       </div>
       <div id="zoom-controls">
+        <button class="btn" id="btn-picker" title="ブロックを名前で探して置く（/）">＋ ブロック</button>
         <button class="btn icon-btn" id="btn-zoom-out" title="縮小">−</button>
         <button class="btn icon-btn" id="btn-zoom-reset" title="等倍にもどす">100%</button>
         <button class="btn icon-btn" id="btn-zoom-in" title="拡大">＋</button>
@@ -318,6 +319,11 @@
           <li>用意した絵を使うときは、<b>キャラと絵</b>の「立ち絵」で PNG をえらびます。</li>
           <li><b>書き出し</b>でフォルダか .nar を作り、SSP にドラッグ＆ドロップで入れます。</li>
         </ol>
+        <p class="hint">キーボードだけでも組めます。<b>/</b> で名前をさがして Enter で置くと、えらんでいるブロックのすぐ下につながります。
+          置いたブロックの文字の欄にそのまま打てるので、Enter で決めて、また <b>/</b> を押します。</p>
+        <div class="btn-row">
+          <button id="btn-guide-again" class="btn small">はじめてガイドをもう一度</button>
+        </div>
       </section>
 
       <div class="card-stack">
@@ -327,12 +333,24 @@
             <tr><td>Ctrl+S</td><td>保存</td></tr>
             <tr><td>Ctrl+Z / Ctrl+Y</td><td>元にもどす / やりなおす</td></tr>
             <tr><td>Ctrl+F</td><td>さがす</td></tr>
+            <tr><td>/</td><td>ブロックを名前で探して置く</td></tr>
             <tr><td>Ctrl+C / Ctrl+X / Ctrl+V</td><td>ブロックのコピー / 切り取り / はりつけ</td></tr>
             <tr><td>Ctrl+D</td><td>えらんだブロックを複製</td></tr>
             <tr><td>Delete</td><td>えらんだブロックを消す</td></tr>
-            <tr><td>右クリック</td><td>複製・削除メニュー</td></tr>
+            <tr><td>Esc</td><td>メニューや探す欄を閉じる</td></tr>
+            <tr><td>? / F1</td><td>この画面（つかいかた）を開く</td></tr>
             <tr><td>ホイール / 中ドラッグ</td><td>キャンバス移動</td></tr>
             <tr><td>Ctrl+ホイール</td><td>拡大・縮小</td></tr>
+          </table>
+          <p class="hint">Ctrl+V は、えらんでいるブロックのすぐ下（帽子をえらんでいるときは、かたまりのいちばん上）にはりつけます。</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>右クリックのメニュー</h2></div>
+          <table class="key-table">
+            <tr><td>ブロックの上</td><td>コピー・切り取り・すぐ下にはりつけ・複製・一時的に無効にする・削除・ここから下をすべて削除</td></tr>
+            <tr><td>かたまりの帽子の上</td><td>実行してみる・複製・削除</td></tr>
+            <tr><td>何もないところ</td><td>ここにブロックを探して置く・ここにはりつけ・整列</td></tr>
           </table>
         </section>
 

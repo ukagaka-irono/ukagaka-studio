@@ -59,6 +59,9 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 「空だと困る欄」があるブロックなら、**`ui/js/model/lint.js`**（チェックタブ）にも足します。
 
+`PALETTE` に足したブロックは、`/` の「ブロックを探して置く」にも自動で出ます（`model/blockindex.js` が
+`PALETTE` から一覧を作ります）。`ui\test\editor.js` が、パレットのブロックが全部さがせることを確かめます。
+
 `ui/` を直したら、**`studio\build.ps1` で exe を作りなおします**（UI は exe に埋め込まれています）。
 `interp.cpp` を直したときは、**栞とスタジオの両方**を作りなおしてください
 （`.\build.ps1` が順に作ります）。
@@ -86,7 +89,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
-| `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`） |
+| `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`） |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
 | `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通っているか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか |
@@ -147,10 +150,10 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
-├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp
-├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu
-├── core/          画面の土台   dom / api / toast / session / title / commands
-└── model/         データと規則（DOM を触らない）   blocks / model / lint / player / sample
+├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide
+├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
+├── core/          画面の土台   dom / api / toast / session / title / commands / events
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample
 ```
 
 **import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**
@@ -169,6 +172,10 @@ ui/js/
   `provide({ … })` で中身を入れます。いまあるのは `runScript`（`panels/run.js`）と
   `promptNewVariable`（`panels/vars.js`）の 2 つだけです。**増やす前に、その関数を下の層へ
   動かせないかを先に考えてください。**
+* **「何かが済んだ」ことを上の層に知らせたいとき**（お手本を開いた・▶ で動かした・書き出した →
+  はじめてガイドの ✓）は、`core/events.js` の `Events.emit('名前')` を使います。受ける側が
+  `Events.on('名前', fn)` で待ちます。`Commands` とちがって、知らせる側は受ける側がいるかどうかを気にしません。
+  いまある名前は `sample-opened`・`ran`・`exported`・`installed` です。
 * プロジェクトの中身（`ghost.json` になるもの）と、元にもどす・保存していない印は
   `model/model.js` の `Model` が持ちます。変えるときは `Model.act(() => { … })` を通すと、
   元にもどす記録と描きなおしがついてきます。
@@ -183,6 +190,9 @@ ui/js/
   `<div class="page" data-page="…">` を、`#mode-bar` にボタンを、`renderAll()` の `switch` に描く部品を足します。
 * 画面の部品は、プロジェクトを `Model.act` / `Model.pushUndo` で変えるだけにして、自分で描きなおさないでください
   （見えていれば `renderAll()` が描きなおします。2 回描くと、打ちかけの欄がとぶことがあります）。
+* キャンバスは描きなおすたびに作りなおすので、えらんでいたブロックの見た目も新しくなります。
+  `renderAll()` は描いたあとに `Drag.reselect()` を呼び、同じブロックの新しい見た目をえらびなおします
+  （`/` で続けて置いていけるのは、これがあるためです）。
 * `model/` は DOM を触らないので、node のテスト（`ui\test\editor.js`）からそのまま使えます。
 
 ### 画面の言葉（日本語・英語）
@@ -211,6 +221,15 @@ ui/js/
 * JS から色を付けるときも `var(--danger)` のようにトークンを使います。ブロックのカテゴリの色は `--cat-<id>` です。
 * どちらの表示にするかは `core/theme.js` が `html` の `data-theme` で決めます（無ければ Windows の設定に合わせる）。
   exe にも `theme:dark` / `theme:light` を送って、タイトルバーの色をそろえています（`studio/src/main.cpp`）。
+
+### キーボードと右クリック
+
+* ショートカットは `ui/js/shortcuts.js` にまとめてあります。**足したら、ヘルプの画面の表**
+  （`index.html` の「キーボードとマウス」）**にも足してください。** 文字を打っている欄の中では、
+  `Ctrl+S` などの一部を除いて動きません。ブロックの操作は、トークの画面が見えているときだけです。
+* 右クリックのメニューは `editor/contextmenu.js` です。項目に `key: 'Ctrl+C'` のように書くと、右にキーが出ます。
+* ブロックのコピー・切り取り・はりつけ・複製・削除は `editor/clipboard.js` にあり、メニューとキーの両方がそれを呼びます。
+  片方だけ直すと、メニューとキーで動きがずれるので、ここを直してください。
 
 ### そのほか
 

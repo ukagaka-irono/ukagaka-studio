@@ -8,6 +8,7 @@ import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
 import { provide } from '../core/commands.js';
+import { Events } from '../core/events.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
 import { Pages } from './pages.js';
@@ -92,6 +93,7 @@ async function runScript(script) {
   $('#script-preview').textContent = preview;
   renderVars();
   Stage.playSakura(res.script);
+  Events.emit('ran');
 }
 
 function renderVars() {

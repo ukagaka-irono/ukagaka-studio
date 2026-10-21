@@ -1,18 +1,18 @@
 /* 伺かスタジオ - キーボードのショートカット
  *
- * 保存・さがす・元にもどす・ブロックのコピーと貼りつけ。
+ * 保存・さがす・元にもどす・ブロックのコピーと貼りつけ・ブロックを探して置く・つかいかた。
  * いろいろな層のものを呼ぶので、main.js と同じく「組み立て」の側に置いています。
+ * 一覧はヘルプの画面（index.html の「キーボードとマウス」）にあります。足したら、そちらにも足してください。
  */
 
 import { Model } from './model/model.js';
-import { toast } from './core/toast.js';
-import { Session } from './core/session.js';
 import { Drag } from './editor/drag.js';
 import { ContextMenu } from './editor/contextmenu.js';
+import { Clipboard } from './editor/clipboard.js';
+import { Picker } from './editor/picker.js';
 import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
 import { Pages } from './panels/pages.js';
-import { t } from './i18n/i18n.js';
 
 function onKeyDown(e) {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
@@ -26,53 +26,49 @@ function onKeyDown(e) {
   if (e.ctrlKey && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
     e.preventDefault(); Model.redo(); return;
   }
+  if (e.key === 'F1') { e.preventDefault(); Pages.show('help'); return; }
   if (typing) return;
+  if (e.key === '?') { e.preventDefault(); Pages.show('help'); return; }
+  if (e.key === 'Escape') { ContextMenu.close(); Picker.close(); return; }
+
   // ここから下はキャンバスのブロックの操作。キャンバスが見えていないときは何もしない
   // （ほかの画面で Delete を押して、見えないブロックが消えないように）
   if (Pages.current !== 'talk') return;
 
-  // ---- ブロックのコピー＆はりつけ
-  //   コピーしたものは Model.clone で切り離して持つので、あとから元を消しても平気です。
+  if (e.key === '/' && !e.ctrlKey && !e.altKey) { e.preventDefault(); Picker.open(); return; }
+
   const sel = Drag.getSelected();
   const key = e.key.toLowerCase();
-  if (e.ctrlKey && (key === 'c' || key === 'x')) {
-    if (!sel || !sel.block) return;
-    e.preventDefault();
-    Session.clipboard = Model.clone(sel.block);
-    if (key === 'x' && Array.isArray(sel.stack)) {
-      Model.act(() => { sel.stack.splice(sel.index, 1); });
-      Drag.select(null);
+  if (e.ctrlKey && key === 'c') {
+    if (sel && sel.block) { e.preventDefault(); Clipboard.copy(sel.block); }
+    return;
+  }
+  if (e.ctrlKey && key === 'x') {
+    if (sel && Array.isArray(sel.stack)) {
+      e.preventDefault();
+      if (Clipboard.cut(sel.stack, sel.index)) Drag.select(null);
     }
-    toast(key === 'x' ? t('ブロックを切り取りました') : t('ブロックをコピーしました'));
     return;
   }
   if (e.ctrlKey && key === 'v') {
-    if (!Session.clipboard) { toast(t('コピーしたブロックがありません'), true); return; }
-    if (!sel || !Array.isArray(sel.stack)) {
-      toast(t('はりつける場所のブロックを、先にクリックしてください'), true);
-      return;
-    }
+    // えらんでいるもののすぐ下に（帽子なら、かたまりのいちばん上に）
+    const target = Drag.insertTarget();
     e.preventDefault();
-    Model.act(() => { sel.stack.splice(sel.index + 1, 0, Model.clone(Session.clipboard)); });
-    toast(t('はりつけました'));
+    if (target) Clipboard.paste(target.stack, target.index);
+    else Clipboard.paste(null, 0);   // 「先にクリックしてください」と言う
     return;
   }
   if (e.ctrlKey && key === 'd') {
-    if (!sel || !sel.block || !Array.isArray(sel.stack)) return;
-    e.preventDefault();
-    Model.act(() => { sel.stack.splice(sel.index + 1, 0, Model.clone(sel.block)); });
-    toast(t('ブロックを複製しました'));
+    if (sel && Array.isArray(sel.stack)) { e.preventDefault(); Clipboard.duplicate(sel.stack, sel.index); }
     return;
   }
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (sel && Array.isArray(sel.stack)) {
       e.preventDefault();
-      Model.act(() => { sel.stack.splice(sel.index, 1); });
-      Drag.select(null);
+      if (Clipboard.remove(sel.stack, sel.index)) Drag.select(null);
     }
   }
-  if (e.key === 'Escape') ContextMenu.close();
 }
 
 export const Shortcuts = {

@@ -421,5 +421,5 @@ function renderPalette(container, catId, project) {
 
 export const Render = {
   buildBlockEl, buildStackEl, buildScriptEl, renderWorkspace, renderPalette,
-  measureText, div, el,
+  measureText, div, el, hatKeyFor,
 };

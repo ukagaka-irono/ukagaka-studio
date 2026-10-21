@@ -9,6 +9,7 @@ import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
+import { Events } from '../core/events.js';
 import { Render } from '../editor/render.js';
 import { Run } from './run.js';
 import { Pages } from './pages.js';
@@ -131,6 +132,7 @@ async function installToSsp() {
       t('<b>{folder}</b> を入れました（{files} ファイル）<br>', { folder: escapeHtml(r.folder), files: r.files }) +
       `<code>${escapeHtml(r.root)}</code><br>${escapeHtml(notes[r.action] || '')}`;
     toast(t('SSP に入れました'));
+    Events.emit('installed');
     refreshSsp();
   } catch (e) {
     box.textContent = '';
