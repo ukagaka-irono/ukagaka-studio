@@ -32,12 +32,16 @@ const C = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0m' }
 // ui/js/ の直下（main.js・shortcuts.js）は「組み立て」で、どこでも import できますが、
 // 直下のファイルを import できるのは main.js だけです。
 const LAYERS = {
-  model: ['model'],
-  core: ['core', 'model'],
-  editor: ['editor', 'core', 'model'],
-  panels: ['panels', 'editor', 'core', 'model'],
+  i18n: ['i18n'],                                       // 画面の言葉（どこからでも使う、いちばん下）
+  model: ['model', 'i18n'],
+  core: ['core', 'model', 'i18n'],
+  editor: ['editor', 'core', 'model', 'i18n'],
+  panels: ['panels', 'editor', 'core', 'model', 'i18n'],
 };
 const layerOf = (f) => (f.includes('/') ? f.split('/')[0] : '');
+
+// node の navigator.language は en-US なので、テストでは日本語に決めうちにします（ui/js/i18n/i18n.js）
+globalThis.IKAGA_LANG = 'ja';
 
 // 読みこむだけなら DOM はほとんど要らない。触られたものだけ用意する。
 function stubDom() {

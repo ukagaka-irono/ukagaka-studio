@@ -11,13 +11,14 @@
  */
 
 import { $ } from './dom.js';
+import { t } from '../i18n/i18n.js';
 
 const KEY = 'ikaga.theme';
 const MODES = ['system', 'light', 'dark'];
 const LABELS = {
-  system: { icon: '◐', title: '表示: Windows の設定に合わせる（押すと「明るい」に）' },
-  light:  { icon: '☀', title: '表示: 明るい（押すと「暗い」に）' },
-  dark:   { icon: '☾', title: '表示: 暗い（押すと「Windows の設定に合わせる」に）' },
+  system: { icon: '◐', title: t('表示: Windows の設定に合わせる（押すと「明るい」に）') },
+  light:  { icon: '☀', title: t('表示: 明るい（押すと「暗い」に）') },
+  dark:   { icon: '☾', title: t('表示: 暗い（押すと「Windows の設定に合わせる」に）') },
 };
 
 let mode = 'system';

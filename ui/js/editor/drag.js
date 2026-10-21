@@ -5,6 +5,7 @@ import { Model } from '../model/model.js';
 import { toast } from '../core/toast.js';
 import { Render } from './render.js';
 import { ContextMenu } from './contextmenu.js';
+import { t } from '../i18n/i18n.js';
 
 const SNAP_STACK = 46;   // スタック接続の吸着距離(px)
 const SNAP_SLOT = 34;    // スロット吸着距離(px)
@@ -51,7 +52,7 @@ function pickPayload(target, clientX, clientY) {
       const script = Object.assign({
         kind: paletteBlk._paletteHat,
         event: 'OnBoot',
-        name: paletteBlk._paletteHat === 'talk' ? 'トーク' : 'あたらしいトーク',
+        name: paletteBlk._paletteHat === 'talk' ? t('トーク') : t('あたらしいトーク'),
         weight: 1,
       }, Model.clone(paletteBlk._paletteScript || {}), { blocks: [] });
       delete script.id;
@@ -284,7 +285,7 @@ function finishDrag(clientX, clientY) {
     // それ以外はすでにモデルから外れているので、置かなければ消える
     Model.pushUndo(d.snapshot);
     Model.emit();
-    toast('ブロックを削除しました');
+    toast(t('ブロックを削除しました'));
     return;
   }
 

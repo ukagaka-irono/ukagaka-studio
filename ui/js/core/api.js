@@ -4,6 +4,8 @@
  * X-Ikaga ヘッダは、自分の画面からの要求だという印です。
  */
 
+import { t } from '../i18n/i18n.js';
+
 export async function api(path, options) {
   const opt = Object.assign({ headers: {} }, options || {});
   opt.headers['X-Ikaga'] = '1';
@@ -15,6 +17,6 @@ export async function api(path, options) {
   const text = await res.text();
   let data = {};
   try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-  if (!res.ok) throw new Error(data.error || ('通信エラー (' + res.status + ')'));
+  if (!res.ok) throw new Error(data.error || t('通信エラー ({status})', { status: res.status }));
   return data;
 }

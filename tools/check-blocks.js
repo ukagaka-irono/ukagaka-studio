@@ -63,6 +63,7 @@ function read(rel) {
 
 const src = { cpp: read(CPP), doc: read(DOC) };
 
+globalThis.IKAGA_LANG = 'ja';   // ブロックの文は日本語のものを見ます（ui/js/i18n/i18n.js）
 const N = require(path.join(root, DEFS.replace(/\\/g, path.sep)));
 if (!N || !N.BLOCKS) {
   console.error(`${C.red}[そろい] ${DEFS} を読めませんでした。${C.off}`);

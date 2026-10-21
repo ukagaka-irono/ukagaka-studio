@@ -5,6 +5,7 @@ import { Model } from '../model/model.js';
 import { Commands } from '../core/commands.js';
 import { updateTitle } from '../core/title.js';
 import { Scripts } from './scripts.js';
+import { t } from '../i18n/i18n.js';
 
 const INPUT_FONT = '600 12.5px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif';
 
@@ -145,7 +146,7 @@ function buildField(owner, name, argDef, project, blockEl) {
         for (const c of (a.collisions || [])) {
           if (!c.name || seen[c.name]) continue;
           seen[c.name] = 1;
-          opts.push([c.name + '（うごき ' + a.id + '）', c.name]);
+          opts.push([t('{name}（うごき {id}）', { name: c.name, id: a.id }), c.name]);
         }
       }
       if (owner[name] && !seen[owner[name]]) opts.push([owner[name], owner[name]]);
@@ -156,8 +157,8 @@ function buildField(owner, name, argDef, project, blockEl) {
 
     case 'varname': {
       const opts = Model.variableNames().map((n) => [n, n]);
-      if (!opts.length) opts.push(['（変数がありません）', '']);
-      opts.push(['＋ あたらしい変数…', '__new__']);
+      if (!opts.length) opts.push([t('（変数がありません）'), '']);
+      opts.push([t('＋ あたらしい変数…'), '__new__']);
       return buildSelect(opts, owner[name], (v, sel) => {
         if (v === '__new__') {
           const created = Commands.promptNewVariable();
@@ -171,8 +172,8 @@ function buildField(owner, name, argDef, project, blockEl) {
 
     case 'funcname': {
       const opts = Model.functionNames().map((n) => [n, n]);
-      if (!opts.length) opts.push(['（トークがありません）', '']);
-      opts.push(['＋ あたらしいトーク…', '__new__']);
+      if (!opts.length) opts.push([t('（トークがありません）'), '']);
+      opts.push([t('＋ あたらしいトーク…'), '__new__']);
       return buildSelect(opts, owner[name], (v, sel) => {
         if (v === '__new__') {
           const created = Scripts.promptNewFunction();
@@ -192,8 +193,8 @@ function buildField(owner, name, argDef, project, blockEl) {
 function fillRow(row, owner, def, project, blockEl) {
   for (const part of def.parts) {
     if (part.lbl != null) {
-      const t = part.lbl.replace(/^\s+|\s+$/g, ' ');
-      if (t.trim() === '' ) continue;
+      const lbl = part.lbl.replace(/^\s+|\s+$/g, ' ');
+      if (lbl.trim() === '' ) continue;
       row.appendChild(el('span', 'lbl', part.lbl.trim()));
     } else {
       const argDef = (def.args || {})[part.arg];
@@ -208,7 +209,7 @@ function buildBlockEl(block, project) {
   const def = getDef(block);
   if (!def) {
     const unknown = div('blk cat-control');
-    const row = div('row sh-stack', '？ 不明なブロック: ' + (block && block.type));
+    const row = div('row sh-stack', t('？ 不明なブロック: {type}', { type: block && block.type }));
     unknown.appendChild(row);
     unknown._blk = block;
     return unknown;
@@ -235,7 +236,7 @@ function buildBlockEl(block, project) {
     if (def.dynamic) {
       if (!Array.isArray(block[def.dynamic])) block[def.dynamic] = [[], []];
       block[def.dynamic].forEach((arr, i) => {
-        subs.push({ arr, label: i === 0 ? null : 'または' });
+        subs.push({ arr, label: i === 0 ? null : t('または') });
       });
     } else {
       for (const s of def.subs || []) {
@@ -258,7 +259,7 @@ function buildBlockEl(block, project) {
     const bottom = div('row sh-cbottom');
     if (def.dynamic) {
       const minus = el('button', 'blk-btn', '−');
-      minus.title = 'えらび先をへらす';
+      minus.title = t('えらび先をへらす');
       minus.addEventListener('pointerdown', (e) => e.stopPropagation());
       minus.addEventListener('click', () => {
         Model.act(() => {
@@ -266,7 +267,7 @@ function buildBlockEl(block, project) {
         });
       });
       const plus = el('button', 'blk-btn', '＋');
-      plus.title = 'えらび先をふやす';
+      plus.title = t('えらび先をふやす');
       plus.addEventListener('pointerdown', (e) => e.stopPropagation());
       plus.addEventListener('click', () => {
         Model.act(() => { block[def.dynamic].push([]); });
@@ -322,9 +323,9 @@ function buildScriptEl(script, project, options) {
       b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
       return b;
     };
-    tools.appendChild(mk('▶', 'このかたまりを実行してみる', () => Commands.runScript(script)));
-    tools.appendChild(mk('⧉', '複製する', () => Scripts.duplicateScript(script)));
-    tools.appendChild(mk('✕', '削除する', () => Scripts.deleteScript(script)));
+    tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
+    tools.appendChild(mk('⧉', t('複製する'), () => Scripts.duplicateScript(script)));
+    tools.appendChild(mk('✕', t('削除する'), () => Scripts.deleteScript(script)));
     wrap.appendChild(tools);
   }
 
@@ -372,7 +373,7 @@ function renderPalette(container, catId, project) {
     if (entry === '@vars') {
       const names = Model.variableNames();
       if (!names.length) {
-        container.appendChild(div('palette-note', 'まだ変数がありません。上のボタンで作ってみましょう。'));
+        container.appendChild(div('palette-note', t('まだ変数がありません。上のボタンで作ってみましょう。')));
       }
       for (const name of names) {
         const block = { type: 'var', name };
@@ -392,7 +393,7 @@ function renderPalette(container, catId, project) {
     if (def.hat) {
       const fake = {
         id: 'palette', kind: def.kind, blocks: [],
-        event: 'OnBoot', name: def.kind === 'talk' ? 'トーク' : 'あたらしいトーク', weight: 1,
+        event: 'OnBoot', name: def.kind === 'talk' ? t('トーク') : t('あたらしいトーク'), weight: 1,
         area: '', who: -1,
       };
       // 帽子ブロックの既定値（なでなでブロックなど）を反映する

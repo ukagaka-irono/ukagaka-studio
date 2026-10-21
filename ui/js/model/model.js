@@ -1,6 +1,7 @@
 /* 伺かスタジオ - プロジェクトのデータモデルと Undo */
 
 import { AREAS, EVENTS, MOUSE_EVENTS, WHO_ANY, getDef } from './blocks.js';
+import { t } from '../i18n/i18n.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
@@ -31,20 +32,20 @@ const MIGRATIONS = {};
  */
 function readFormat(p) {
   if (!p || typeof p !== 'object' || Array.isArray(p)) {
-    return { ok: false, message: 'プロジェクトの形をしていません（中身が JSON のオブジェクトではありません）' };
+    return { ok: false, message: t('プロジェクトの形をしていません（中身が JSON のオブジェクトではありません）') };
   }
   if (p.format == null || p.format === '') return { ok: true, version: 1 };
   const m = /^([a-z]+)\/(\d+)$/.exec(String(p.format));
   if (!m || FORMAT_NAMES.indexOf(m[1]) < 0) {
-    return { ok: false, message: `知らない形のファイルです（"format": "${p.format}"）` };
+    return { ok: false, message: t('知らない形のファイルです（"format": "{format}"）', { format: p.format }) };
   }
   const version = Number(m[2]);
-  if (version < 1) return { ok: false, message: `知らない形のファイルです（"format": "${p.format}"）` };
+  if (version < 1) return { ok: false, message: t('知らない形のファイルです（"format": "{format}"）', { format: p.format }) };
   if (version > FORMAT_VERSION) {
     return {
       ok: false,
-      message: `この伺かスタジオより新しい版で作られたプロジェクトです（"format": "${p.format}"、`
-        + `読めるのは ${FORMAT} まで）。伺かスタジオを新しくしてから開いてください`,
+      message: t('この伺かスタジオより新しい版で作られたプロジェクトです（"format": "{format}"、読めるのは {latest} まで）。伺かスタジオを新しくしてから開いてください',
+        { format: p.format, latest: FORMAT }),
     };
   }
   return { ok: true, version };
@@ -56,7 +57,7 @@ function upgrade(p) {
   if (!f.ok) throw new Error(f.message);
   let out = clone(p);
   for (let v = f.version; v < FORMAT_VERSION; v++) {
-    if (!MIGRATIONS[v]) throw new Error(`版 ${v} から ${v + 1} への直しかたがありません`);
+    if (!MIGRATIONS[v]) throw new Error(t('版 {from} から {to} への直しかたがありません', { from: v, to: v + 1 }));
     out = MIGRATIONS[v](out);
   }
   out.format = FORMAT;
@@ -86,9 +87,9 @@ const Model = {
     return {
       format: FORMAT,
       meta: {
-        name: 'あたらしいゴースト',
-        sakuraName: 'さくら',
-        keroName: 'うにゅう',
+        name: t('あたらしいゴースト'),
+        sakuraName: t('さくら'),
+        keroName: t('うにゅう'),
         craftman: '',
         craftmanUrl: '',
         homeUrl: '',
@@ -175,7 +176,7 @@ const Model = {
       if (script.kind === 'talk' && script.weight == null) script.weight = 1;
       if (script.kind === 'talk' && typeof script.group !== 'string') script.group = '';
       if ((script.kind === 'talk' || script.kind === 'function') && !script.name) {
-        script.name = script.kind === 'talk' ? 'トーク' : 'なまえのないトーク';
+        script.name = script.kind === 'talk' ? t('トーク') : t('なまえのないトーク');
       }
       if (script.kind === 'event') {
         if (!script.event) script.event = 'OnBoot';
@@ -280,8 +281,8 @@ const Model = {
       if (typeof s.contains !== 'string') s.contains = '';
       if (typeof s.everySec !== 'number') s.everySec = 1;
     }
-    if (kind === 'talk') { s.name = s.name || 'トーク'; if (s.weight == null) s.weight = 1; }
-    if (kind === 'function') s.name = s.name || 'あたらしいトーク';
+    if (kind === 'talk') { s.name = s.name || t('トーク'); if (s.weight == null) s.weight = 1; }
+    if (kind === 'function') s.name = s.name || t('あたらしいトーク');
     Model.project.scripts.push(s);
     return s;
   },
@@ -295,29 +296,30 @@ const Model = {
     if (!s) return '';
     if (s.kind === 'event') {
       const found = EVENTS.find((e) => e[1] === s.event);
-      let label = found ? found[0] : (s.event || 'イベント');
+      let label = found ? found[0] : (s.event || t('イベント'));
       if (s.event === 'OnSecondChange') {
         const n = Math.max(1, Number(s.everySec) || 1);
-        return n > 1 ? `${n}秒ごとにくりかえす` : label;
+        return n > 1 ? t('{n}秒ごとにくりかえす', { n }) : label;
       }
       if (MOUSE_EVENTS[s.event]) {
         // 仮シェルの名前に無いもの（うごきで足した当たり判定）は、そのまま出す
         const area = (AREAS.find((a) => a[1] === (s.area || '')) || [])[0] || s.area;
         const who = (WHO_ANY.find((w) => w[1] === (s.who == null ? -1 : s.who)) || [])[0];
-        if (s.area || (s.who != null && s.who >= 0)) label = who + 'の' + area + 'が' + label;
+        if (s.area || (s.who != null && s.who >= 0)) label = t('{who}の{area}が{label}', { who, area, label });
       }
       if (s.event === 'OnCommunicate' && (s.from || s.contains)) {
-        const who = s.from ? s.from : 'だれか';
-        label = s.contains ? `${who}に「${s.contains}」と${label}` : `${who}に${label}`;
+        const who = s.from ? s.from : t('だれか');
+        label = s.contains ? t('{who}に「{contains}」と{label}', { who, contains: s.contains, label }) : t('{who}に{label}', { who, label });
       }
       return label;
     }
     if (s.kind === 'talk') {
       const g = String(s.group || '').trim();
-      return 'ランダムトーク「' + (s.name || '') + '」' + (g ? `（${g}）` : '');
+      return g ? t('ランダムトーク「{name}」（{group}）', { name: s.name || '', group: g })
+        : t('ランダムトーク「{name}」', { name: s.name || '' });
     }
-    if (s.kind === 'function') return '「' + (s.name || '') + '」';
-    return 'ブロックのかたまり';
+    if (s.kind === 'function') return t('「{name}」', { name: s.name || '' });
+    return t('ブロックのかたまり');
   },
 
   functionNames() {

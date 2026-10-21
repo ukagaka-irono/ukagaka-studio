@@ -42,6 +42,9 @@ jobs:
       - name: 画面のファイル（読みこみと呼び先）
         run: node ui\test\modules.js
 
+      - name: 画面の言葉（t() の包み忘れと英語の辞書）
+        run: node ui\test\i18n.js
+
   # 栞（32bit DLL）とスタジオ（64bit EXE）を作って、テストを通し、配る形にまとめる。
   build:
     name: ビルドとテスト

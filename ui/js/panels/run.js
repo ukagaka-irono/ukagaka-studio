@@ -11,6 +11,7 @@ import { provide } from '../core/commands.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
 import { Shell } from './shell.js';
+import { t } from '../i18n/i18n.js';
 
 function renderTargets() {
   const sel = $('#run-target');
@@ -23,7 +24,7 @@ function renderTargets() {
     sel.appendChild(o);
   }
   if (!sel.childElementCount) {
-    const o = Render.el('option', null, '（まだブロックがありません）');
+    const o = Render.el('option', null, t('（まだブロックがありません）'));
     o.value = '';
     sel.appendChild(o);
   }
@@ -44,7 +45,7 @@ function refsFor(script) {
   if (!script || script.kind !== 'event') return [];
   if (script.event === 'OnCommunicate') {
     // 相手の名前・言われたこと。空欄なら、ためすとき用の仮の値を入れる。
-    return [script.from || 'ほかのゴースト', script.contains || 'こんにちは'];
+    return [script.from || t('ほかのゴースト'), script.contains || t('こんにちは')];
   }
   if (!MOUSE_EVENTS[script.event]) return [];
   const who = script.who >= 0 ? script.who : 0;
@@ -78,14 +79,14 @@ async function runScript(script) {
   try {
     res = await runPreview(script);
   } catch (e) {
-    $('#script-preview').textContent = '（ためせませんでした: ' + e.message + '）';
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message: e.message });
     toast(e.message, true);
     return;
   }
   Session.vars = res.vars || {};
-  let preview = res.script || '（なにも出力されませんでした）';
+  let preview = res.script || t('（なにも出力されませんでした）');
   // 話しかけ先はさくらスクリプトに出ないので、ここで見せる
-  if (res.commTo) preview += `\n\n（「${res.commTo}」に届きます）`;
+  if (res.commTo) preview += t('\n\n（「{commTo}」に届きます）', { commTo: res.commTo });
   $('#script-preview').textContent = preview;
   renderVars();
   Shell.playSakura(res.script);
@@ -100,7 +101,7 @@ function renderVars() {
   Object.assign(shown, Session.vars);
   const names = Object.keys(shown).filter((k) => k[0] !== '@');
   if (!names.length) {
-    box.appendChild(Render.div('run-var is-empty', 'まだ変数がありません'));
+    box.appendChild(Render.div('run-var is-empty', t('まだ変数がありません')));
     return;
   }
   for (const k of names) {
@@ -112,7 +113,7 @@ function renderVars() {
 function resetSessionVars() {
   Session.vars = {};
   renderVars();
-  toast('ためすときの変数を、初期値にもどしました');
+  toast(t('ためすときの変数を、初期値にもどしました'));
 }
 
 /** 書き出したゴーストが覚えている変数（ikaga_save.json）を消す */
@@ -124,8 +125,8 @@ async function resetGhostSave() {
     });
     const n = (r.deleted || []).length;
     toast(n
-      ? `ゴーストの記憶を消しました（${n} か所）。次に動かすと初期値からになります`
-      : '消すものがありませんでした（まだ動かしていないようです）');
+      ? t('ゴーストの記憶を消しました（{n} か所）。次に動かすと初期値からになります', { n })
+      : t('消すものがありませんでした（まだ動かしていないようです）'));
   } catch (e) {
     toast(e.message, true);
   }
@@ -148,25 +149,23 @@ async function ghostLog(action) {
       },
     });
     if (!(r.places || []).length) {
-      box.textContent = 'まだ書き出していないようです。先に「SSP に入れて動かす」を押してください。';
+      box.textContent = t('まだ書き出していないようです。先に「SSP に入れて動かす」を押してください。');
       return;
     }
     if (action === 'clear') {
-      box.textContent = '記録をやめました。';
-      toast('記録をやめました');
+      box.textContent = t('記録をやめました。');
+      toast(t('記録をやめました'));
       return;
     }
     if (!r.recording) {
-      box.textContent = 'いまは記録していません。「記録をはじめる」を押すと、'
-        + 'つぎに動かしたときから残ります。';
+      box.textContent = t('いまは記録していません。「記録をはじめる」を押すと、つぎに動かしたときから残ります。');
       return;
     }
     box.textContent = r.text && r.text.trim()
       ? r.text
-      : `記録中です（${r.path}）。まだ何も書かれていません。\n`
-        + 'ゴーストを動かしてから、もう一度「読む」を押してください。';
+      : t('記録中です（{path}）。まだ何も書かれていません。\nゴーストを動かしてから、もう一度「読む」を押してください。', { path: r.path });
     box.scrollTop = box.scrollHeight;
-    if (action === 'start') toast('記録をはじめました');
+    if (action === 'start') toast(t('記録をはじめました'));
   } catch (e) {
     box.textContent = e.message;
     toast(e.message, true);
@@ -179,13 +178,13 @@ function init() {
   $('#btn-run').addEventListener('click', () => {
     const s = currentScript();
     if (s) runScript(s);
-    else toast('実行するかたまりがありません', true);
+    else toast(t('実行するかたまりがありません'), true);
   });
   $('#btn-copy-script').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText($('#script-preview').textContent);
-      toast('コピーしました');
-    } catch { toast('コピーできませんでした', true); }
+      toast(t('コピーしました'));
+    } catch { toast(t('コピーできませんでした'), true); }
   });
   $('#btn-vars-reset').addEventListener('click', resetSessionVars);
   $('#btn-save-reset').addEventListener('click', resetGhostSave);

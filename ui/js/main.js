@@ -34,6 +34,7 @@ import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
 import { Ssp } from './panels/ssp.js';
 import { Shortcuts } from './shortcuts.js';
+import { t, translateDom } from './i18n/i18n.js';
 
 // ---------------------------------------------------------------- 再描画
 let renderQueued = false;
@@ -65,10 +66,10 @@ function renderAll() {
 // ------------------------------------------------------------ 上のボタン
 function initTopbar() {
   $('#btn-new').addEventListener('click', () => {
-    if (Model.dirty && !confirm('保存していない変更があります。新しく作りますか？')) return;
+    if (Model.dirty && !confirm(t('保存していない変更があります。新しく作りますか？'))) return;
     Model.init(sampleProject());
     Session.vars = {};
-    toast('新しいゴーストを作りました');
+    toast(t('新しいゴーストを作りました'));
   });
   $('#btn-open').addEventListener('click', Dialog.openProjectDialog);
   $('#btn-save').addEventListener('click', () => Dialog.saveProject(false));
@@ -84,15 +85,16 @@ function showState(state) {
   const st = $('#dll-status');
   st.className = 'status-line ' + (state.dllFound ? 'status-ok' : 'status-ng');
   st.textContent = state.dllFound
-    ? '栞 (ikaga.dll) の準備ができています'
-    : 'ikaga.dll がまだありません。shiori\\build.ps1 を実行してください。';
+    ? t('栞 (ikaga.dll) の準備ができています')
+    : t('ikaga.dll がまだありません。shiori\\build.ps1 を実行してください。');
   $('#ssp-hint').textContent = state.sspGhostDir
-    ? 'SSP らしきフォルダを見つけました: ' + state.sspGhostDir
-    : 'SSP の ghost フォルダを指定すると、そのまま追加できます。';
+    ? t('SSP らしきフォルダを見つけました: {dir}', { dir: state.sspGhostDir })
+    : t('SSP の ghost フォルダを指定すると、そのまま追加できます。');
 }
 
 // ------------------------------------------------------------------- 起動
 async function boot() {
+  translateDom(document.body);   // index.html に直に書いた文（日本語のときは何もしない）
   Theme.init();
   Palette.init();
   Ghost.init();
@@ -121,7 +123,7 @@ async function boot() {
   } catch (e) {
     // 前に開いていたものが読めない形（新しい版で保存した、など）。ファイルはそのまま残し、ひな形で始める
     Model.init(sampleProject());
-    toast(`「${state.lastProject}」を開けませんでした: ${e.message}`, true);
+    toast(t('「{name}」を開けませんでした: {message}', { name: state.lastProject, message: e.message }), true);
   }
   Zoom.setZoom(1);
   Tabs.switchTab('run');

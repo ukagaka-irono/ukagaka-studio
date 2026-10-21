@@ -10,16 +10,17 @@ import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
 import { updateTitle } from '../core/title.js';
 import { Render } from '../editor/render.js';
+import { t } from '../i18n/i18n.js';
 
 // ---------------------------------------------------------- 保存 / 読込
 async function saveProject(silent) {
-  const name = Model.project.meta.name || 'ゴースト';
+  const name = Model.project.meta.name || t('ゴースト');
   try {
     const r = await api('/api/project', { method: 'POST', body: { name, project: Model.project } });
     Session.projectName = r.saved;
     Model.dirty = false;
     updateTitle();
-    if (!silent) toast(`「${r.saved}」を保存しました`);
+    if (!silent) toast(t('「{name}」を保存しました', { name: r.saved }));
     return true;
   } catch (e) {
     toast(e.message, true);
@@ -58,16 +59,16 @@ async function openProjectDialog() {
   let state;
   try { state = await api('/api/state'); } catch (e) { toast(e.message, true); return; }
   const list = Render.div('');
-  if (!state.projects.length) list.appendChild(Render.div('hint', 'まだ保存したプロジェクトがありません。'));
+  if (!state.projects.length) list.appendChild(Render.div('hint', t('まだ保存したプロジェクトがありません。')));
   for (const p of state.projects) {
     const row = Render.div('proj-row');
     row.appendChild(Render.div('t', p.title));
     row.appendChild(Render.div('d', new Date(p.updated).toLocaleString('ja-JP')));
     const x = Render.el('button', 'x', '✕');
-    x.title = '削除';
+    x.title = t('削除');
     x.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (!confirm(`「${p.title}」を削除しますか？`)) return;
+      if (!confirm(t('「{title}」を削除しますか？', { title: p.title }))) return;
       await api('/api/project/delete', { method: 'POST', body: { name: p.file } });
       closeModal();
       openProjectDialog();
@@ -80,14 +81,14 @@ async function openProjectDialog() {
         Session.projectName = p.file;
         Session.vars = {};
         closeModal();
-        toast(`「${p.title}」を開きました`);
+        toast(t('「{title}」を開きました', { title: p.title }));
       } catch (e) { toast(e.message, true); }
     });
     list.appendChild(row);
   }
-  modal('プロジェクトを開く', list, [
-    { label: 'お手本から始める', run: () => setTimeout(openSampleDialog, 0) },
-    { label: '閉じる' },
+  modal(t('プロジェクトを開く'), list, [
+    { label: t('お手本から始める'), run: () => setTimeout(openSampleDialog, 0) },
+    { label: t('閉じる') },
   ]);
 }
 
@@ -97,37 +98,37 @@ async function openSampleDialog() {
   try {
     index = await (await fetch('samples/index.json')).json();
   } catch (e) {
-    toast('お手本を読めませんでした', true);
+    toast(t('お手本を読めませんでした'), true);
     return;
   }
   const list = Render.div('');
   list.appendChild(Render.div('hint',
-    'えらぶと、いまのプロジェクトを置きかえて開きます（保存していないものは消えます）。'));
+    t('えらぶと、いまのプロジェクトを置きかえて開きます（保存していないものは消えます）。')));
   for (const s of index) {
     const row = Render.div('proj-row');
     row.appendChild(Render.div('t', s.title));
     row.appendChild(Render.div('d', s.desc));
     row.addEventListener('click', async () => {
-      if (Model.dirty && !confirm('保存していない変更があります。お手本を開きますか？')) return;
+      if (Model.dirty && !confirm(t('保存していない変更があります。お手本を開きますか？'))) return;
       try {
         const data = await (await fetch('samples/' + s.file)).json();
         Model.init(data);
         Session.projectName = '';          // 上書き保存ではなく、名前を付けて保存させる
         Session.vars = {};
         closeModal();
-        toast(`お手本「${s.title}」を開きました。保存すると自分のものになります`);
-      } catch (e) { toast('お手本を読めませんでした', true); }
+        toast(t('お手本「{title}」を開きました。保存すると自分のものになります', { title: s.title }));
+      } catch (e) { toast(t('お手本を読めませんでした'), true); }
     });
     list.appendChild(row);
   }
-  modal('お手本からはじめる', list, [{ label: '閉じる' }]);
+  modal(t('お手本からはじめる'), list, [{ label: t('閉じる') }]);
 }
 
 // ------------------------------------------------------------- 書き出し
 async function doExport(mode) {
   const outDir = $('#export-dir').value.trim();
   const box = $('#export-result');
-  box.textContent = '書き出し中…';
+  box.textContent = t('書き出し中…');
   try {
     const r = await api('/api/export', {
       method: 'POST',
@@ -142,25 +143,24 @@ async function doExport(mode) {
     box.textContent = '';
     const p = Render.div('');
     if (mode === 'nar') {
-      p.innerHTML = `<b>.nar を作りました</b><br><code>${escapeHtml(r.path)}</code><br>` +
-        'SSP のウィンドウにドラッグ＆ドロップするとインストールできます。';
+      p.innerHTML = t('<b>.nar を作りました</b><br><code>{path}</code><br>SSP のウィンドウにドラッグ＆ドロップするとインストールできます。',
+        { path: escapeHtml(r.path) });
     } else {
-      p.innerHTML = `<b>書き出しました</b><br><code>${escapeHtml(r.root)}</code><br>` +
-        `ファイル ${r.written.length} 個` +
-        (r.skipped.length ? `（既存のシェル ${r.skipped.length} 個はそのまま）` : '');
+      p.innerHTML = t('<b>書き出しました</b><br><code>{path}</code><br>ファイル {count} 個', { path: escapeHtml(r.root), count: r.written.length }) +
+        (r.skipped.length ? t('（既存のシェル {count} 個はそのまま）', { count: r.skipped.length }) : '');
     }
     if (!r.dll) {
       p.appendChild(Render.div('status-line status-ng',
-        'ikaga.dll が見つかりません。shiori\\build.ps1 を実行してから書き出し直してください。'));
+        t('ikaga.dll が見つかりません。shiori\\build.ps1 を実行してから書き出し直してください。')));
     }
-    const open = Render.el('button', 'btn small', 'フォルダを開く');
+    const open = Render.el('button', 'btn small', t('フォルダを開く'));
     open.style.marginTop = '8px';
     open.addEventListener('click', () => api('/api/reveal', {
       method: 'POST', body: { path: r.root || r.path },
     }).catch(() => {}));
     p.appendChild(open);
     box.appendChild(p);
-    toast('書き出しました');
+    toast(t('書き出しました'));
   } catch (e) {
     box.textContent = '';
     box.appendChild(Render.div('status-line status-ng', e.message));
@@ -178,7 +178,7 @@ function init() {
       const r = await api('/api/import', { method: 'POST', body: { path: p } });
       Model.init(r.project);
       Session.vars = {};
-      toast('読み込みました');
+      toast(t('読み込みました'));
     } catch (e) { toast(e.message, true); }
   });
 }

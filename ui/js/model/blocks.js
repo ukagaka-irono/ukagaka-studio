@@ -2,46 +2,48 @@
  * ここで定義した形が、そのまま ghost.json（栞が読むファイル）の形になります。
  */
 
+import { t } from '../i18n/i18n.js';
+
 // ------------------------------------------------------------ categories
 // 色は ui/style.css の --cat-<id> にあります（明るい表示でも暗い表示でも同じ色）。
 export const CATEGORIES = [
-  { id: 'events',    name: 'イベント' },
-  { id: 'talk',      name: 'セリフ' },
-  { id: 'looks',     name: '見た目' },
-  { id: 'control',   name: '制御' },
-  { id: 'variables', name: '変数' },
-  { id: 'operators', name: '演算' },
-  { id: 'info',      name: '情報' },
+  { id: 'events',    name: t('イベント') },
+  { id: 'talk',      name: t('セリフ') },
+  { id: 'looks',     name: t('見た目') },
+  { id: 'control',   name: t('制御') },
+  { id: 'variables', name: t('変数') },
+  { id: 'operators', name: t('演算') },
+  { id: 'info',      name: t('情報') },
 ];
 
 export const EVENTS = [
-  ['起動したとき', 'OnBoot'],
-  ['はじめて起動したとき', 'OnFirstBoot'],
-  ['終了するとき', 'OnClose'],
-  ['ダブルクリックされたとき', 'OnMouseDoubleClick'],
-  ['クリックされたとき', 'OnMouseClick'],
-  ['なでられたとき', 'OnNadeNade'],
-  ['マウスが動いたとき', 'OnMouseMove'],
-  ['ホイールを回されたとき', 'OnMouseWheel'],
-  ['1時間ごと', 'OnHourChange'],
-  ['1分ごと', 'OnMinuteChange'],
-  ['ずっとくりかえす', 'OnSecondChange'],
-  ['選択肢がえらばれたとき', 'OnChoiceSelect'],
-  ['話しかけられたとき', 'OnCommunicate'],
-  ['他のゴーストから来たとき', 'OnGhostChanged'],
-  ['他のゴーストへ行くとき', 'OnGhostChanging'],
-  ['キーが押されたとき', 'OnKeyPress'],
-  ['サーフェスがもどったとき', 'OnSurfaceRestore'],
-  ['最小化されたとき', 'OnWindowStateMinimize'],
-  ['最小化からもどったとき', 'OnWindowStateRestore'],
-  ['更新をはじめたとき', 'OnUpdateBegin'],
-  ['更新するものが見つかったとき', 'OnUpdateReady'],
-  ['更新がおわったとき', 'OnUpdateComplete'],
-  ['更新に失敗したとき', 'OnUpdateFailure'],
-  ['SAORI の答えがとどいたとき', 'OnSaoriDone'],
-  ['答えが返ってきたとき', 'OnUserInput'],
-  ['答えをやめたとき', 'OnUserInputCancel'],
-  ['その他（自分で書く）', '__custom__'],
+  [t('起動したとき'), 'OnBoot'],
+  [t('はじめて起動したとき'), 'OnFirstBoot'],
+  [t('終了するとき'), 'OnClose'],
+  [t('ダブルクリックされたとき'), 'OnMouseDoubleClick'],
+  [t('クリックされたとき'), 'OnMouseClick'],
+  [t('なでられたとき'), 'OnNadeNade'],
+  [t('マウスが動いたとき'), 'OnMouseMove'],
+  [t('ホイールを回されたとき'), 'OnMouseWheel'],
+  [t('1時間ごと'), 'OnHourChange'],
+  [t('1分ごと'), 'OnMinuteChange'],
+  [t('ずっとくりかえす'), 'OnSecondChange'],
+  [t('選択肢がえらばれたとき'), 'OnChoiceSelect'],
+  [t('話しかけられたとき'), 'OnCommunicate'],
+  [t('他のゴーストから来たとき'), 'OnGhostChanged'],
+  [t('他のゴーストへ行くとき'), 'OnGhostChanging'],
+  [t('キーが押されたとき'), 'OnKeyPress'],
+  [t('サーフェスがもどったとき'), 'OnSurfaceRestore'],
+  [t('最小化されたとき'), 'OnWindowStateMinimize'],
+  [t('最小化からもどったとき'), 'OnWindowStateRestore'],
+  [t('更新をはじめたとき'), 'OnUpdateBegin'],
+  [t('更新するものが見つかったとき'), 'OnUpdateReady'],
+  [t('更新がおわったとき'), 'OnUpdateComplete'],
+  [t('更新に失敗したとき'), 'OnUpdateFailure'],
+  [t('SAORI の答えがとどいたとき'), 'OnSaoriDone'],
+  [t('答えが返ってきたとき'), 'OnUserInput'],
+  [t('答えをやめたとき'), 'OnUserInputCancel'],
+  [t('その他（自分で書く）'), '__custom__'],
 ];
 
 // マウス系＝「どこを・だれを」でしぼり込めるイベント
@@ -52,38 +54,38 @@ export const MOUSE_EVENTS = {
 
 // 当たり判定の名前。仮シェルはこの名前で書き出しています。
 export const AREAS = [
-  ['どこか', ''], ['あたま', 'Head'], ['かお', 'Face'],
-  ['むね', 'Bust'], ['スカート', 'Skirt'], ['て', 'Hand'],
+  [t('どこか'), ''], [t('あたま'), 'Head'], [t('かお'), 'Face'],
+  [t('むね'), 'Bust'], [t('スカート'), 'Skirt'], [t('て'), 'Hand'],
 ];
-export const WHO_ANY = [['どちらか', -1], ['さくら', 0], ['うにゅう', 1]];
+export const WHO_ANY = [[t('どちらか'), -1], [t('さくら'), 0], [t('うにゅう'), 1]];
 
 // Reference の意味（実行パネルのヒント用）
 export const EVENT_REFS = {
-  OnBoot: ['シェル名'],
-  OnFirstBoot: ['消滅回数'],
-  OnMouseDoubleClick: ['X座標', 'Y座標', 'ホイール', '相手(0=本体/1=相方)', '当たった場所'],
-  OnMouseClick: ['X座標', 'Y座標', 'ホイール', '相手', '当たった場所', 'ボタン'],
-  OnMouseMove: ['X座標', 'Y座標', 'ホイール', '相手', '当たった場所'],
-  OnNadeNade: ['X座標', 'Y座標', 'ホイール', '相手', 'なでられた場所'],
-  OnMouseWheel: ['X座標', 'Y座標', '回した量', '相手', '当たった場所'],
-  OnSecondChange: ['ウィンドウ', 'しゃべってよいか', '累計秒数'],
-  OnChoiceSelect: ['えらばれたID'],
-  OnKeyPress: ['押されたキー'],
-  OnGhostChanged: ['前のゴースト名'],
-  OnCommunicate: ['相手の名前(通信ボックスなら user)', '言われたこと'],
-  OnUpdateBegin: ['ゴースト名', 'フォルダの場所', '', '種類(ghost/shell/balloon…)'],
-  OnUpdateReady: ['更新するファイル数−1', 'ファイル名(カンマ区切り)', '種類'],
-  OnUpdateComplete: ['none=変更なし / changed=更新した', '更新したファイル名', '', '種類'],
-  OnUpdateFailure: ['失敗したわけ(timeout など)', 'できなかったファイル名', '', '種類'],
-  'OnUpdate.OnDownloadBegin': ['落としているファイル名', '何個目(0から)', '全部の数−1'],
-  'OnUpdate.OnMD5CompareFailure': ['ファイル名', '正しいMD5', '落ちてきたMD5'],
-  OnSaoriDone: ['よんだファイル名', '届いた答え'],
-  OnUserInput: ['たずねたときのID', '入力された内容'],
-  OnUserInputCancel: ['たずねたときのID', 'close＝閉じた / timeout＝時間切れ'],
+  OnBoot: [t('シェル名')],
+  OnFirstBoot: [t('消滅回数')],
+  OnMouseDoubleClick: [t('X座標'), t('Y座標'), t('ホイール'), t('相手(0=本体/1=相方)'), t('当たった場所')],
+  OnMouseClick: [t('X座標'), t('Y座標'), t('ホイール'), t('相手'), t('当たった場所'), t('ボタン')],
+  OnMouseMove: [t('X座標'), t('Y座標'), t('ホイール'), t('相手'), t('当たった場所')],
+  OnNadeNade: [t('X座標'), t('Y座標'), t('ホイール'), t('相手'), t('なでられた場所')],
+  OnMouseWheel: [t('X座標'), t('Y座標'), t('回した量'), t('相手'), t('当たった場所')],
+  OnSecondChange: [t('ウィンドウ'), t('しゃべってよいか'), t('累計秒数')],
+  OnChoiceSelect: [t('えらばれたID')],
+  OnKeyPress: [t('押されたキー')],
+  OnGhostChanged: [t('前のゴースト名')],
+  OnCommunicate: [t('相手の名前(通信ボックスなら user)'), t('言われたこと')],
+  OnUpdateBegin: [t('ゴースト名'), t('フォルダの場所'), '', t('種類(ghost/shell/balloon…)')],
+  OnUpdateReady: [t('更新するファイル数−1'), t('ファイル名(カンマ区切り)'), t('種類')],
+  OnUpdateComplete: [t('none=変更なし / changed=更新した'), t('更新したファイル名'), '', t('種類')],
+  OnUpdateFailure: [t('失敗したわけ(timeout など)'), t('できなかったファイル名'), '', t('種類')],
+  'OnUpdate.OnDownloadBegin': [t('落としているファイル名'), t('何個目(0から)'), t('全部の数−1')],
+  'OnUpdate.OnMD5CompareFailure': [t('ファイル名'), t('正しいMD5'), t('落ちてきたMD5')],
+  OnSaoriDone: [t('よんだファイル名'), t('届いた答え')],
+  OnUserInput: [t('たずねたときのID'), t('入力された内容')],
+  OnUserInputCancel: [t('たずねたときのID'), t('close＝閉じた / timeout＝時間切れ')],
 };
 
-const WHO = [['さくら', 0], ['うにゅう', 1]];
-const YESNO_NL = [['改行する', 1], ['改行しない', 0]];
+const WHO = [[t('さくら'), 0], [t('うにゅう'), 1]];
+const YESNO_NL = [[t('改行する'), 1], [t('改行しない'), 0]];
 
 // --------------------------------------------------------------- helpers
 const DEFS = {};
@@ -154,7 +156,7 @@ def({
 // マウス系イベントを選ぶと、この形に変わる（どこを・だれを、で絞り込める）
 def({
   key: '@event.touch', type: '@event', cat: 'events', shape: 'hat',
-  spec: '%who の %area が %event',
+  spec: t('%who の %area が %event'),
   args: {
     who: { kind: 'dropdown', options: WHO_ANY, def: -1 },
     area: { kind: 'areaname', options: AREAS, def: '' },
@@ -165,7 +167,7 @@ def({
 // 「話しかけられたとき」を選ぶと、相手と内容でしぼり込める形に変わる
 def({
   key: '@event.comm', type: '@event', cat: 'events', shape: 'hat',
-  spec: '%from に %contains と %event',
+  spec: t('%from に %contains と %event'),
   args: {
     from: { kind: 'input', mode: 'text', def: '', long: true },
     contains: { kind: 'input', mode: 'text', def: '', long: true },
@@ -176,7 +178,7 @@ def({
 // 「ずっとくりかえす」を選ぶと、間隔を指定できる形に変わる
 def({
   key: '@event.every', type: '@event', cat: 'events', shape: 'hat',
-  spec: '%event %everySec 秒ごと',
+  spec: t('%event %everySec 秒ごと'),
   args: {
     event: { kind: 'eventname', def: 'OnSecondChange' },
     everySec: { kind: 'input', mode: 'number', def: 5 },
@@ -185,9 +187,9 @@ def({
 });
 def({
   type: '@talk', cat: 'events', shape: 'hat',
-  spec: 'ランダムトーク「%name」 えらばれやすさ %weight まとまり %group',
+  spec: t('ランダムトーク「%name」 えらばれやすさ %weight まとまり %group'),
   args: {
-    name: { kind: 'input', mode: 'text', def: 'トーク', long: true },
+    name: { kind: 'input', mode: 'text', def: t('トーク'), long: true },
     weight: { kind: 'input', mode: 'number', def: 1 },
     group: { kind: 'input', mode: 'text', def: '', long: true },
   },
@@ -195,63 +197,63 @@ def({
 });
 def({
   type: '@function', cat: 'events', shape: 'hat',
-  spec: '「%name」がよばれたとき',
-  args: { name: { kind: 'input', mode: 'text', def: 'あたらしいトーク', long: true } },
+  spec: t('「%name」がよばれたとき'),
+  args: { name: { kind: 'input', mode: 'text', def: t('あたらしいトーク'), long: true } },
   hat: true, kind: 'function',
 });
 
 // ============================================================== セリフ
 def({
   type: 'say', cat: 'talk', shape: 'stack',
-  spec: '%who が %text と話す %nl',
+  spec: t('%who が %text と話す %nl'),
   args: {
     who: { kind: 'dropdown', options: WHO, def: 0 },
-    text: { kind: 'input', mode: 'text', def: 'こんにちは。', long: true },
+    text: { kind: 'input', mode: 'text', def: t('こんにちは。'), long: true },
     nl: { kind: 'dropdown', options: YESNO_NL, def: 1 },
   },
 });
 def({
   type: 'newline', cat: 'talk', shape: 'stack',
-  spec: '%count 回 改行する',
+  spec: t('%count 回 改行する'),
   args: { count: { kind: 'input', mode: 'number', def: 1 } },
 });
-def({ type: 'click_wait', cat: 'talk', shape: 'stack', spec: 'クリックされるまで待つ' });
-def({ type: 'clear', cat: 'talk', shape: 'stack', spec: 'バルーンの文字を消す' });
+def({ type: 'click_wait', cat: 'talk', shape: 'stack', spec: t('クリックされるまで待つ') });
+def({ type: 'clear', cat: 'talk', shape: 'stack', spec: t('バルーンの文字を消す') });
 def({
   type: 'choice', cat: 'talk', shape: 'stack',
-  spec: '選択肢「%label」→ %target を出す',
+  spec: t('選択肢「%label」→ %target を出す'),
   args: {
-    label: { kind: 'input', mode: 'text', def: 'うん', long: true },
+    label: { kind: 'input', mode: 'text', def: t('うん'), long: true },
     target: { kind: 'funcname', def: '' },
   },
 });
 def({
   type: 'link', cat: 'talk', shape: 'stack',
-  spec: 'リンク「%label」→ %url を出す',
+  spec: t('リンク「%label」→ %url を出す'),
   args: {
-    label: { kind: 'input', mode: 'text', def: 'ホームページ', long: true },
+    label: { kind: 'input', mode: 'text', def: t('ホームページ'), long: true },
     url: { kind: 'input', mode: 'text', def: 'https://', long: true },
   },
 });
 def({
   type: 'communicate', cat: 'talk', shape: 'stack',
-  spec: '%who が %to に %text と話しかける',
+  spec: t('%who が %to に %text と話しかける'),
   args: {
     who: { kind: 'dropdown', options: WHO, def: 0 },
     to: { kind: 'input', mode: 'text', def: '', long: true },
-    text: { kind: 'input', mode: 'text', def: 'こんにちは。', long: true },
+    text: { kind: 'input', mode: 'text', def: t('こんにちは。'), long: true },
   },
 });
 def({
   type: 'raw', cat: 'talk', shape: 'stack',
-  spec: 'さくらスクリプト %text をそのまま出す',
+  spec: t('さくらスクリプト %text をそのまま出す'),
   args: { text: { kind: 'input', mode: 'text', def: '\\![raise,OnTest]', long: true } },
 });
 
 // ============================================================== 見た目
 def({
   type: 'surface', cat: 'looks', shape: 'stack',
-  spec: '%who の表情を %id 番にする',
+  spec: t('%who の表情を %id 番にする'),
   args: {
     who: { kind: 'dropdown', options: WHO, def: 0 },
     id: { kind: 'input', mode: 'number', def: 0 },
@@ -260,82 +262,82 @@ def({
 // さくら(0) と うにゅう(1) のほかに、3 人目以降を出したいとき
 def({
   type: 'chara', cat: 'looks', shape: 'stack',
-  spec: 'これから %id 番のキャラが話す',
+  spec: t('これから %id 番のキャラが話す'),
   args: { id: { kind: 'input', mode: 'number', def: 2 } },
 });
 // SERIKO のアニメーション。中身は「ゴースト」タブの「うごき」で作ります。
 def({
   type: 'anim', cat: 'looks', shape: 'stack',
-  spec: 'うごき %id を再生する',
+  spec: t('うごき %id を再生する'),
   args: { id: { kind: 'input', mode: 'number', def: 0 } },
 });
 def({
   type: 'balloon', cat: 'looks', shape: 'stack',
-  spec: 'バルーンを %id 番にする',
+  spec: t('バルーンを %id 番にする'),
   args: { id: { kind: 'input', mode: 'number', def: 0 } },
 });
 def({
   type: 'sound', cat: 'looks', shape: 'stack',
-  spec: '音 %file を鳴らす',
+  spec: t('音 %file を鳴らす'),
   args: { file: { kind: 'input', mode: 'text', def: 'sound.wav', long: true } },
 });
 
 // ================================================================ 制御
 def({
   type: 'wait', cat: 'control', shape: 'stack',
-  spec: '%ms ミリ秒待つ',
+  spec: t('%ms ミリ秒待つ'),
   args: { ms: { kind: 'input', mode: 'number', def: 500 } },
 });
 def({
   type: 'if', cat: 'control', shape: 'c',
-  spec: 'もし %cond なら',
+  spec: t('もし %cond なら'),
   args: { cond: { kind: 'input', mode: 'bool' } },
   subs: [{ key: 'then' }],
 });
 def({
   type: 'if_else', cat: 'control', shape: 'c',
-  spec: 'もし %cond なら',
+  spec: t('もし %cond なら'),
   args: { cond: { kind: 'input', mode: 'bool' } },
-  subs: [{ key: 'then' }, { key: 'else', label: 'そうでなければ' }],
+  subs: [{ key: 'then' }, { key: 'else', label: t('そうでなければ') }],
 });
 def({
   type: 'repeat', cat: 'control', shape: 'c',
-  spec: '%count 回くりかえす',
+  spec: t('%count 回くりかえす'),
   args: { count: { kind: 'input', mode: 'number', def: 3 } },
   subs: [{ key: 'body' }],
 });
 def({
   type: 'while', cat: 'control', shape: 'c',
-  spec: '%cond の間くりかえす',
+  spec: t('%cond の間くりかえす'),
   args: { cond: { kind: 'input', mode: 'bool' } },
   subs: [{ key: 'body' }],
 });
 def({
   type: 'random_one', cat: 'control', shape: 'c',
-  spec: 'つぎのどれかをランダムに',
+  spec: t('つぎのどれかをランダムに'),
   dynamic: 'branches',
 });
 def({
   type: 'call', cat: 'control', shape: 'stack',
-  spec: '%name をよぶ',
+  spec: t('%name をよぶ'),
   args: { name: { kind: 'funcname', def: '' } },
 });
 // 同じ「まとまり」に入れたランダムトークから、1 つえらんでよぶ
 def({
   type: 'call_group', cat: 'control', shape: 'stack',
-  spec: '%group のトークをどれかよぶ',
+  spec: t('%group のトークをどれかよぶ'),
   args: { group: { kind: 'input', mode: 'text', def: '', long: true } },
 });
 def({
   type: 'talk_interval', cat: 'control', shape: 'stack',
-  spec: 'ランダムトークの間隔を %sec 秒にする',
+  spec: t('ランダムトークの間隔を %sec 秒にする'),
   args: { sec: { kind: 'input', mode: 'number', def: 180 } },
 });
 // 使う人に文字を入力してもらい、答えを変数に入れる（\![open,inputbox,…]）。
 // 質問そのものは、ふつうのセリフブロックで先に言っておきます。
 def({
   type: 'ask', cat: 'control', shape: 'stack',
-  spec: 'たずねて、答えを %into に入れる（はじめから %initial と書いておく）',
+  spec: t('たずねて、答えを %into に入れる（はじめから %initial と書いておく）'),
   args: {
     into: { kind: 'varname', def: '' },
     initial: { kind: 'input', mode: 'text', def: '', long: true },
@@ -343,7 +345,7 @@ def({
 });
 def({
   type: 'later', cat: 'control', shape: 'stack',
-  spec: '%sec 秒後に %name をよぶ',
+  spec: t('%sec 秒後に %name をよぶ'),
   args: {
     sec: { kind: 'input', mode: 'number', def: 30 },
     name: { kind: 'funcname', def: '' },
@@ -351,7 +353,7 @@ def({
 });
 def({
   type: 'raise', cat: 'control', shape: 'stack',
-  spec: 'イベント %event を自分で起こす（情報 %a を付ける）',
+  spec: t('イベント %event を自分で起こす（情報 %a を付ける）'),
   args: {
     event: { kind: 'input', mode: 'text', def: 'OnBoot', long: true },
     a: { kind: 'input', mode: 'text', def: '', long: true },
@@ -359,12 +361,12 @@ def({
 });
 def({
   type: 'change_ghost', cat: 'control', shape: 'cap',
-  spec: '%name に交代する',
+  spec: t('%name に交代する'),
   args: { name: { kind: 'input', mode: 'text', def: 'random', long: true } },
 });
 def({
   type: 'open_browser', cat: 'control', shape: 'stack',
-  spec: '%url をブラウザで開く',
+  spec: t('%url をブラウザで開く'),
   args: { url: { kind: 'input', mode: 'text', def: 'https://', long: true } },
 });
 
@@ -373,7 +375,7 @@ def({
 // こちらは別のスレッドで動いて、答えが届いたら変数に入り、OnSaoriDone が起きます。
 def({
   type: 'saori_call', cat: 'control', shape: 'stack',
-  spec: '%file を %a %b でよぶ（答えを待たずに %into に入れる）%value',
+  spec: t('%file を %a %b でよぶ（答えを待たずに %into に入れる）%value'),
   args: {
     file: { kind: 'input', mode: 'text', def: 'saori.dll', long: true },
     a: { kind: 'input', mode: 'text', def: '', long: true },
@@ -381,21 +383,21 @@ def({
     into: { kind: 'varname', def: '' },
     value: {
       kind: 'dropdown', def: -1,
-      options: [['（答え）', -1], ['0番目の値', 0], ['1番目の値', 1], ['2番目の値', 2]],
+      options: [[t('（答え）'), -1], [t('0番目の値'), 0], [t('1番目の値'), 1], [t('2番目の値'), 2]],
     },
   },
 });
 
 // ネットワーク更新をはじめる（\![updatebymyself]）。
 // ゴーストの設定の「更新のありか」が空だと、SSP は何もできません。
-def({ type: 'update', cat: 'control', shape: 'stack', spec: 'ネットワーク更新をする' });
-def({ type: 'end', cat: 'control', shape: 'cap', spec: 'ここでトークをおわる' });
-def({ type: 'close', cat: 'control', shape: 'cap', spec: 'ゴーストを終了する' });
+def({ type: 'update', cat: 'control', shape: 'stack', spec: t('ネットワーク更新をする') });
+def({ type: 'end', cat: 'control', shape: 'cap', spec: t('ここでトークをおわる') });
+def({ type: 'close', cat: 'control', shape: 'cap', spec: t('ゴーストを終了する') });
 
 // ================================================================ 変数
 def({
   type: 'set', cat: 'variables', shape: 'stack',
-  spec: '%name を %value にする',
+  spec: t('%name を %value にする'),
   args: {
     name: { kind: 'varname', def: '' },
     value: { kind: 'input', mode: 'text', def: 0 },
@@ -403,7 +405,7 @@ def({
 });
 def({
   type: 'change', cat: 'variables', shape: 'stack',
-  spec: '%name を %value ずつ変える',
+  spec: t('%name を %value ずつ変える'),
   args: {
     name: { kind: 'varname', def: '' },
     value: { kind: 'input', mode: 'number', def: 1 },
@@ -424,7 +426,7 @@ const arith = (op, label) => def({
     b: { kind: 'input', mode: 'number', def: '' },
   },
 });
-arith('+', '＋'); arith('-', '−'); arith('*', '×'); arith('/', '÷'); arith('%', 'のあまり');
+arith('+', '＋'); arith('-', '−'); arith('*', '×'); arith('/', '÷'); arith('%', t('のあまり'));
 
 const compare = (op, label) => def({
   key: 'compare#' + op, type: 'compare', cat: 'operators', shape: 'boolean',
@@ -438,22 +440,22 @@ compare('<', '＜'); compare('=', '＝'); compare('>', '＞'); compare('!=', '�
 
 def({
   key: 'logic#and', type: 'logic', cat: 'operators', shape: 'boolean',
-  spec: '%a かつ %b', fixed: { op: 'and' },
+  spec: t('%a かつ %b'), fixed: { op: 'and' },
   args: { a: { kind: 'input', mode: 'bool' }, b: { kind: 'input', mode: 'bool' } },
 });
 def({
   key: 'logic#or', type: 'logic', cat: 'operators', shape: 'boolean',
-  spec: '%a または %b', fixed: { op: 'or' },
+  spec: t('%a または %b'), fixed: { op: 'or' },
   args: { a: { kind: 'input', mode: 'bool' }, b: { kind: 'input', mode: 'bool' } },
 });
 def({
   type: 'not', cat: 'operators', shape: 'boolean',
-  spec: '%a ではない',
+  spec: t('%a ではない'),
   args: { a: { kind: 'input', mode: 'bool' } },
 });
 def({
   type: 'random', cat: 'operators', shape: 'reporter',
-  spec: '%min から %max までのランダムな数',
+  spec: t('%min から %max までのランダムな数'),
   args: {
     min: { kind: 'input', mode: 'number', def: 1 },
     max: { kind: 'input', mode: 'number', def: 10 },
@@ -461,20 +463,20 @@ def({
 });
 def({
   type: 'chance', cat: 'operators', shape: 'boolean',
-  spec: '%a ％のかくりつ',
+  spec: t('%a ％のかくりつ'),
   args: { a: { kind: 'input', mode: 'number', def: 50 } },
 });
 def({
   type: 'join', cat: 'operators', shape: 'reporter',
-  spec: '%a と %b をつなげる',
+  spec: t('%a と %b をつなげる'),
   args: {
-    a: { kind: 'input', mode: 'text', def: 'こんにちは', long: true },
-    b: { kind: 'input', mode: 'text', def: 'さん', long: true },
+    a: { kind: 'input', mode: 'text', def: t('こんにちは'), long: true },
+    b: { kind: 'input', mode: 'text', def: t('さん'), long: true },
   },
 });
 def({
   type: 'contains', cat: 'operators', shape: 'boolean',
-  spec: '%a に %b がふくまれる',
+  spec: t('%a に %b がふくまれる'),
   args: {
     a: { kind: 'input', mode: 'text', def: '', long: true },
     b: { kind: 'input', mode: 'text', def: '', long: true },
@@ -482,17 +484,17 @@ def({
 });
 def({
   type: 'length', cat: 'operators', shape: 'reporter',
-  spec: '%a の文字数',
+  spec: t('%a の文字数'),
   args: { a: { kind: 'input', mode: 'text', def: '', long: true } },
 });
 def({
   type: 'round', cat: 'operators', shape: 'reporter',
-  spec: '%a を %op',
+  spec: t('%a を %op'),
   args: {
     a: { kind: 'input', mode: 'number', def: '' },
     op: {
       kind: 'dropdown', def: 'round',
-      options: [['四捨五入', 'round'], ['切り捨て', 'floor'], ['切り上げ', 'ceil'], ['絶対値に', 'abs']],
+      options: [[t('四捨五入'), 'round'], [t('切り捨て'), 'floor'], [t('切り上げ'), 'ceil'], [t('絶対値に'), 'abs']],
     },
   },
 });
@@ -500,14 +502,14 @@ def({
 // 外部モジュール（SAORI）。ゴーストのフォルダに置いた 32bit の DLL を呼びます。
 def({
   type: 'saori', cat: 'operators', shape: 'reporter',
-  spec: '%file を %a %b でよんだ答え %value',
+  spec: t('%file を %a %b でよんだ答え %value'),
   args: {
     file: { kind: 'input', mode: 'text', def: 'saori.dll', long: true },
     a: { kind: 'input', mode: 'text', def: '', long: true },
     b: { kind: 'input', mode: 'text', def: '', long: true },
     value: {
       kind: 'dropdown', def: -1,
-      options: [['（答え）', -1], ['0番目の値', 0], ['1番目の値', 1], ['2番目の値', 2]],
+      options: [[t('（答え）'), -1], [t('0番目の値'), 0], [t('1番目の値'), 1], [t('2番目の値'), 2]],
     },
   },
 });
@@ -520,26 +522,26 @@ def({
     key: {
       kind: 'dropdown', def: 'hour',
       options: [
-        ['いまの時', 'hour'], ['いまの分', 'minute'], ['いまの秒', 'second'],
-        ['いまの年', 'year'], ['いまの月', 'month'], ['いまの日', 'day'],
-        ['いまの曜日(0=日)', 'weekday'], ['いまの曜日(名前)', 'weekdayname'],
-        ['いまごろ(朝/昼/夕方/夜)', 'daypart'], ['いまの季節', 'season'],
-        ['起動してからの秒数', 'uptime'], ['起動してからの分数', 'uptimemin'],
-        ['起動した回数', 'boots'], ['今回のトーク回数', 'talks'],
-        ['前に出したトーク', 'lasttalk'],
-        ['ゴースト名', 'ghostname'], ['シェル名', 'shellname'],
-        ['話しかけてきた相手', 'commfrom'], ['言われたこと', 'commtext'],
+        [t('いまの時'), 'hour'], [t('いまの分'), 'minute'], [t('いまの秒'), 'second'],
+        [t('いまの年'), 'year'], [t('いまの月'), 'month'], [t('いまの日'), 'day'],
+        [t('いまの曜日(0=日)'), 'weekday'], [t('いまの曜日(名前)'), 'weekdayname'],
+        [t('いまごろ(朝/昼/夕方/夜)'), 'daypart'], [t('いまの季節'), 'season'],
+        [t('起動してからの秒数'), 'uptime'], [t('起動してからの分数'), 'uptimemin'],
+        [t('起動した回数'), 'boots'], [t('今回のトーク回数'), 'talks'],
+        [t('前に出したトーク'), 'lasttalk'],
+        [t('ゴースト名'), 'ghostname'], [t('シェル名'), 'shellname'],
+        [t('話しかけてきた相手'), 'commfrom'], [t('言われたこと'), 'commtext'],
       ],
     },
   },
 });
 def({
   type: 'ref', cat: 'info', shape: 'reporter',
-  spec: 'イベントの情報 %index',
+  spec: t('イベントの情報 %index'),
   args: {
     index: {
       kind: 'dropdown', def: 0,
-      options: [['0番目', 0], ['1番目', 1], ['2番目', 2], ['3番目', 3], ['4番目', 4], ['5番目', 5]],
+      options: [[t('0番目'), 0], [t('1番目'), 1], [t('2番目'), 2], [t('3番目'), 3], [t('4番目'), 4], [t('5番目'), 5]],
     },
   },
 });
@@ -547,7 +549,7 @@ def({
 // ------------------------------------------------------------- palette
 export const PALETTE = {
   events: [
-    { note: 'ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。' },
+    { note: t('ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。') },
     '@event', '@event.touch', '@event.every', '@event.comm', '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
@@ -555,13 +557,13 @@ export const PALETTE = {
   control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'call',
     'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call',
     'open_browser', 'end', 'close', 'change_ghost'],
-  variables: [{ button: 'add-var', label: '＋ 変数をつくる' }, '@vars', 'set', 'change'],
+  variables: [{ button: 'add-var', label: t('＋ 変数をつくる') }, '@vars', 'set', 'change'],
   operators: ['arith#+', 'arith#-', 'arith#*', 'arith#/', 'arith#%',
     'compare#<', 'compare#=', 'compare#>', 'compare#!=',
     'logic#and', 'logic#or', 'not', 'random', 'chance',
     'join', 'contains', 'length', 'round', 'saori'],
   info: [
-    { note: 'イベントの情報＝ダブルクリックの座標など、イベントごとの追加データです。' },
+    { note: t('イベントの情報＝ダブルクリックの座標など、イベントごとの追加データです。') },
     'sys', 'ref',
   ],
 };

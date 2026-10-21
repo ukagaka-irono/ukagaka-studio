@@ -5,6 +5,7 @@ import { $ } from '../core/dom.js';
 import { Commands } from '../core/commands.js';
 import { Render } from './render.js';
 import { Scripts } from './scripts.js';
+import { t } from '../i18n/i18n.js';
 
 function close() {
   $('#ctx-menu').classList.remove('open');
@@ -35,10 +36,10 @@ function init() {
     if (hat || !blk) {
       const script = scriptEl._script;
       open(e.clientX, e.clientY, [
-        { label: '▶ 実行してみる', run: () => Commands.runScript(script) },
-        { label: '複製する', run: () => Scripts.duplicateScript(script) },
+        { label: t('▶ 実行してみる'), run: () => Commands.runScript(script) },
+        { label: t('複製する'), run: () => Scripts.duplicateScript(script) },
         '-',
-        { label: '削除する', danger: true, run: () => Scripts.deleteScript(script) },
+        { label: t('削除する'), danger: true, run: () => Scripts.deleteScript(script) },
       ]);
       return;
     }
@@ -46,14 +47,14 @@ function init() {
     const block = blk._blk;
     open(e.clientX, e.clientY, [
       {
-        label: '複製する',
+        label: t('複製する'),
         run: () => Model.act(() => {
           if (!Array.isArray(blk._stack)) return false;
           blk._stack.splice(blk._index + 1, 0, Model.clone(block));
         }),
       },
       {
-        label: block.disabled ? '有効にする' : '一時的に無効にする',
+        label: block.disabled ? t('有効にする') : t('一時的に無効にする'),
         run: () => Model.act(() => {
           if (block.disabled) delete block.disabled;
           else block.disabled = true;
@@ -61,7 +62,7 @@ function init() {
       },
       '-',
       {
-        label: 'このブロックを削除',
+        label: t('このブロックを削除'),
         danger: true,
         run: () => Model.act(() => {
           if (!Array.isArray(blk._stack)) return false;
@@ -69,7 +70,7 @@ function init() {
         }),
       },
       {
-        label: 'ここから下をすべて削除',
+        label: t('ここから下をすべて削除'),
         danger: true,
         run: () => Model.act(() => {
           if (!Array.isArray(blk._stack)) return false;

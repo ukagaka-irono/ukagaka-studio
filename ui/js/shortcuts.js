@@ -11,6 +11,7 @@ import { Drag } from './editor/drag.js';
 import { ContextMenu } from './editor/contextmenu.js';
 import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
+import { t } from './i18n/i18n.js';
 
 function onKeyDown(e) {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
@@ -38,25 +39,25 @@ function onKeyDown(e) {
       Model.act(() => { sel.stack.splice(sel.index, 1); });
       Drag.select(null);
     }
-    toast(key === 'x' ? 'ブロックを切り取りました' : 'ブロックをコピーしました');
+    toast(key === 'x' ? t('ブロックを切り取りました') : t('ブロックをコピーしました'));
     return;
   }
   if (e.ctrlKey && key === 'v') {
-    if (!Session.clipboard) { toast('コピーしたブロックがありません', true); return; }
+    if (!Session.clipboard) { toast(t('コピーしたブロックがありません'), true); return; }
     if (!sel || !Array.isArray(sel.stack)) {
-      toast('はりつける場所のブロックを、先にクリックしてください', true);
+      toast(t('はりつける場所のブロックを、先にクリックしてください'), true);
       return;
     }
     e.preventDefault();
     Model.act(() => { sel.stack.splice(sel.index + 1, 0, Model.clone(Session.clipboard)); });
-    toast('はりつけました');
+    toast(t('はりつけました'));
     return;
   }
   if (e.ctrlKey && key === 'd') {
     if (!sel || !sel.block || !Array.isArray(sel.stack)) return;
     e.preventDefault();
     Model.act(() => { sel.stack.splice(sel.index + 1, 0, Model.clone(sel.block)); });
-    toast('ブロックを複製しました');
+    toast(t('ブロックを複製しました'));
     return;
   }
 

@@ -20,6 +20,8 @@ const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0
 const { red, green, dim, off } = COLOR;
 
 // 画面のモジュールをそのまま読みこむ（この 2 つは DOM を触りません）
+// node の navigator.language は en-US なので、日本語に決めうちにします（ui/js/i18n/i18n.js）
+globalThis.IKAGA_LANG = 'ja';
 const { Model } = require('../js/model/model.js');
 const { Lint } = require('../js/model/lint.js');
 

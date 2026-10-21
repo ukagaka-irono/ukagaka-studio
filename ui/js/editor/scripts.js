@@ -5,6 +5,7 @@ import { Model } from '../model/model.js';
 import { $ } from '../core/dom.js';
 import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
+import { t } from '../i18n/i18n.js';
 
 /** いま見えているキャンバスの、左寄りのまんなか（あたらしいかたまりを置く場所） */
 function viewCenter() {
@@ -22,35 +23,35 @@ function duplicateScript(script) {
     copy.x = (script.x || 0) + 40;
     copy.y = (script.y || 0) + 40;
     if (copy.kind === 'function' || copy.kind === 'talk') {
-      let base = copy.name || 'コピー';
+      let base = copy.name || t('コピー');
       let n = 2;
       while (Model.functionNames().includes(base + n)) n++;
       copy.name = base + n;
     }
     Model.project.scripts.push(copy);
   });
-  toast('複製しました');
+  toast(t('複製しました'));
 }
 
 function deleteScript(script) {
   const count = (script.blocks || []).length;
-  if (count && !confirm(`「${Model.scriptTitle(script)}」を削除しますか？`)) return;
+  if (count && !confirm(t('「{title}」を削除しますか？', { title: Model.scriptTitle(script) }))) return;
   Model.act(() => Model.removeScript(script));
-  toast('削除しました');
+  toast(t('削除しました'));
 }
 
 /** 名前を聞いてトークを作る。作った名前か null を返す */
 function promptNewFunction() {
-  const name = prompt('あたらしいトークの名前は？', 'あたらしいトーク');
+  const name = prompt(t('あたらしいトークの名前は？'), t('あたらしいトーク'));
   if (!name || !name.trim()) return null;
   const trimmed = name.trim();
   if (Model.functionNames().includes(trimmed)) {
-    toast('その名前はもう使われています', true);
+    toast(t('その名前はもう使われています'), true);
     return null;
   }
   const at = viewCenter();
   Model.act(() => Model.addScript('function', { name: trimmed, x: at.x, y: at.y }));
-  toast(`「${trimmed}」を作りました。ブロックをつなげてください`);
+  toast(t('「{name}」を作りました。ブロックをつなげてください', { name: trimmed }));
   return trimmed;
 }
 
@@ -88,7 +89,7 @@ function estimateHeight(script) {
 }
 
 function init() {
-  $('#btn-tidy').addEventListener('click', () => { tidy(); toast('整列しました'); });
+  $('#btn-tidy').addEventListener('click', () => { tidy(); toast(t('整列しました')); });
 }
 
 export const Scripts = { init, duplicateScript, deleteScript, promptNewFunction, tidy };

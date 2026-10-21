@@ -9,7 +9,7 @@
  */
 
 function notYet(name) {
-  return function () { throw new Error(`Commands.${name} がまだ用意されていません`); };
+  return function () { throw new Error(`Commands.${name} がまだ用意されていません`); };   // i18n-ignore（作る人むけ）
 }
 
 export const Commands = {
@@ -22,7 +22,7 @@ export const Commands = {
 /** 持ち主が中身を入れる。知らない名前は入れさせない（書きまちがいで黙って増えないように） */
 export function provide(impl) {
   for (const name of Object.keys(impl)) {
-    if (!(name in Commands)) throw new Error(`Commands に ${name} はありません`);
+    if (!(name in Commands)) throw new Error(`Commands に ${name} はありません`);   // i18n-ignore（作る人むけ）
     Commands[name] = impl[name];
   }
 }

@@ -9,6 +9,7 @@ import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
+import { t } from '../i18n/i18n.js';
 
 // ------------------------------------------------------------- チェック
 function renderCheck() {
@@ -23,7 +24,7 @@ function renderCheck() {
 
   list.textContent = '';
   if (!issues.length) {
-    list.appendChild(Render.div('check-ok', '✓ 気になるところはありません'));
+    list.appendChild(Render.div('check-ok', t('✓ 気になるところはありません')));
     return;
   }
   for (const it of issues) {
@@ -34,7 +35,7 @@ function renderCheck() {
     if (it.hint) msg.appendChild(Render.el('span', 'why', it.hint));
     item.appendChild(msg);
     if (it.script) {
-      item.title = 'クリックでその場所へ移動します';
+      item.title = t('クリックでその場所へ移動します');
       item.addEventListener('click', () => jumpTo(it));
     } else {
       item.style.cursor = 'default';
@@ -99,7 +100,7 @@ function renderSearch() {
   const q = ($('#search-input').value || '').trim().toLowerCase();
   list.textContent = '';
   if (!q) {
-    list.appendChild(Render.div('hint', 'さがす言葉を入れてください。'));
+    list.appendChild(Render.div('hint', t('さがす言葉を入れてください。')));
     return;
   }
 
@@ -115,7 +116,7 @@ function renderSearch() {
   }
 
   if (!hits.length) {
-    list.appendChild(Render.div('check-ok', '見つかりませんでした'));
+    list.appendChild(Render.div('check-ok', t('見つかりませんでした')));
     return;
   }
   for (const h of hits) {
@@ -125,7 +126,7 @@ function renderSearch() {
     msg.appendChild(document.createTextNode(h.text));
     if (h.block) msg.appendChild(Render.el('span', 'why', h.title));
     item.appendChild(msg);
-    item.title = 'クリックでその場所へ移動します';
+    item.title = t('クリックでその場所へ移動します');
     item.addEventListener('click', () => jumpTo(h));
     list.appendChild(item);
   }
