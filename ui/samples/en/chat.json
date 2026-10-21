@@ -1,0 +1,55 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Chat Ghost",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "version": "1.0.0",
+    "description": "Talks to other ghosts, and answers when they talk to it.",
+    "lang": "en"
+  },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 180 },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "o_hello", "kind": "event", "event": "OnCommunicate", "from": "", "contains": "Hello",
+      "x": 60, "y": 40,
+      "_": "Only when someone says “Hello”. Scripts with conditions are picked first",
+      "blocks": [
+        { "type": "surface", "who": 0, "id": 1 },
+        { "type": "communicate", "who": 0, "to": { "type": "sys", "key": "commfrom" }, "text": "Hello." }
+      ]
+    },
+    {
+      "id": "o_any", "kind": "event", "event": "OnCommunicate", "x": 60, "y": 214,
+      "_": "No condition: used when none of the scripts above fits",
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": { "type": "sys", "key": "commfrom" }, "b": " talked to me." } },
+        { "type": "communicate", "who": 0, "to": { "type": "sys", "key": "commfrom" }, "text": "I see." }
+      ]
+    },
+    {
+      "id": "o_start", "kind": "event", "event": "OnMouseDoubleClick", "x": 60, "y": 404,
+      "_": "Start a conversation. The name is the other ghost's main character (\\0) name",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "Let's talk to someone.", "nl": 1 },
+        { "type": "communicate", "who": 0, "to": "Sakura", "text": "Hello." }
+      ]
+    },
+    {
+      "id": "o_changed", "kind": "event", "event": "OnGhostChanged", "x": 60, "y": 570,
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": "I came from ",
+                    "b": { "type": "join", "a": { "type": "ref", "index": 0 }, "b": "." } } }
+      ]
+    },
+    {
+      "id": "o_talk", "kind": "talk", "name": "Monologue", "weight": 1, "x": 60, "y": 718,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "I wish someone would come and play.", "nl": 1 }
+      ]
+    }
+  ]
+}

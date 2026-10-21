@@ -6,6 +6,7 @@
 #define IDI_IKAGA_APP        101
 #define IDR_IKAGA_DLL        900
 #define IDR_SAMPLE_PROJECT   901
+#define IDR_SAMPLE_PROJECT_EN 902   // 英語のサンプル（はじめて起動したとき、exe の言語が英語なら置く）
 #define IDR_WEB_ASSET_BASE  1000
 
 namespace ikaga {

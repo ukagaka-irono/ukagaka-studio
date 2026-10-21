@@ -1,0 +1,87 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Time-of-Day Ghost",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "version": "1.0.0",
+    "description": "Uses “time of day” to choose between morning, afternoon, evening and night talks.",
+    "lang": "en"
+  },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 90 },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "t_boot", "kind": "event", "event": "OnBoot", "x": 60, "y": 40,
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": "It's ",
+                    "b": { "type": "join", "a": { "type": "sys", "key": "daypart" }, "b": "." } } },
+        { "type": "call_group", "group": "time" }
+      ]
+    },
+    {
+      "id": "t_pick", "kind": "event", "event": "OnMouseDoubleClick", "x": 60, "y": 230,
+      "_": "A double-click also picks a talk that fits the time of day",
+      "blocks": [{ "type": "call_group", "group": "time" }]
+    },
+    {
+      "id": "t_asa", "kind": "talk", "name": "Morning talk", "weight": 1, "group": "time",
+      "x": 60, "y": 354,
+      "blocks": [
+        { "type": "if",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "sys", "key": "daypart" }, "b": "morning" },
+          "then": [
+            { "type": "surface", "who": 0, "id": 1 },
+            { "type": "say", "who": 0, "text": "Good morning. Let's do our best today.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "t_hiru", "kind": "talk", "name": "Afternoon talk", "weight": 1, "group": "time",
+      "x": 60, "y": 588,
+      "blocks": [
+        { "type": "if",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "sys", "key": "daypart" }, "b": "afternoon" },
+          "then": [
+            { "type": "say", "who": 0, "text": "Did you have lunch?", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "t_yuu", "kind": "talk", "name": "Evening talk", "weight": 1, "group": "time",
+      "x": 804, "y": 40,
+      "blocks": [
+        { "type": "if",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "sys", "key": "daypart" }, "b": "evening" },
+          "then": [
+            { "type": "say", "who": 0, "text": "It's almost dinner time.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "t_yoru", "kind": "talk", "name": "Night talk", "weight": 1, "group": "time",
+      "x": 804, "y": 232,
+      "blocks": [
+        { "type": "if",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "sys", "key": "daypart" }, "b": "night" },
+          "then": [
+            { "type": "surface", "who": 0, "id": 2 },
+            { "type": "say", "who": 0, "text": "It's night already. Don't stay up too late.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "t_kisetsu", "kind": "talk", "name": "Season talk", "weight": 1, "x": 804, "y": 466,
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": "I love ",
+                    "b": { "type": "join", "a": { "type": "sys", "key": "season" }, "b": "." } } }
+      ]
+    }
+  ]
+}

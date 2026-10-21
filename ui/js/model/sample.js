@@ -1,11 +1,12 @@
 /* 伺かスタジオ - 「新規」で作るゴーストのひな形 */
 
 import { Model } from './model.js';
-import { t } from '../i18n/i18n.js';
+import { t, getLang } from '../i18n/i18n.js';
 
 export function sampleProject() {
   const p = Model.newProject();
   p.meta.name = t('あたらしいゴースト');
+  p.meta.lang = getLang();   // ゴーストの言語は、作りはじめたときの画面の言語
   p.variables = [{ name: t('好感度'), value: 0 }];
   p.scripts = [
     {

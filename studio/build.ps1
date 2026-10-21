@@ -108,6 +108,7 @@ $libsCommon = @('kernel32.lib', 'user32.lib', 'shell32.lib', 'shlwapi.lib',
 # ---- 埋め込みリソースを作る ------------------------------------------------
 $dll = Join-Path $repo 'shiori\dist\ikaga.dll'
 $sample = Join-Path $root 'res\sample-project.json'
+$sampleEn = Join-Path $root 'res\sample-project.en.json'
 
 $versionFile = Join-Path $repo 'VERSION'
 $version = if (Test-Path $versionFile) { (Get-Content $versionFile -Raw).Trim() } else { '0.0.0' }
@@ -119,6 +120,7 @@ Write-Host "[studio] リソースを準備中... (v$version)" -ForegroundColor C
     -StageDir $obj `
     -DllPath $dll `
     -SamplePath $sample `
+    -SampleEnPath $sampleEn `
     -IconPath (Join-Path $root 'res\ukagaka-studio.ico')
 
 Push-Location $obj

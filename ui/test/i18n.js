@@ -8,11 +8,16 @@
  *   1. ui/js/ に、t() で包んでいない日本語の文が無いか
  *      （画面に出さない文は、その行に // i18n-ignore と書けば見のがします）
  *   2. t() に、文字そのものではなく変数を渡していないか（それだと 3・4 で見られないため）
- *   3. en.js の訳が、どこにも使われていない文のものになっていないか（文を書きかえたあとの残り）
+ *   3. en.js の訳が、どこにも使われていない文のものになっていないか（文を書きかえたあとの残り）。
+ *      逆に、訳の無い文が無いか（英語の画面で、そこだけ日本語になるため）
  *   4. 訳に、元の文と同じ {差しこみ} と %欄 がそろっているか
  *   5. exe（studio/src）が返すエラーのコードが、すべて画面の表（ui/js/core/api.js）にあるか
  *
- * を見ます。訳がまだ無い文の数は、お知らせとして出すだけです（無いものは日本語のまま出ます）。
+ * を見ます。文を足したら、en.js に訳も足してください。訳の無い文は、
+ *
+ *   node ui\test\i18n.js --missing
+ *
+ * で、en.js にそのまま貼れる形で出せます（使っているファイルごと）。
  */
 'use strict';
 
@@ -141,6 +146,22 @@ bad('t() には文字そのものを渡してください（英語の訳の点�
 
 // --------------------------------------------------------- 3・4. 英語の辞書
 const { en } = require(path.join(jsDir, 'i18n', 'en.js'));
+
+// node ui\test\i18n.js --missing … 訳の無い文を、使っているファイルごとに en.js の形で出す（訳すときの下書き）
+if (process.argv.includes('--missing')) {
+  const byFile = new Map();
+  for (const [ja, where] of catalog) {
+    if (typeof en[ja] === 'string' && en[ja] !== '') continue;
+    const file = where.replace(/:\d+$/, '');
+    if (!byFile.has(file)) byFile.set(file, []);
+    byFile.get(file).push(ja);
+  }
+  for (const [file, list] of byFile) {
+    console.log(`  // ---- ${file}`);
+    for (const ja of list) console.log(`  ${JSON.stringify(ja).replace(/^"|"$/g, "'").replace(/\\"/g, '"')}: '',`);
+  }
+  process.exit(0);
+}
 const stale = [];
 const slots = [];
 const slotsOf = (s) => (String(s).match(/\{\w+\}|%[A-Za-z_]\w*/g) || []).sort().join(' ');
@@ -151,6 +172,9 @@ for (const [ja, eng] of Object.entries(en)) {
   }
 }
 bad('英語の辞書に、使われていない文の訳が残っています', stale);
+bad('英語の訳が無い文があります（node ui\\test\\i18n.js --missing で、en.js の形で出せます）',
+  [...catalog].filter(([ja]) => typeof en[ja] !== 'string' || en[ja] === '')
+    .map(([ja, where]) => `${JSON.stringify(ja)} … ${where}`));
 bad('英語の訳と元の文で、{差しこみ} や %欄 がそろっていません', slots);
 
 // -------------------------------------------------- 5. exe が返すエラーのコード
@@ -190,9 +214,8 @@ if (problems.length) {
   console.log(`${C.red}[i18n] ${problems.length} 件おかしいところがあります。${C.off}`);
   process.exit(1);
 }
-const translated = [...catalog.keys()].filter((k) => typeof en[k] === 'string' && en[k] !== '').length;
 console.log(`${C.green}  OK  ${C.off}画面の日本語はすべて t() を通っています ${C.dim}(${catalog.size} 文)${C.off}`);
 console.log(`${C.green}  OK  ${C.off}英語の辞書に、古い訳や欄のずれはありません`);
 console.log(`${C.green}  OK  ${C.off}exe が返すエラーのコードは、すべて画面の文になります ${C.dim}(${errorCodes} 個)${C.off}`);
-console.log(`${C.yellow}  お知らせ${C.off} ${C.dim}英語の訳があるのは ${translated} / ${catalog.size} 文です（無いものは日本語のまま出ます）${C.off}`);
+console.log(`${C.green}  OK  ${C.off}画面の文には、すべて英語の訳があります`);
 console.log(`${C.green}[i18n] 画面の言葉は、点検のかぎり問題ありません。${C.off}`);

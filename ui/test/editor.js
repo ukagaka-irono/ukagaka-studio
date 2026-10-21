@@ -76,6 +76,13 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
 }
 
 {
+  // ゴーストの言語（meta.lang）。無いものは日本語のゴーストで、画面の言語では埋めない
+  const of = (meta) => Model.normalize({ meta }).meta.lang;
+  check('ゴーストの言語: en・ja はそのまま、知らないものと無いものは持たない（日本語のゴースト）',
+    [of({ lang: 'en' }), of({ lang: 'ja' }), of({ lang: 'fr' }), of({})], ['en', 'ja', undefined, undefined]);
+}
+
+{
   const p = Model.normalize({
     animations: [{
       id: 3, base: 0, interval: 'talk', every: 2,
@@ -293,17 +300,24 @@ section('ブロックを字でさがす (blockindex)');
 // ============================================== お手本ゴースト（ui/samples）
 section('お手本ゴースト');
 {
-  const dir = path.join(root, 'ui', 'samples');
-  const index = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
-  check('お手本の数', index.length > 0, true);
-  for (const s of index) {
-    const raw = fs.readFileSync(path.join(dir, s.file), 'utf8');
-    const project = Model.normalize(JSON.parse(raw));
+  /** お手本がチェックタブに引っかかっていたら、お手本になりません。ゴーストの言語もそろっているか見ます */
+  const sample = (file, lang) => {
+    const project = Model.normalize(JSON.parse(fs.readFileSync(file, 'utf8')));
     Model.project = project;
-    const issues = Lint.run(project);
-    // お手本がチェックタブに引っかかっていたら、お手本になりません
-    check(`${s.file} は問題なし`, issues.map((i) => `${i.level}: ${i.message}`), []);
+    const name = path.relative(root, file).replace(/\//g, '\\');
+    check(`${name} は問題なし`, Lint.run(project).map((i) => `${i.level}: ${i.message}`), []);
+    check(`${name} のゴーストの言語`, project.meta.lang || 'ja', lang);
+  };
+  const lists = {};
+  // 日本語のお手本は ui/samples、英語のお手本は ui/samples/en（画面の言語でえらびます。panels/dialog.js）
+  for (const [lang, dir] of [['ja', path.join(root, 'ui', 'samples')], ['en', path.join(root, 'ui', 'samples', 'en')]]) {
+    lists[lang] = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
+    for (const s of lists[lang]) sample(path.join(dir, s.file), lang);
   }
+  check('お手本の数（英語のお手本も、日本語と同じだけある）', [lists.ja.length > 0, lists.en.length], [true, lists.ja.length]);
+  // はじめて起動したときに exe が置くサンプル（studio/tools/embed.ps1 が埋め込む）
+  sample(path.join(root, 'studio', 'res', 'sample-project.json'), 'ja');
+  sample(path.join(root, 'studio', 'res', 'sample-project.en.json'), 'en');
 }
 
 // ------------------------------------------------------------------ おしまい

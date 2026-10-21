@@ -10,7 +10,6 @@
 #include "export_parts.h"
 #include "zip.h"
 #include "fsutil.h"
-#include "lang.h"
 #include "util.h"
 
 namespace ikaga {
@@ -38,13 +37,21 @@ std::string GhostFolderName(const JValue& project) {
     return SafeFolderName(folder, "ikaga-ghost");
 }
 
-std::string GhostName(const JValue& project) {
-    std::string name = project["meta"]["name"].asStr();
-    return Trim(name).empty() ? std::string(Tr("あたらしいゴースト", "New Ghost")) : name;
+bool EnglishGhost(const JValue& project) {
+    return project["meta"]["lang"].asStr() == "en";
 }
 
-const char* DefaultSakuraName() { return Tr("さくら", "Sakura"); }
-const char* DefaultKeroName() { return Tr("うにゅう", "Kero"); }
+const char* ByGhostLang(const JValue& project, const char* ja, const char* en) {
+    return EnglishGhost(project) ? en : ja;
+}
+
+std::string GhostName(const JValue& project) {
+    std::string name = project["meta"]["name"].asStr();
+    return Trim(name).empty() ? std::string(ByGhostLang(project, "あたらしいゴースト", "New Ghost")) : name;
+}
+
+const char* DefaultSakuraName(const JValue& project) { return ByGhostLang(project, "さくら", "Sakura"); }
+const char* DefaultKeroName(const JValue& project) { return ByGhostLang(project, "うにゅう", "Kero"); }
 
 std::string DescriptLine(const char* key, const std::string& value) {
     std::string v = value;
@@ -79,15 +86,16 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     }
     files.push_back(f);
 
-    // readme.txt は、書き出したときの画面の言語で書きます（lang.h）
+    // readme.txt は、ゴーストの言語で書きます
     f.name = "readme.txt";
     f.data = GhostName(project);
     f.data += "\r\n\r\n";
-    f.data += Tr("作者      : ", "Author : ") + meta["craftman"].asStr(Tr("(未設定)", "(not set)")) + "\r\n";
-    f.data += Tr("バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
+    f.data += ByGhostLang(project, "作者      : ", "Author : ") +
+              meta["craftman"].asStr(ByGhostLang(project, "(未設定)", "(not set)")) + "\r\n";
+    f.data += ByGhostLang(project, "バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
     f.data += meta["description"].asStr("") + "\r\n\r\n";
     f.data += "----\r\n";
-    f.data += Tr("このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n"
+    f.data += ByGhostLang(project, "このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n"
                  "会話の中身は ghost/master/ghost.json にブロック形式で入っています。\r\n"
                  "伺かスタジオで読み込むと編集できます。\r\n",
                  "This ghost runs on ikaga SHIORI (ikaga.dll).\r\n"
@@ -98,8 +106,8 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     f.name = "ghost/master/descript.txt";
     f.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "ghost") +
              DescriptLine("name", GhostName(project)) +
-             DescriptLine("sakura.name", meta["sakuraName"].asStr(DefaultSakuraName())) +
-             DescriptLine("kero.name", meta["keroName"].asStr(DefaultKeroName())) +
+             DescriptLine("sakura.name", meta["sakuraName"].asStr(DefaultSakuraName(project))) +
+             DescriptLine("kero.name", meta["keroName"].asStr(DefaultKeroName(project))) +
              DescriptLine("craftman", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanw", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanurl", meta["craftmanUrl"].asStr("")) +

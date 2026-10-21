@@ -6,7 +6,8 @@
  * **栞だけが持っている判断**を見ます。プレビューには無い部分です。
  *
  *   ・同じイベントに複数あるとき、どれを選ぶか（しぼり込みの優先）
- *   ・ブロックが無いイベントの既定の反応（英語の画面で書き出したゴーストなら英語で）
+ *   ・ブロックが無いイベントの既定の反応（英語のゴーストなら英語で）
+ *   ・英語のゴーストでは「いまごろ」「季節」「曜日の名前」が英語の値になること
  *   ・OnClose に \- が必ず付くこと、\e が補われること
  *   ・「◯秒ごと」の間引き
  *   ・OnMouseMove を数えて OnNadeNade を作ること
@@ -22,6 +23,7 @@ const host = require('../lib/host');
 const { red, green, dim, off } = host.COLOR;
 const EMPTY = path.join(__dirname, 'empty');
 const EMPTY_EN = path.join(__dirname, 'empty-en');
+const VALUES_EN = path.join(__dirname, 'values-en');
 const MAIN = path.join(__dirname, 'main');
 
 // 応答 1 件に対する期待。文字列なら Value の完全一致。
@@ -43,7 +45,7 @@ const scenarios = [
     ],
   },
   {
-    name: '英語の画面で書き出したゴースト（meta.lang が en）の、既定の反応',
+    name: '英語のゴースト（meta.lang が en）の、既定の反応',
     dir: EMPTY_EN,
     steps: [
       ['OnFirstBoot', "\\0\\s[0]Nice to meet you.\\nI'm Ikaga.\\nLet's get along!\\e"],
@@ -53,6 +55,17 @@ const scenarios = [
       }],
       ['OnNadeNade:0,0,0,0,Bust', "\\0\\s[2]...Please don't touch me so much.\\e"],
       ['OnClose', '\\0\\s[0]See you.\\-'],
+    ],
+  },
+  {
+    name: '英語のゴーストでは「いまごろ」「季節」「曜日の名前」が英語の値になる',
+    dir: VALUES_EN,
+    steps: [
+      ['OnBoot', { valueOneOf: ['morning', 'afternoon', 'evening', 'night'].map((v) => `\\0${v}\\e`) }],
+      ['OnMouseDoubleClick:0,0,0,0,Head', { valueOneOf: ['spring', 'summer', 'autumn', 'winter'].map((v) => `\\0${v}\\e`) }],
+      ['OnClose', {
+        valueOneOf: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((v) => `\\0${v}\\-`),
+      }],
     ],
   },
   {

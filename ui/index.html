@@ -226,13 +226,18 @@
     <div class="page-inner card-grid">
       <section class="card">
         <div class="card-head"><h2>名前と作者</h2></div>
-        <label class="field"><span>ゴースト名</span><input id="meta-name" type="text"></label>
+        <label class="field"><span>ゴーストの名前</span><input id="meta-name" type="text"></label>
         <label class="field"><span>本体（さくら）の名前</span><input id="meta-sakura" type="text"></label>
         <label class="field"><span>相方（うにゅう）の名前</span><input id="meta-kero" type="text"></label>
         <label class="field"><span>作者名</span><input id="meta-craftman" type="text"></label>
         <label class="field"><span>作者URL</span><input id="meta-url" type="text" placeholder="https://"></label>
         <label class="field"><span>バージョン</span><input id="meta-version" type="text" value="1.0.0"></label>
         <label class="field"><span>説明</span><textarea id="meta-desc" rows="3"></textarea></label>
+        <label class="field"><span>ゴーストの言語</span>
+          <select id="meta-lang"><option value="ja">日本語</option><option value="en">英語</option></select>
+        </label>
+        <p class="hint">ゴーストが自分で言うこと（ブロックを置いていないイベントの反応など）と、「いまごろ」「季節」「曜日の名前」の値、
+          readme.txt の言葉です。画面の言語とは別で、作りはじめたときの画面の言語になっています。</p>
       </section>
 
       <div class="card-stack">
@@ -315,7 +320,7 @@
           <li><b>トーク</b>の左の<b>イベント</b>から「起動したとき」などをキャンバスにドラッグします。</li>
           <li>その下に<b>セリフ</b>の「…と話す」ブロックをつなげます。</li>
           <li>右の<b>ためす</b>の ▶ で動きを確認します。</li>
-          <li>「<b>なでられたとき</b>」などのマウス操作は、<b>あたま・かお・むね</b>といった場所ごとに
+          <li><b>なでられたとき</b>などのマウスのイベントは、<b>あたま・かお・むね</b>といった場所ごとに
             分けて反応させられます（仮シェルにも当たり判定が入っています）。</li>
           <li>右の<b>チェック</b>に気になるところが出ます。クリックするとその場所へ移動します。</li>
           <li>用意した絵を使うときは、<b>キャラと絵</b>の「立ち絵」で PNG をえらびます。</li>
@@ -349,7 +354,7 @@
 
         <section class="card">
           <div class="card-head"><h2>右クリックのメニュー</h2></div>
-          <table class="key-table">
+          <table class="key-table menu-table">
             <tr><td>ブロックの上</td><td>コピー・切り取り・すぐ下にはりつけ・複製・一時的に無効にする・削除・ここから下をすべて削除</td></tr>
             <tr><td>かたまりの帽子の上</td><td>実行してみる・複製・削除</td></tr>
             <tr><td>何もないところ</td><td>ここにブロックを探して置く・ここにはりつけ・整列</td></tr>

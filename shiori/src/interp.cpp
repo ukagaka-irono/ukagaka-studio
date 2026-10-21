@@ -120,27 +120,33 @@ static Value SysValue(const std::string& key, RunCtx& ctx) {
     if (key == "month")   return Value::Num(st.wMonth);
     if (key == "day")     return Value::Num(st.wDay);
     if (key == "weekday") return Value::Num(st.wDayOfWeek);   // 0=Sunday
+    // 「いまごろ」「季節」「曜日の名前」は、ゴーストの中で比べる値です（いまごろ = 朝 など）。
+    // 英語のゴースト（meta.lang が "en"）では英語の値を返します。言語はゴーストのもので、
+    // 画面の言語では変わりません（作ったあとに画面を切りかえても、比べる値がずれないように）。
+    const bool en = ctx.prog && ctx.prog->meta()["lang"].asStr() == "en";
     // 話のとっかかりに使う「いまごろ」
     if (key == "daypart") {
         int h = st.wHour;
-        if (h < 5)  return Value::Str("夜");
-        if (h < 11) return Value::Str("朝");
-        if (h < 17) return Value::Str("昼");
-        if (h < 22) return Value::Str("夕方");
-        return Value::Str("夜");
+        if (h < 5)  return Value::Str(en ? "night" : "夜");
+        if (h < 11) return Value::Str(en ? "morning" : "朝");
+        if (h < 17) return Value::Str(en ? "afternoon" : "昼");
+        if (h < 22) return Value::Str(en ? "evening" : "夕方");
+        return Value::Str(en ? "night" : "夜");
     }
     if (key == "season") {
         int m = st.wMonth;
-        if (m >= 3 && m <= 5)  return Value::Str("春");
-        if (m >= 6 && m <= 8)  return Value::Str("夏");
-        if (m >= 9 && m <= 11) return Value::Str("秋");
-        return Value::Str("冬");
+        if (m >= 3 && m <= 5)  return Value::Str(en ? "spring" : "春");
+        if (m >= 6 && m <= 8)  return Value::Str(en ? "summer" : "夏");
+        if (m >= 9 && m <= 11) return Value::Str(en ? "autumn" : "秋");
+        return Value::Str(en ? "winter" : "冬");
     }
     if (key == "weekdayname") {
         static const char* kDays[] = { "日", "月", "火", "水", "木", "金", "土" };
+        static const char* kDaysEn[] = { "Sunday", "Monday", "Tuesday", "Wednesday",
+                                         "Thursday", "Friday", "Saturday" };
         int d = st.wDayOfWeek;
         if (d < 0 || d > 6) d = 0;
-        return Value::Str(kDays[d]);
+        return Value::Str(en ? kDaysEn[d] : kDays[d]);
     }
     // ゴースト間通信。OnCommunicate の Reference0 が相手の名前、Reference1 が言われたこと。
     if (key == "commfrom") return Value::Str(ctx.refs.size() > 0 ? ctx.refs[0] : std::string());

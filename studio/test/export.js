@@ -99,17 +99,16 @@ const cases = [
   ['noname.json', 'ghost/master/descript.txt', 'noname-descript.txt'],
   ['noname.json', 'balloon/descript.txt', 'noname-balloon-descript.txt'],
   ['noname.json', 'readme.txt', 'noname-readme.txt'],
-  // 画面が英語のときの書き出し（readme.txt・既定の名前・バルーンの名前・ghost.json の meta.lang）
-  ['noname.json', 'readme.txt', 'en-noname-readme.txt', 'en'],
-  ['noname.json', 'balloon/descript.txt', 'en-noname-balloon-descript.txt', 'en'],
-  ['plain.json', 'ghost/master/descript.txt', 'en-descript-plain.txt', 'en'],
-  ['ghost.json', 'ghost/master/ghost.json', 'en-program.json', 'en'],
+  // ゴーストの言語が English のとき（readme.txt・名前が空のときの名前・バルーンの名前・ghost.json の meta.lang）
+  ['en.json', 'readme.txt', 'en-readme.txt'],
+  ['en.json', 'ghost/master/descript.txt', 'en-descript.txt'],
+  ['en.json', 'balloon/descript.txt', 'en-balloon-descript.txt'],
+  ['en.json', 'ghost/master/ghost.json', 'en-program.json'],
 ];
 
 console.log('  ---- 書き出したファイルの中身');
-for (const [fixture, want, expected, lang] of cases) {
-  const opts = lang ? ['--lang', lang] : [];
-  compare(expected, run([...opts, path.join(fixtureDir, fixture), want]));
+for (const [fixture, want, expected] of cases) {
+  compare(expected, run([path.join(fixtureDir, fixture), want]));
 }
 
 // ------------------------------------------------- ネットワーク更新の照合表

@@ -9,6 +9,7 @@ param(
     [Parameter(Mandatory = $true)][string]$StageDir,
     [string]$DllPath,
     [string]$SamplePath,
+    [string]$SampleEnPath,
     [string]$IconPath,
     [string]$Version = '0.0.0'
 )
@@ -67,6 +68,11 @@ if ($DllPath -and (Test-Path $DllPath)) {
 if ($SamplePath -and (Test-Path $SamplePath)) {
     Copy-Item $SamplePath (Join-Path $assetsDir 'sample.json') -Force
     [void]$rc.AppendLine('901 RCDATA "assets\\sample.json"')
+}
+# 英語のサンプル（exe の言語が英語のとき、はじめて起動したときに置く）
+if ($SampleEnPath -and (Test-Path $SampleEnPath)) {
+    Copy-Item $SampleEnPath (Join-Path $assetsDir 'sample-en.json') -Force
+    [void]$rc.AppendLine('902 RCDATA "assets\\sample-en.json"')
 }
 foreach ($e in $entries) {
     [void]$rc.AppendLine(('{0} RCDATA "assets\\{1}"' -f $e.Id, $e.File))

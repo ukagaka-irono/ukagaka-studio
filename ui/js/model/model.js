@@ -123,6 +123,9 @@ const Model = {
     const base = Model.newProject();
     const out = Object.assign(base, p);
     out.meta = Object.assign(base.meta, p.meta || {});
+    // ゴーストの言語。無いもの（前からあるプロジェクト）は日本語のゴーストです。
+    // 画面の言語で埋めないこと（日本語で作ったゴーストが、英語の画面で開いただけで英語にならないように）
+    if (out.meta.lang !== 'ja' && out.meta.lang !== 'en') delete out.meta.lang;
     out.settings = Object.assign(base.settings, p.settings || {});
     out.shell = Object.assign(base.shell, p.shell || {});
     out.shell.images = (Array.isArray(out.shell.images) ? out.shell.images : [])

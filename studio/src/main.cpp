@@ -185,6 +185,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     g_api.Init();
     // exe が自分で出す言葉の言語。画面が読みこまれたら、画面から lang:… が届いて合わせます
     SetLang(ParseLang(g_api.LoadConfig()["lang"].asStr(), SystemLang()));
+    g_api.PlaceFirstRunSample();
 
     WNDCLASSEXW wc;
     ZeroMemory(&wc, sizeof(wc));

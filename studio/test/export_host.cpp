@@ -1,9 +1,8 @@
 // 伺かスタジオ - 書き出しの中身を見るためのコンソール
 //
-//   export_host.exe [--lang en] <project.json> [ファイル名の一部]
+//   export_host.exe <project.json> [ファイル名の一部]
 //
 // プロジェクトを読んで、書き出されるファイルの一覧と中身を出します。
-// --lang en を付けると、画面が英語のときの書き出しになります（readme.txt・既定の名前など）。
 // 第 2 引数を付けると、名前にそれをふくむファイルの中身だけを出します。
 // surfaces.txt の中身（当たり判定・SERIKO のアニメーション）を確かめるのに使います。
 #define WIN32_LEAN_AND_MEAN
@@ -15,7 +14,6 @@
 
 #include "exporter.h"
 #include "json.h"
-#include "lang.h"
 #include "util.h"
 #include "fsutil.h"
 
@@ -26,11 +24,6 @@ int wmain(int argc, wchar_t** argv) {
     // 書き出したものをそのまま出す（\n を \r\n に化けさせない）。
     // 答え合わせテストが中身をバイトで見くらべるので、ここは素通しにします。
     _setmode(_fileno(stdout), _O_BINARY);
-    if (argc >= 3 && std::wstring(argv[1]) == L"--lang") {
-        SetLang(argv[2] == std::wstring(L"en") ? Lang::En : Lang::Ja);
-        argc -= 2;
-        argv += 2;
-    }
     if (argc < 2) {
         printf("usage: export_host <project.json> [name-filter]\n");
         return 1;

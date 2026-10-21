@@ -1,0 +1,27 @@
+[
+  {
+    "file": "greeting.json",
+    "title": "Greeting ghost",
+    "desc": "The basics: starting, closing and double-clicking. The smallest example."
+  },
+  {
+    "file": "affection.json",
+    "title": "Affection goes up",
+    "desc": "Petting raises a variable, and what it says changes."
+  },
+  {
+    "file": "time-of-day.json",
+    "title": "Talk by time of day",
+    "desc": "Picks a talk that fits the time from a group split by “time of day”."
+  },
+  {
+    "file": "name.json",
+    "title": "Ask your name",
+    "desc": "Asks your name with an input box, remembers it and calls you by it."
+  },
+  {
+    "file": "chat.json",
+    "title": "Talk with other ghosts",
+    "desc": "Answers when talked to, and talks to others too."
+  }
+]

@@ -1,0 +1,79 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Affection Ghost",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "version": "1.0.0",
+    "description": "Petting raises its affection, and what it says changes.",
+    "lang": "en"
+  },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 120 },
+  "variables": [{ "name": "affection", "value": 0 }],
+  "scripts": [
+    {
+      "id": "k_boot", "kind": "event", "event": "OnBoot", "x": 60, "y": 40,
+      "blocks": [
+        { "type": "if_else",
+          "cond": { "type": "compare", "op": ">",
+                    "a": { "type": "var", "name": "affection" }, "b": 5 },
+          "then": [
+            { "type": "surface", "who": 0, "id": 1 },
+            { "type": "say", "who": 0, "text": "I missed you.", "nl": 1 }
+          ],
+          "else": [
+            { "type": "say", "who": 0, "text": "Hello.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "k_nade", "kind": "event", "event": "OnNadeNade", "area": "Head", "who": 0,
+      "x": 60, "y": 346,
+      "blocks": [
+        { "type": "change", "name": "affection", "value": 1 },
+        { "type": "surface", "who": 0, "id": 1 },
+        { "type": "if_else",
+          "cond": { "type": "compare", "op": ">",
+                    "a": { "type": "var", "name": "affection" }, "b": 10 },
+          "then": [
+            { "type": "say", "who": 0, "text": "Hehe, that makes me happy.", "nl": 1 }
+          ],
+          "else": [
+            { "type": "say", "who": 0, "text": "That tickles.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "k_bust", "kind": "event", "event": "OnNadeNade", "area": "Bust", "who": 0,
+      "x": 60, "y": 694,
+      "blocks": [
+        { "type": "change", "name": "affection", "value": -1 },
+        { "type": "surface", "who": 0, "id": 2 },
+        { "type": "say", "who": 0, "text": "...Not there.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "k_talk", "kind": "talk", "name": "How I feel", "weight": 2, "x": 587, "y": 40,
+      "blocks": [
+        { "type": "if_else",
+          "cond": { "type": "compare", "op": ">",
+                    "a": { "type": "var", "name": "affection" }, "b": 8 },
+          "then": [
+            { "type": "say", "who": 0, "text": "Today is fun.", "nl": 1 }
+          ],
+          "else": [
+            { "type": "say", "who": 0, "text": "I'm bored.", "nl": 1 }
+          ] }
+      ]
+    },
+    {
+      "id": "k_show", "kind": "talk", "name": "Tell affection", "weight": 1, "x": 587, "y": 304,
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": "My affection is ",
+                    "b": { "type": "join",
+                           "a": { "type": "var", "name": "affection" }, "b": " right now." } } }
+      ]
+    }
+  ]
+}

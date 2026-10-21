@@ -260,9 +260,9 @@ SSP の通信ボックスから話しかけられた場合、相手の名前は 
 | 今回のトーク回数 | `{"type":"sys","key":"talks"}` | |
 | ゴースト名 / シェル名 | `{"type":"sys","key":"ghostname"}` / `shellname` | |
 | 話しかけてきた相手 / 言われたこと | `{"type":"sys","key":"commfrom"}` / `commtext` | `OnCommunicate` の `Reference0` / `Reference1` |
-| いまごろ | `{"type":"sys","key":"daypart"}` | `朝`(5-11) / `昼`(11-17) / `夕方`(17-22) / `夜`(22-5) |
-| いまの季節 | `{"type":"sys","key":"season"}` | `春`(3-5) / `夏`(6-8) / `秋`(9-11) / `冬`(12-2) |
-| いまの曜日（名前） | `{"type":"sys","key":"weekdayname"}` | `日` 〜 `土` |
+| いまごろ | `{"type":"sys","key":"daypart"}` | `朝`(5-11) / `昼`(11-17) / `夕方`(17-22) / `夜`(22-5)。英語のゴーストは `morning` / `afternoon` / `evening` / `night` |
+| いまの季節 | `{"type":"sys","key":"season"}` | `春`(3-5) / `夏`(6-8) / `秋`(9-11) / `冬`(12-2)。英語のゴーストは `spring` / `summer` / `autumn` / `winter` |
+| いまの曜日（名前） | `{"type":"sys","key":"weekdayname"}` | `日` 〜 `土`。英語のゴーストは `Sunday` 〜 `Saturday` |
 | 前に出したトーク | `{"type":"sys","key":"lasttalk"}` | そのトークの id |
 | イベントの情報 N | `{"type":"ref","index":0}` | SSP の `ReferenceN` |
 

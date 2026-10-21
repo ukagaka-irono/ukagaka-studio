@@ -1,0 +1,58 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Greeting Ghost",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "version": "1.0.0",
+    "description": "The smallest ghost: it only greets you when it starts, says goodbye, and answers double-clicks.",
+    "lang": "en"
+  },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 180 },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "a_first", "kind": "event", "event": "OnFirstBoot", "x": 60, "y": 40,
+      "blocks": [
+        { "type": "surface", "who": 0, "id": 1 },
+        { "type": "say", "who": 0, "text": "Nice to meet you. I'm Ikaga.", "nl": 1 },
+        { "type": "say", "who": 0, "text": "Let's get along.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "a_boot", "kind": "event", "event": "OnBoot", "x": 60, "y": 248,
+      "blocks": [
+        { "type": "surface", "who": 0, "id": 1 },
+        { "type": "say", "who": 0, "text": "Welcome back.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "a_close", "kind": "event", "event": "OnClose", "x": 60, "y": 414,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "See you.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "a_click", "kind": "event", "event": "OnMouseDoubleClick", "x": 60, "y": 538,
+      "blocks": [
+        { "type": "random_one", "branches": [
+          [{ "type": "say", "who": 0, "text": "What is it?", "nl": 1 }],
+          [{ "type": "say", "who": 0, "text": "Did you call me?", "nl": 1 }],
+          [{ "type": "say", "who": 0, "text": "What's up?", "nl": 1 }]
+        ] }
+      ]
+    },
+    {
+      "id": "a_talk1", "kind": "talk", "name": "Sky talk", "weight": 1, "x": 587, "y": 40,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "I wonder if it's sunny outside.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "a_talk2", "kind": "talk", "name": "Tea talk", "weight": 1, "x": 587, "y": 164,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "How about some tea?", "nl": 1 }
+      ]
+    }
+  ]
+}

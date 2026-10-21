@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "fsutil.h"
 #include "json.h"
+#include "lang.h"
 #include "sstp.h"
 #include "util.h"
 
@@ -71,13 +72,14 @@ void Api::Init() {
     configPath_ = PathJoin(exeDir_, L"ukagaka-studio.json");
 
     EnsureDir(projectsDir_);
+}
 
-    // 初回起動のときだけ、埋め込んだサンプルを置く
-    if (ListFiles(projectsDir_, L"*.json").empty()) {
-        std::string sample;
-        if (LoadEmbedded(IDR_SAMPLE_PROJECT, sample)) {
-            WriteBinaryFile(PathJoin(projectsDir_, L"いかがちゃん.json"), sample);
-        }
+void Api::PlaceFirstRunSample() {
+    if (!ListFiles(projectsDir_, L"*.json").empty()) return;
+    const bool en = CurrentLang() == Lang::En;
+    std::string sample;
+    if (LoadEmbedded(en ? IDR_SAMPLE_PROJECT_EN : IDR_SAMPLE_PROJECT, sample)) {
+        WriteBinaryFile(PathJoin(projectsDir_, en ? L"Ikaga.json" : L"いかがちゃん.json"), sample);
     }
 }
 

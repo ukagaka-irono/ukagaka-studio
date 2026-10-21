@@ -1,0 +1,399 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Ikaga",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "craftman": "your name",
+    "craftmanUrl": "",
+    "version": "1.0.0",
+    "description": "A sample ghost for Ukagaka Studio. Rearrange its blocks to make your own ghost.",
+    "lang": "en"
+  },
+  "settings": {
+    "randomTalkInterval": 120,
+    "randomTalkEnabled": true,
+    "defaultSurfaceSakura": 0,
+    "defaultSurfaceKero": 10
+  },
+  "shell": {
+    "sakuraColor": "#f2c14e",
+    "sakuraCloth": "#7fb069",
+    "keroColor": "#b8a1e3",
+    "keroCloth": "#e8e1d4"
+  },
+  "variables": [
+    {
+      "name": "affection",
+      "value": 0
+    },
+    {
+      "name": "visits",
+      "value": 0
+    }
+  ],
+  "scripts": [
+    {
+      "id": "s_first",
+      "kind": "event",
+      "event": "OnFirstBoot",
+      "x": 60,
+      "y": 40,
+      "blocks": [
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 0
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": "Nice to meet you.\nI'm Ikaga.",
+          "nl": 1
+        },
+        {
+          "type": "say",
+          "who": 1,
+          "text": "I'm Shiori. Nice to meet you.",
+          "nl": 1
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": "Let's get along from now on.",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_boot",
+      "kind": "event",
+      "event": "OnBoot",
+      "x": 60,
+      "y": 290,
+      "blocks": [
+        {
+          "type": "change",
+          "name": "visits",
+          "value": 1
+        },
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 0
+        },
+        {
+          "type": "if_else",
+          "cond": {
+            "type": "compare",
+            "op": ">",
+            "a": {
+              "type": "var",
+              "name": "visits"
+            },
+            "b": 3
+          },
+          "then": [
+            {
+              "type": "surface",
+              "who": 0,
+              "id": 1
+            },
+            {
+              "type": "say",
+              "who": 0,
+              "text": "You came back again. I'm so happy.",
+              "nl": 1
+            }
+          ],
+          "else": [
+            {
+              "type": "say",
+              "who": 0,
+              "text": "Welcome back.",
+              "nl": 1
+            }
+          ]
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "nl": 1,
+          "text": {
+            "type": "join",
+            "a": "That makes ",
+            "b": {
+              "type": "join",
+              "a": {
+                "type": "var",
+                "name": "visits"
+              },
+              "b": " visits."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "s_click",
+      "kind": "event",
+      "event": "OnMouseDoubleClick",
+      "x": 824,
+      "y": 40,
+      "blocks": [
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 2
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": "What is it?",
+          "nl": 1
+        },
+        {
+          "type": "choice",
+          "label": "Pet",
+          "target": "Petted"
+        },
+        {
+          "type": "newline",
+          "count": 1
+        },
+        {
+          "type": "choice",
+          "label": "Nothing",
+          "target": "Nothing"
+        }
+      ]
+    },
+    {
+      "id": "s_nade",
+      "kind": "event",
+      "event": "OnNadeNade",
+      "area": "Head",
+      "who": 0,
+      "x": 824,
+      "y": 332,
+      "blocks": [
+        {
+          "type": "call",
+          "name": "Petted"
+        }
+      ]
+    },
+    {
+      "id": "f_nade",
+      "kind": "function",
+      "name": "Petted",
+      "x": 2261,
+      "y": 40,
+      "blocks": [
+        {
+          "type": "change",
+          "name": "affection",
+          "value": 5
+        },
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 1
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": "Hehe, I'm happy.",
+          "nl": 1
+        },
+        {
+          "type": "if",
+          "cond": {
+            "type": "compare",
+            "op": ">",
+            "a": {
+              "type": "var",
+              "name": "affection"
+            },
+            "b": 20
+          },
+          "then": [
+            {
+              "type": "say",
+              "who": 0,
+              "text": "...Thank you. I like you a lot.",
+              "nl": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f_nothing",
+      "kind": "function",
+      "name": "Nothing",
+      "x": 2261,
+      "y": 358,
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "I see.",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "t_weather",
+      "kind": "talk",
+      "name": "Monologue",
+      "weight": 2,
+      "x": 1475,
+      "y": 40,
+      "blocks": [
+        {
+          "type": "random_one",
+          "branches": [
+            [
+              {
+                "type": "say",
+                "who": 0,
+                "text": "Nice weather today.",
+                "nl": 1
+              }
+            ],
+            [
+              {
+                "type": "say",
+                "who": 0,
+                "text": "I'm getting sleepy...",
+                "nl": 1
+              },
+              {
+                "type": "say",
+                "who": 1,
+                "text": "Don't fall asleep.",
+                "nl": 1
+              }
+            ],
+            [
+              {
+                "type": "say",
+                "who": 0,
+                "text": "How about some tea?",
+                "nl": 1
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t_clock",
+      "kind": "talk",
+      "name": "Time signal",
+      "weight": 1,
+      "x": 1475,
+      "y": 418,
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "nl": 1,
+          "text": {
+            "type": "join",
+            "a": "It's about ",
+            "b": {
+              "type": "join",
+              "a": {
+                "type": "sys",
+                "key": "hour"
+              },
+              "b": " o'clock."
+            }
+          }
+        },
+        {
+          "type": "if",
+          "cond": {
+            "type": "compare",
+            "op": ">",
+            "a": {
+              "type": "sys",
+              "key": "hour"
+            },
+            "b": 22
+          },
+          "then": [
+            {
+              "type": "say",
+              "who": 0,
+              "text": "It's time for bed.",
+              "nl": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_close",
+      "kind": "event",
+      "event": "OnClose",
+      "x": 824,
+      "y": 456,
+      "blocks": [
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 1
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": "See you.",
+          "nl": 0
+        },
+        {
+          "type": "close"
+        }
+      ]
+    },
+    {
+      "id": "s_comm",
+      "kind": "event",
+      "event": "OnCommunicate",
+      "contains": "Hello",
+      "x": 824,
+      "y": 660,
+      "blocks": [
+        {
+          "type": "surface",
+          "who": 0,
+          "id": 1
+        },
+        {
+          "type": "say",
+          "who": 0,
+          "text": {
+            "type": "join",
+            "a": {
+              "type": "sys",
+              "key": "commfrom"
+            },
+            "b": ", is that you?"
+          },
+          "nl": 1
+        },
+        {
+          "type": "communicate",
+          "who": 0,
+          "to": {
+            "type": "sys",
+            "key": "commfrom"
+          },
+          "text": "Hello. Nice weather today, isn't it?"
+        }
+      ]
+    }
+  ]
+}

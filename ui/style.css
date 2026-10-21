@@ -580,6 +580,7 @@ button, input, select, textarea { font-family: inherit; }
 .key-table { width: 100%; font-size: 12px; border-collapse: collapse; }
 .key-table td { padding: 4px 6px; border-bottom: 1px solid var(--line-soft); color: var(--text-2); }
 .key-table td:first-child { font-family: Consolas, monospace; color: var(--text-muted); width: 45%; }
+.key-table.menu-table td:first-child { font-family: inherit; width: 35%; }   /* キーではなく、場所の名前 */
 .help-cats { display: flex; flex-direction: column; gap: 4px; }
 .help-cat { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-2); }
 .help-cat i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }

@@ -1,8 +1,8 @@
 == folder: ikaga-ghost / 17 ファイル
----- readme.txt (208 バイト)
+---- readme.txt (205 バイト)
 New Ghost
 
-Author : テスト
+Author : Tester
 Version: 1.0.0
 
 

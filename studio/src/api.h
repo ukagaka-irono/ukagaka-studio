@@ -21,6 +21,9 @@ namespace ikaga {
 class Api {
 public:
     void Init();
+    // はじめて起動したとき（projects が空のとき）だけ、埋め込んだサンプルを置く。
+    // exe の言語でえらぶので、言語を決めてから呼びます（main.cpp）
+    void PlaceFirstRunSample();
     void Handle(const HttpRequest& req, HttpResponse& res);
 
     const std::wstring& projectsDir() const { return projectsDir_; }

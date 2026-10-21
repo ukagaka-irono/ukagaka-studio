@@ -16,6 +16,7 @@ function render() {
   setVal('#meta-homeurl', m.homeUrl);
   setVal('#meta-version', m.version);
   setVal('#meta-desc', m.description);
+  setVal('#meta-lang', m.lang === 'en' ? 'en' : 'ja');
   setVal('#set-talk-interval', s.randomTalkInterval);
   setVal('#set-no-repeat', s.noRepeatCount == null ? 0 : s.noRepeatCount);
   setVal('#set-talk-enabled', s.randomTalkEnabled !== false);
@@ -31,6 +32,7 @@ function init() {
   bindField('#meta-homeurl', (v) => { Model.project.meta.homeUrl = v.trim(); });
   bindField('#meta-version', (v) => { Model.project.meta.version = v; });
   bindField('#meta-desc', (v) => { Model.project.meta.description = v; });
+  bindField('#meta-lang', (v) => { Model.project.meta.lang = v === 'en' ? 'en' : 'ja'; });
   bindField('#set-talk-interval', (v) => { Model.project.settings.randomTalkInterval = Number(v) || 0; });
   bindField('#set-no-repeat', (v) => { Model.project.settings.noRepeatCount = Math.max(0, Number(v) || 0); });
   bindField('#set-talk-enabled', (v) => { Model.project.settings.randomTalkEnabled = !!v; });

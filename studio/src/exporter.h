@@ -29,16 +29,22 @@ std::string SafeFolderName(const std::string& name, const char* fallback);
 // 書き出すときのフォルダ名（meta.folder、無ければ meta.name。どちらも無ければ ikaga-ghost）
 std::string GhostFolderName(const JValue& project);
 
-// ゴーストの名前（meta.name）。空や空白だけのときは「あたらしいゴースト」
+// ゴーストの言語（meta.lang）。"en" なら英語、それ以外（無いときも）は日本語。
+// 書き出すもの（readme.txt・名前が空のときの名前・バルーンの名前）と、栞が自分で言うこと・
+// 「いまごろ」などの値は、この言語になります（画面の言語ではありません）。
+bool EnglishGhost(const JValue& project);
+const char* ByGhostLang(const JValue& project, const char* ja, const char* en);
+
+// ゴーストの名前（meta.name）。空や空白だけのときは「あたらしいゴースト」（英語のゴーストなら New Ghost）
 // （名前の欄を消して書き出しても、install.txt や descript.txt の name が空にならないように）
 std::string GhostName(const JValue& project);
 
-// 名前の欄が無いときの、さくら側・うにゅう側の名前（書き出したときの画面の言語で）
-const char* DefaultSakuraName();
-const char* DefaultKeroName();
+// 名前の欄が無いときの、さくら側・うにゅう側の名前（ゴーストの言語で）
+const char* DefaultSakuraName(const JValue& project);
+const char* DefaultKeroName(const JValue& project);
 
 // 栞が読む ghost.json の中身（エディタ専用の項目を落としたもの）。
-// 画面が英語のときは meta.lang を "en" にします（栞が自分で言う決まり文句を英語にするため。shiori.cpp）
+// 英語のゴーストなら meta.lang を "en" にします（日本語のときは書きません）
 std::string RuntimeProgramJson(const JValue& project);
 
 // 仮シェルの立ち絵を1枚だけ描いて PNG で返す（エディタのリアルタイム表示用）。

@@ -1,9 +1,9 @@
 == folder: ikaga-ghost / 17 ファイル
----- balloon/descript.txt (301 バイト)
+---- balloon/descript.txt (298 バイト)
 charset,UTF-8
 type,balloon
 name,New Ghost Balloon
-craftman,テスト
+craftman,Tester
 origin.x,18
 origin.y,16
 validrect.left,0

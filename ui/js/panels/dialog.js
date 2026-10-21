@@ -11,7 +11,7 @@ import { Session } from '../core/session.js';
 import { updateTitle } from '../core/title.js';
 import { Events } from '../core/events.js';
 import { Render } from '../editor/render.js';
-import { t } from '../i18n/i18n.js';
+import { t, getLang } from '../i18n/i18n.js';
 
 // ---------------------------------------------------------- 保存 / 読込
 async function saveProject(silent) {
@@ -95,9 +95,11 @@ async function openProjectDialog() {
 
 /** お手本ゴースト（exe に入っている見本）をひらく */
 async function openSampleDialog() {
+  // お手本は、画面の言語のものを出します（英語のお手本は ui/samples/en/。会話もゴーストの言語も英語）
+  const base = getLang() === 'en' ? 'samples/en/' : 'samples/';
   let index;
   try {
-    index = await (await fetch('samples/index.json')).json();
+    index = await (await fetch(base + 'index.json')).json();
   } catch (e) {
     toast(t('お手本を読めませんでした'), true);
     return;
@@ -112,7 +114,7 @@ async function openSampleDialog() {
     row.addEventListener('click', async () => {
       if (Model.dirty && !confirm(t('保存していない変更があります。お手本を開きますか？'))) return;
       try {
-        const data = await (await fetch('samples/' + s.file)).json();
+        const data = await (await fetch(base + s.file)).json();
         Model.init(data);
         Session.projectName = '';          // 上書き保存ではなく、名前を付けて保存させる
         Session.vars = {};

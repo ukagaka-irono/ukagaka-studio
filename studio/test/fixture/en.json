@@ -1,0 +1,16 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "ゴーストの言語を English にしたゴースト（meta.lang が en）。名前の欄は空白だけで、",
+    "さくら側・うにゅう側の名前も入れていません。readme.txt・名前が空のときの名前（New Ghost・",
+    "Sakura・Kero）・バルーンの名前が英語になり、ghost.json に lang が入ることを確かめます。"
+  ],
+  "meta": { "name": "  ", "craftman": "Tester", "lang": "en" },
+  "shell": { "balloonEnabled": true },
+  "scripts": [
+    {
+      "id": "e_boot", "kind": "event", "event": "OnBoot",
+      "blocks": [{ "type": "say", "who": 0, "text": "I have no name.", "nl": 1 }]
+    }
+  ]
+}

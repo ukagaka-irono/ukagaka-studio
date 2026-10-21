@@ -1,0 +1,86 @@
+{
+  "format": "ikaga/1",
+  "meta": {
+    "name": "Name Ghost",
+    "sakuraName": "Ikaga",
+    "keroName": "Shiori",
+    "version": "1.0.0",
+    "description": "Asks your name with an input box, remembers it and calls you by it.",
+    "lang": "en"
+  },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 120 },
+  "variables": [{ "name": "your_name", "value": "" }],
+  "scripts": [
+    {
+      "id": "n_first", "kind": "event", "event": "OnFirstBoot", "x": 60, "y": 40,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "Nice to meet you.", "nl": 1 },
+        { "type": "say", "who": 0, "text": "Will you tell me your name?", "nl": 1 },
+        { "type": "ask", "into": "your_name", "initial": "" }
+      ]
+    },
+    {
+      "id": "n_got", "kind": "event", "event": "OnUserInput", "x": 60, "y": 248,
+      "_": "The SHIORI already put the answer in the variable, so this just says thanks",
+      "blocks": [
+        { "type": "surface", "who": 0, "id": 1 },
+        { "type": "say", "who": 0, "nl": 1,
+          "text": { "type": "join", "a": "So you're ",
+                    "b": { "type": "join", "a": { "type": "var", "name": "your_name" }, "b": ". I'll remember." } } }
+      ]
+    },
+    {
+      "id": "n_boot", "kind": "event", "event": "OnBoot", "x": 60, "y": 438,
+      "blocks": [
+        { "type": "if_else",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "var", "name": "your_name" }, "b": "" },
+          "then": [
+            { "type": "say", "who": 0, "text": "Hello.", "nl": 1 }
+          ],
+          "else": [
+            { "type": "say", "who": 0, "nl": 1,
+              "text": { "type": "join", "a": "Welcome back, ",
+                        "b": { "type": "join", "a": { "type": "var", "name": "your_name" }, "b": "." } } }
+          ] }
+      ]
+    },
+    {
+      "id": "n_again", "kind": "event", "event": "OnMouseDoubleClick", "x": 60, "y": 726,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "Do you want to change your name?", "nl": 1 },
+        { "type": "choice", "label": "Change it", "target": "Ask name" },
+        { "type": "choice", "label": "Keep it", "target": "Keep name" }
+      ]
+    },
+    {
+      "id": "n_ask", "kind": "function", "name": "Ask name", "x": 861, "y": 328,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "What should I call you?", "nl": 1 },
+        { "type": "ask", "into": "your_name", "initial": "" }
+      ]
+    },
+    {
+      "id": "n_no", "kind": "function", "name": "Keep name", "x": 861, "y": 494,
+      "blocks": [
+        { "type": "say", "who": 0, "text": "Okay.", "nl": 1 }
+      ]
+    },
+    {
+      "id": "n_talk", "kind": "talk", "name": "Call out", "weight": 1, "x": 861, "y": 40,
+      "blocks": [
+        { "type": "if_else",
+          "cond": { "type": "compare", "op": "=",
+                    "a": { "type": "var", "name": "your_name" }, "b": "" },
+          "then": [
+            { "type": "say", "who": 0, "text": "I'm bored.", "nl": 1 }
+          ],
+          "else": [
+            { "type": "say", "who": 0, "nl": 1,
+              "text": { "type": "join", "a": "Hey ",
+                        "b": { "type": "join", "a": { "type": "var", "name": "your_name" }, "b": ", what are you up to?" } } }
+          ] }
+      ]
+    }
+  ]
+}

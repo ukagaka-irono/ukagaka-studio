@@ -1,7 +1,6 @@
 // 伺かスタジオ - 書き出し: ゴーストに同梱するバルーン（吹き出し）
 #include "export_parts.h"
 #include "image.h"
-#include "lang.h"
 
 #include <cstdio>
 
@@ -73,7 +72,7 @@ void AppendBalloon(std::vector<OutFile>& files, const JValue& project) {
     d.shell = false;
     d.name = "balloon/descript.txt";
     d.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "balloon") +
-             DescriptLine("name", GhostName(project) + Tr(" のバルーン", " Balloon")) +
+             DescriptLine("name", GhostName(project) + ByGhostLang(project, " のバルーン", " Balloon")) +
              DescriptLine("craftman", project["meta"]["craftman"].asStr("unknown"));
     d.data += "origin.x,18\r\norigin.y,16\r\n";
     d.data += "validrect.left,0\r\nvalidrect.top,0\r\nvalidrect.right,0\r\n";

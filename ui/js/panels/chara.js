@@ -242,7 +242,7 @@ function renderFrames(a) {
         card.appendChild(numField(t('動く絵'), p.file || '', (v) => { p.file = String(v).trim(); },
           { type: 'text', stacked: true }));
       } else {
-        card.appendChild(numField(t('立ち絵'), p.surface, (v) => { p.surface = Number(v) || 0; }, { min: 0 }));
+        card.appendChild(numField(t('立ち絵の番号'), p.surface, (v) => { p.surface = Number(v) || 0; }, { min: 0 }));
       }
       card.appendChild(numField(t('ミリ秒'), p.wait, (v) => { p.wait = Math.max(0, Number(v) || 0); },
         { min: 0 }));

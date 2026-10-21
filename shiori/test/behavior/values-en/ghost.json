@@ -1,0 +1,21 @@
+{
+  "format": "ikaga/1",
+  "_comment": "ゴーストの言語が English（meta.lang が en）のとき、「いまごろ」「季節」「曜日の名前」が英語の値になるかを確かめるためのもの。",
+  "meta": { "name": "Values", "sakuraName": "Ikaga", "keroName": "Shiori", "lang": "en" },
+  "settings": { "randomTalkEnabled": false },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "v_boot", "kind": "event", "event": "OnBoot",
+      "blocks": [{ "type": "say", "who": 0, "text": { "type": "sys", "key": "daypart" }, "nl": 0 }]
+    },
+    {
+      "id": "v_dbl", "kind": "event", "event": "OnMouseDoubleClick",
+      "blocks": [{ "type": "say", "who": 0, "text": { "type": "sys", "key": "season" }, "nl": 0 }]
+    },
+    {
+      "id": "v_close", "kind": "event", "event": "OnClose",
+      "blocks": [{ "type": "say", "who": 0, "text": { "type": "sys", "key": "weekdayname" }, "nl": 0 }]
+    }
+  ]
+}
