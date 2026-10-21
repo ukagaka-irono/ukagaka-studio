@@ -28,8 +28,8 @@ Whatever the rework does, these stay. Each is a core strength of the original pr
 > ikaga SHIORI is dropped and replaced with **YAYA**, and Ukagaka Studio becomes **a helper tool for YAYA ghosts**.
 > Once stage 3 is done, the premises read:
 >
-> * **Exported ghosts run from Windows 2000.** YAYA also targets Windows 2000 and later.
->   Step 3-0 confirms this by reading the import table of `yaya.dll` (if it falls short, this premise is decided again).
+> * **Exported ghosts run from Windows 2000.** Step 3-0 confirmed from its import table that the official `yaya.dll` meets this
+>   (built from source with today's Visual Studio it does not, so the official one is used).
 > * **Only YAYA runs blocks.** “Try” also runs on the same `yaya.dll` that goes into SSP.
 >   The rules that translate blocks into YAYA live in one place only.
 > * The other three (a single exe, no new tools to build the UI, nothing goes in unless the tests pass) stay.
@@ -403,12 +403,13 @@ Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into *
   ikaga SHIORI is removed only after the same project gives matching answers on both (3-6).
 * **Hand-written YAYA cannot be turned back into blocks.** The direction is one way, “blocks → YAYA”,
   so the files the studio writes and the files people write are kept clearly apart (3-5).
-* **SAORI calls that do not wait** (whose answer arrives through `OnSaoriDone`) may have no equivalent in YAYA.
-  3-0 looks into this; if there is none, decide between a waiting call and dropping that block.
+* **SAORI calls that do not wait** (whose answer arrives through `OnSaoriDone`) have no equivalent in YAYA (3-0).
+  The block stays: inside, it waits for the answer, then raises `OnSaoriDone` on the next `OnSecondChange` as it does now.
+  The ghost stops while a slow SAORI runs, and the block's description will say so.
 * **YAYA's license**: used for Ukagaka ghosts and related tools, the AYA Ver.5 license applies; otherwise BSD 3-Clause.
   The notice goes with exported ghosts and with the distributed zip.
 
-### 3-0. Groundwork research
+### 3-0. Groundwork research (done)
 
 | To do | Done when |
 |---|---|
@@ -417,10 +418,28 @@ Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into *
 | Find out whether YAYA can call SAORI without waiting | it is decided what happens to the “SAORI” block |
 | Decide which template's SHIORI/3.0 entry dictionary to use (or write our own) | the base for 3-3 is decided |
 
+> Done (2026-10-22; checked against YAYA Tc607-2 and the 2026-10 yaya-dic):
+>
+> * **License**: built into Ukagaka ghosts and the programs around them, YAYA is under the original AYA Ver.5 terms
+>   (free to use, modified versions may be distributed under your own terms, no liability); otherwise BSD 3-Clause.
+>   The `LICENSE` and `readme-original.txt` from the official zip go along unchanged.
+> * **Windows 2000**: the official `yaya.dll` is built with an old Visual C++, and all 150 APIs it imports exist
+>   in Windows 2000 (the 91 that were missing were added to the table in `tools\check-imports.js`).
+>   Built from source with today's Visual Studio (v145), it imports 7 APIs from Windows XP and 9 from Vista,
+>   and its header claims Vista or later. So **it is not built from source; the official `yaya.dll` is used** (“Decisions”).
+> * **SAORI**: YAYA has no way to run things on another thread; SAORI is only `REQUESTLIB` (waits for the answer).
+>   The “call without waiting” block **stays, as a waiting call** (“Things to watch” above, and “Decisions”).
+> * **Entry dictionary**: YAYA's system dictionary **`yaya_base`** (yaya-dic, The Unlicense) is used unmodified.
+>   It answers SHIORI/3.0 and calls the function named after the event; YAYA templates share it.
+>   Hand-written YAYA ghosts usually use it too, which makes it easy to put the studio's dictionaries alongside.
+>   It also has a way to raise something at the next event (`SHIORI3FW.DelayEvent`), usable for `OnSaoriDone`.
+
 ### 3-1. Bring YAYA in
 
-* Put YAYA's source in `third_party/yaya/` and build a 32-bit `yaya.dll` with `.\build.ps1`
-  (nothing is downloaded at build time; the version used is fixed by the source in the repository).
+* Put the official `yaya.dll` (currently Tc607-2) in `third_party/yaya/`, together with `LICENSE` and `readme-original.txt`.
+  Put the entry dictionary `yaya_base` in `third_party/yaya-dic/`. Neither is downloaded at build time.
+  To move to a newer version, replace the files and check again with `tools\check-imports.js`.
+* The import check in `.\build.ps1 -Test` also looks at `yaya.dll`.
 * Embed `yaya.dll` in the exe the same way `ikaga.dll` is embedded now.
 * Let `shiori/test/test_host.cpp` choose which DLL to load instead of always loading `ikaga.dll`.
 
@@ -522,6 +541,8 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-21 | The mascots' English names are **Ikaga / Shiori** (2-5b) |
 | 2026-10-21 | **The ghost language is a project setting** (`meta.lang`). New ghosts and examples take the screen language at creation. Built-in lines, values such as “time of day” and the readme follow it, not the screen language at export time (2-5b-2) |
 | 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
+| 2026-10-22 | **Use the official `yaya.dll`; do not build it from source** (built with today's Visual Studio, it does not run on Windows 2000; 3-0) |
+| 2026-10-22 | The “call SAORI without waiting” block **stays, and becomes a waiting call under YAYA**. `OnSaoriDone` is still raised on the next `OnSecondChange` (3-0) |
 
 ## Not decided yet
 

@@ -57,6 +57,33 @@ const SINCE = {
     '_vsnprintf', '_snprintf', 'sprintf',
     'strtod', 'strtol', 'atoi',
     'floor', 'ceil', 'fabs', 'fmod', 'pow', '_CIfmod',
+    // --- 公式の yaya.dll（Tc607-2）が使うもの ---
+    // 古い Visual C++ の C ランタイムと YAYA 自身が呼ぶ、Windows 2000 より前からある API です。
+    'AreFileApisANSI', 'CompareStringA', 'CompareStringW', 'CopyFileW',
+    'CreateDirectoryA', 'CreateFileMappingW', 'CreatePipe', 'CreateProcessW',
+    'DeleteFileA', 'DeleteFileW', 'EnumSystemLocalesA', 'ExitThread',
+    'FileTimeToSystemTime', 'FindFirstFileW', 'FindResourceA', 'FlushViewOfFile',
+    'FormatMessageW', 'FreeEnvironmentStringsA', 'GetDriveTypeW',
+    'GetEnvironmentStrings', 'GetEnvironmentVariableA', 'GetEnvironmentVariableW',
+    'GetExitCodeProcess', 'GetFileAttributesA', 'GetFileSize', 'GetFullPathNameW',
+    'GetLocaleInfoA', 'GetLocaleInfoW', 'GetModuleFileNameA', 'GetModuleHandleA',
+    'GetOverlappedResult', 'GetStartupInfoA', 'GetStringTypeA', 'GetSystemInfo',
+    'GetTempPathW', 'GetTimeZoneInformation', 'GetUserDefaultLCID',
+    'GetUserDefaultLangID', 'GetVersion', 'GetVersionExA', 'GlobalMemoryStatusEx',
+    'HeapCompact', 'HeapCreate', 'HeapDestroy', 'HeapValidate',
+    'InterlockedCompareExchange', 'InterlockedDecrement', 'InterlockedExchange',
+    'InterlockedIncrement', 'IsBadCodePtr', 'IsBadReadPtr', 'IsBadWritePtr',
+    'IsValidLocale', 'LCMapStringA', 'LoadLibraryA', 'LoadResource', 'LocalFree',
+    'LockFileEx', 'LockResource', 'MapViewOfFile', 'MoveFileW', 'OpenFileMappingA',
+    'PeekNamedPipe', 'RemoveDirectoryA', 'SetEndOfFile', 'SetEnvironmentVariableA',
+    'SetHandleCount', 'SetHandleInformation', 'SizeofResource', 'TlsAlloc',
+    'TlsFree', 'TlsGetValue', 'TlsSetValue', 'TryEnterCriticalSection',
+    'UnlockFileEx', 'UnmapViewOfFile', 'VirtualAlloc', 'VirtualFree',
+    'WaitForSingleObjectEx',
+    // USER32 / SHELL32
+    'CreateWindowExA', 'DefWindowProcA', 'DestroyWindow', 'FindWindowA',
+    'GetWindowLongA', 'IsWindow', 'RegisterClassExA', 'SendMessageTimeoutA',
+    'SetWindowLongA', 'UnregisterClassA', 'ShellExecuteA', 'ShellExecuteExA',
   ],
   // --- Windows XP (5.1) から ---
   '5.1': [
