@@ -1,9 +1,10 @@
 /* 伺かスタジオ - ブロックのドラッグ＆ドロップ */
 
-import { BLOCKS, createBlock, getDef, isReporter } from './blocks.js';
-import { Model } from './model.js';
+import { BLOCKS, createBlock, getDef, isReporter } from '../model/blocks.js';
+import { Model } from '../model/model.js';
+import { toast } from '../core/toast.js';
 import { Render } from './render.js';
-import { App } from './app.js';
+import { ContextMenu } from './contextmenu.js';
 
 const SNAP_STACK = 46;   // スタック接続の吸着距離(px)
 const SNAP_SLOT = 34;    // スロット吸着距離(px)
@@ -283,7 +284,7 @@ function finishDrag(clientX, clientY) {
     // それ以外はすでにモデルから外れているので、置かなければ消える
     Model.pushUndo(d.snapshot);
     Model.emit();
-    App.toast('ブロックを削除しました');
+    toast('ブロックを削除しました');
     return;
   }
 
@@ -359,7 +360,7 @@ function cleanupEmptyScripts() {
 // --------------------------------------------------------------- pointer
 function onPointerDown(e) {
   if (e.button === 2) return;                       // 右クリックはメニュー
-  App.closeContextMenu();
+  ContextMenu.close();
 
   const inPalette = !!(e.target.closest && e.target.closest('#palette'));
   const inCanvas = !!(e.target.closest && e.target.closest('#canvas'));

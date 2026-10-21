@@ -1,17 +1,14 @@
 /* 伺かスタジオ - 「チェック」タブと「さがす」タブ
  *
  * チェックは lint.js が出した注意をならべ、さがすはブロックの中身を字で引きます。
- *
- * app.js とは、おたがいに import しあっています（App と Search）。
- * どちらが先に読みこまれても動くように、相手のものは**関数の中でだけ**使ってください。
- * ファイルのいちばん外で App.xxx = … のように触ると、読みこみの時点で落ちます。
  */
 
-import { getDef } from './blocks.js';
-import { Model } from './model.js';
-import { Lint } from './lint.js';
-import { Render } from './render.js';
-import { $, App, switchTab } from './app.js';
+import { getDef } from '../model/blocks.js';
+import { Model } from '../model/model.js';
+import { Lint } from '../model/lint.js';
+import { $ } from '../core/dom.js';
+import { Render } from '../editor/render.js';
+import { Tabs } from './tabs.js';
 
 // ------------------------------------------------------------- チェック
 function renderCheck() {
@@ -162,4 +159,18 @@ function jumpTo(it) {
   setTimeout(() => flashEl.classList.remove('flash'), 2600);
 }
 
-export const Search = { renderCheck, renderSearch };
+function init() {
+  const searchInput = $('#search-input');
+  if (!searchInput) return;
+  searchInput.addEventListener('input', renderSearch);
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') searchInput.blur(); });
+}
+
+/** さがすタブを開いて、入力欄にすぐ打てるようにする（Ctrl+F） */
+function focus() {
+  Tabs.switchTab('search');
+  const searchInput = $('#search-input');
+  if (searchInput) { searchInput.focus(); searchInput.select(); }
+}
+
+export const Search = { init, focus, renderCheck, renderSearch };

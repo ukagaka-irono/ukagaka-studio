@@ -2,16 +2,16 @@
  *
  * シェルの絵の割りあて、SERIKO のうごきの編集、
  * さくらスクリプトを受けとって吹き出しと立ち絵を動かすところ。
- *
- * app.js とは、おたがいに import しあっています（App と Shell）。
- * どちらが先に読みこまれても動くように、相手のものは**関数の中でだけ**使ってください。
- * ファイルのいちばん外で App.xxx = … のように触ると、読みこみの時点で落ちます。
  */
 
-import { Model } from './model.js';
-import { Player } from './player.js';
-import { Render } from './render.js';
-import { $, App, api, sleep, balloonOf } from './app.js';
+import { Model } from '../model/model.js';
+import { Player } from '../model/player.js';
+import { $, sleep } from '../core/dom.js';
+import { api } from '../core/api.js';
+import { toast } from '../core/toast.js';
+import { Session } from '../core/session.js';
+import { Commands } from '../core/commands.js';
+import { Render } from '../editor/render.js';
 
 // ------------------------------------------------------------ 立ち絵の絵
 // 標準の 6 枚。ここに無い番号も「追加」でふやせる。
@@ -373,7 +373,7 @@ async function pickShellImage(surfaceId) {
   try {
     r = await api('/api/shell/pick', { method: 'POST', body: {} });
   } catch (e) {
-    App.toast(e.message, true);
+    toast(e.message, true);
     return;
   }
   const files = r.files || [];
@@ -397,7 +397,7 @@ async function pickShellImage(surfaceId) {
     list.sort((a, b) => Number(a.id) - Number(b.id));
   });
   refreshShell();
-  App.toast(files.length > 1 ? `${files.length} 枚を割り当てました` : '画像を割り当てました');
+  toast(files.length > 1 ? `${files.length} 枚を割り当てました` : '画像を割り当てました');
 }
 
 function resetStage() {
@@ -411,8 +411,12 @@ function resetStage() {
   refreshShell();
 }
 
+function balloonOf(who) {
+  return document.getElementById('balloon-' + (who === 1 ? 1 : 0));
+}
+
 async function playSakura(script) {
-  const token = ++App.playToken;
+  const token = ++Session.playToken;
   resetStage();
   if (!script) return;
   const ops = Player.parseSakura(script);
@@ -420,7 +424,7 @@ async function playSakura(script) {
   let target = balloonOf(0);
 
   for (const op of ops) {
-    if (token !== App.playToken) return;
+    if (token !== Session.playToken) return;
     switch (op.op) {
       case 'scope':
         who = op.who;
@@ -434,7 +438,7 @@ async function playSakura(script) {
         target.classList.remove('is-empty');
         const box = target.querySelector('.balloon-text');
         for (const ch of Array.from(op.text)) {
-          if (token !== App.playToken) return;
+          if (token !== Session.playToken) return;
           box.appendChild(document.createTextNode(ch));
           target.scrollTop = target.scrollHeight;
           await sleep(22);
@@ -463,8 +467,8 @@ async function playSakura(script) {
           const fn = Model.project.scripts.find(
             (s) => (s.kind === 'function' || s.kind === 'talk') && s.name === op.id
           );
-          if (fn) App.runScript(fn);
-          else App.toast(`「${op.id}」というトークが見つかりません`, true);
+          if (fn) Commands.runScript(fn);
+          else toast(`「${op.id}」というトークが見つかりません`, true);
         });
         target.querySelector('.balloon-text').appendChild(chip);
         break;
@@ -486,4 +490,15 @@ function waitForStageClick() {
   });
 }
 
-export const Shell = { refreshShell, addAnimation, pickShellImage, resetStage, playSakura };
+function init() {
+  $('#btn-anim-add').addEventListener('click', addAnimation);
+  $('#btn-shell-add').addEventListener('click', () => {
+    const v = prompt('どの番号の立ち絵にしますか？（さくらは 0〜9、うにゅうは 10 以上）', '3');
+    if (v == null) return;
+    const id = Math.max(0, Math.floor(Number(v)));
+    if (!Number.isFinite(id)) { toast('番号は数字で入れてください', true); return; }
+    pickShellImage(id);
+  });
+}
+
+export const Shell = { init, refreshShell, addAnimation, pickShellImage, resetStage, playSakura };

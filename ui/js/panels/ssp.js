@@ -2,22 +2,17 @@
  *
  * SSP を見つけて、いま組んでいるトークをその場のゴーストに喋らせたり、
  * 書き出したゴーストを SSP に入れたりします。
- *
- * app.js とは、おたがいに import しあっています（App と Ssp）。
- * どちらが先に読みこまれても動くように、相手のものは**関数の中でだけ**使ってください。
- * ファイルのいちばん外で App.xxx = … のように触ると、読みこみの時点で落ちます。
  */
 
-import { Model } from './model.js';
-import { Render } from './render.js';
-import { $, App, api, escapeHtml, refsFor, runPreview, renderRunVars } from './app.js';
+import { Model } from '../model/model.js';
+import { $, escapeHtml } from '../core/dom.js';
+import { api } from '../core/api.js';
+import { toast } from '../core/toast.js';
+import { Session } from '../core/session.js';
+import { Render } from '../editor/render.js';
+import { Run } from './run.js';
 
 // -------------------------------------------------------------- SSP 連携
-function currentScript() {
-  const id = $('#run-target').value;
-  return Model.project.scripts.find((s) => s.id === id) || null;
-}
-
 function describeSsp(ssp) {
   if (!ssp) return { text: 'SSP: 確認できません', ok: false };
   if (ssp.sstp) {
@@ -31,7 +26,7 @@ function describeSsp(ssp) {
 async function refreshSsp() {
   let ssp = null;
   try { ssp = await api('/api/ssp'); } catch (e) { /* 表示だけ更新する */ }
-  App.ssp = ssp;
+  Session.ssp = ssp;
 
   const badge = $('#ssp-status');
   const info = describeSsp(ssp);
@@ -59,37 +54,37 @@ async function refreshSsp() {
 }
 
 async function sendScriptToSsp() {
-  const script = currentScript();
-  if (!script) { App.toast('実行するかたまりがありません', true); return; }
+  const script = Run.currentScript();
+  if (!script) { toast('実行するかたまりがありません', true); return; }
   let res;
   try {
-    res = await runPreview(script);
-  } catch (e) { App.toast(e.message, true); return; }
-  App.sessionVars = res.vars || {};
+    res = await Run.runPreview(script);
+  } catch (e) { toast(e.message, true); return; }
+  Session.vars = res.vars || {};
   $('#script-preview').textContent = res.script || '（なにも出力されませんでした）';
-  renderRunVars();
-  if (!res.script) { App.toast('出力がありませんでした', true); return; }
+  Run.renderVars();
+  if (!res.script) { toast('出力がありませんでした', true); return; }
   try {
     await api('/api/ssp/script', { method: 'POST', body: { script: res.script } });
-    App.toast('SSP のゴーストに送りました');
+    toast('SSP のゴーストに送りました');
   } catch (e) {
-    App.toast(e.message, true);
+    toast(e.message, true);
     refreshSsp();
   }
 }
 
 async function sendEventToSsp() {
-  const script = currentScript();
+  const script = Run.currentScript();
   if (!script) return;
   if (script.kind !== 'event') {
-    App.toast('イベントのかたまりを選んでください', true);
+    toast('イベントのかたまりを選んでください', true);
     return;
   }
   try {
-    await api('/api/ssp/notify', { method: 'POST', body: { event: script.event, refs: refsFor(script) } });
-    App.toast(`${script.event} を送りました（SSP に入れたゴーストが反応します）`);
+    await api('/api/ssp/notify', { method: 'POST', body: { event: script.event, refs: Run.refsFor(script) } });
+    toast(`${script.event} を送りました（SSP に入れたゴーストが反応します）`);
   } catch (e) {
-    App.toast(e.message, true);
+    toast(e.message, true);
     refreshSsp();
   }
 }
@@ -97,16 +92,16 @@ async function sendEventToSsp() {
 // 他のゴーストのふりをして、動いているゴーストに話しかける。
 // 「話しかけられたとき」のブロックを、本物のゴーストで試すためのもの。
 async function sendCommToSsp() {
-  const script = currentScript();
+  const script = Run.currentScript();
   const isComm = script && script.kind === 'event' && script.event === 'OnCommunicate';
   // 「話しかけられたとき」を選んでいれば、その条件どおりの内容で話しかける
   const sender = (isComm && script.from) || 'ほかのゴースト';
   const sentence = (isComm && script.contains) || 'こんにちは';
   try {
     await api('/api/ssp/communicate', { method: 'POST', body: { sentence, sender } });
-    App.toast(`「${sender}」が「${sentence}」と話しかけました`);
+    toast(`「${sender}」が「${sentence}」と話しかけました`);
   } catch (e) {
-    App.toast(e.message, true);
+    toast(e.message, true);
     refreshSsp();
   }
 }
@@ -133,13 +128,45 @@ async function installToSsp() {
     box.innerHTML =
       `<b>${escapeHtml(r.folder)}</b> を入れました（${r.files} ファイル）<br>` +
       `<code>${escapeHtml(r.root)}</code><br>${escapeHtml(notes[r.action] || '')}`;
-    App.toast('SSP に入れました');
+    toast('SSP に入れました');
     refreshSsp();
   } catch (e) {
     box.textContent = '';
     box.appendChild(Render.div('status-line status-ng', e.message));
-    App.toast(e.message, true);
+    toast(e.message, true);
   }
 }
 
-export const Ssp = { refreshSsp, sendScriptToSsp, sendEventToSsp, sendCommToSsp, installToSsp };
+function init() {
+  $('#btn-run-ssp').addEventListener('click', sendScriptToSsp);
+  $('#btn-send-event').addEventListener('click', sendEventToSsp);
+  $('#btn-send-comm').addEventListener('click', sendCommToSsp);
+  $('#btn-ssp-install').addEventListener('click', installToSsp);
+  $('#btn-ssp-refresh').addEventListener('click', async () => {
+    await refreshSsp();
+    toast('SSP の状態を確認しました');
+  });
+  $('#btn-ssp-launch').addEventListener('click', async () => {
+    try {
+      await api('/api/ssp/launch', { method: 'POST', body: {} });
+      toast('SSP を起動しました');
+      setTimeout(refreshSsp, 2500);
+    } catch (e) { toast(e.message, true); }
+    refreshSsp();
+  });
+  $('#btn-ssp-path').addEventListener('click', async () => {
+    try {
+      await api('/api/ssp/path', { method: 'POST', body: { path: $('#ssp-path').value.trim() } });
+      await refreshSsp();
+      toast('SSP の場所を覚えました');
+    } catch (e) { toast(e.message, true); }
+  });
+  // SSP のようすが要るタブを開いたら、たしかめなおす
+  for (const t of document.querySelectorAll('.side-tab')) {
+    if (t.dataset.tab === 'export' || t.dataset.tab === 'run') t.addEventListener('click', refreshSsp);
+  }
+  refreshSsp();
+  setInterval(refreshSsp, 30000);
+}
+
+export const Ssp = { init, refreshSsp, sendScriptToSsp, sendEventToSsp, sendCommToSsp, installToSsp };

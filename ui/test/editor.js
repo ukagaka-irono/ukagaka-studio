@@ -20,8 +20,8 @@ const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0
 const { red, green, dim, off } = COLOR;
 
 // 画面のモジュールをそのまま読みこむ（この 2 つは DOM を触りません）
-const { Model } = require('../js/model.js');
-const { Lint } = require('../js/lint.js');
+const { Model } = require('../js/model/model.js');
+const { Lint } = require('../js/model/lint.js');
 
 let failed = 0;
 let checked = 0;

@@ -1,8 +1,10 @@
 /* 伺かスタジオ - ブロックの描画 */
 
-import { AREAS, BLOCKS, EVENTS, MOUSE_EVENTS, PALETTE, createBlock, getDef } from './blocks.js';
-import { Model } from './model.js';
-import { App } from './app.js';
+import { AREAS, BLOCKS, EVENTS, MOUSE_EVENTS, PALETTE, createBlock, getDef } from '../model/blocks.js';
+import { Model } from '../model/model.js';
+import { Commands } from '../core/commands.js';
+import { updateTitle } from '../core/title.js';
+import { Scripts } from './scripts.js';
 
 const INPUT_FONT = '600 12.5px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif';
 
@@ -68,7 +70,7 @@ function buildSlot(owner, argName, argDef, project) {
     owner[argName] = argDef.mode === 'number' && input.value !== '' && !isNaN(Number(input.value))
       ? Number(input.value)
       : input.value;
-    App && App.onLiveEdit && App.onLiveEdit();
+    updateTitle();   // 打っている間も、タイトルの ● だけは付けておく
   });
   input.addEventListener('change', () => endEdit(true));
   input.addEventListener('blur', () => endEdit(false));
@@ -158,7 +160,7 @@ function buildField(owner, name, argDef, project, blockEl) {
       opts.push(['＋ あたらしい変数…', '__new__']);
       return buildSelect(opts, owner[name], (v, sel) => {
         if (v === '__new__') {
-          const created = App.promptNewVariable();
+          const created = Commands.promptNewVariable();
           sel.value = created || owner[name] || '';
           if (created) Model.act(() => { owner[name] = created; });
           return;
@@ -173,7 +175,7 @@ function buildField(owner, name, argDef, project, blockEl) {
       opts.push(['＋ あたらしいトーク…', '__new__']);
       return buildSelect(opts, owner[name], (v, sel) => {
         if (v === '__new__') {
-          const created = App.promptNewFunction();
+          const created = Scripts.promptNewFunction();
           sel.value = created || owner[name] || '';
           if (created) Model.act(() => { owner[name] = created; });
           return;
@@ -320,9 +322,9 @@ function buildScriptEl(script, project, options) {
       b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
       return b;
     };
-    tools.appendChild(mk('▶', 'このかたまりを実行してみる', () => App.runScript(script)));
-    tools.appendChild(mk('⧉', '複製する', () => App.duplicateScript(script)));
-    tools.appendChild(mk('✕', '削除する', () => App.deleteScript(script)));
+    tools.appendChild(mk('▶', 'このかたまりを実行してみる', () => Commands.runScript(script)));
+    tools.appendChild(mk('⧉', '複製する', () => Scripts.duplicateScript(script)));
+    tools.appendChild(mk('✕', '削除する', () => Scripts.deleteScript(script)));
     wrap.appendChild(tools);
   }
 
@@ -363,7 +365,7 @@ function renderPalette(container, catId, project) {
     if (typeof entry === 'object' && entry.button) {
       const b = el('button', 'btn small', entry.label);
       b.style.marginBottom = '10px';
-      b.addEventListener('click', () => App.promptNewVariable());
+      b.addEventListener('click', () => Commands.promptNewVariable());
       container.appendChild(b);
       continue;
     }

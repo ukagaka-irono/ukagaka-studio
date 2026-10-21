@@ -1,28 +1,28 @@
 /* 伺かスタジオ - 保存 / 読込 と 書き出し（ダイアログまわり）
  *
  * exe の中の API を呼んで、プロジェクトの出し入れと、ゴースト一式の書き出しをします。
- *
- * app.js とは、おたがいに import しあっています（App と Dialog）。
- * どちらが先に読みこまれても動くように、相手のものは**関数の中でだけ**使ってください。
- * ファイルのいちばん外で App.xxx = … のように触ると、読みこみの時点で落ちます。
  */
 
-import { Model } from './model.js';
-import { Render } from './render.js';
-import { $, App, api, escapeHtml, updateTitle } from './app.js';
+import { Model } from '../model/model.js';
+import { $, escapeHtml } from '../core/dom.js';
+import { api } from '../core/api.js';
+import { toast } from '../core/toast.js';
+import { Session } from '../core/session.js';
+import { updateTitle } from '../core/title.js';
+import { Render } from '../editor/render.js';
 
 // ---------------------------------------------------------- 保存 / 読込
 async function saveProject(silent) {
   const name = Model.project.meta.name || 'ゴースト';
   try {
     const r = await api('/api/project', { method: 'POST', body: { name, project: Model.project } });
-    App.projectName = r.saved;
+    Session.projectName = r.saved;
     Model.dirty = false;
     updateTitle();
-    if (!silent) App.toast(`「${r.saved}」を保存しました`);
+    if (!silent) toast(`「${r.saved}」を保存しました`);
     return true;
   } catch (e) {
-    App.toast(e.message, true);
+    toast(e.message, true);
     return false;
   }
 }
@@ -56,7 +56,7 @@ function closeModal() { $('#modal-root').classList.remove('open'); }
 
 async function openProjectDialog() {
   let state;
-  try { state = await api('/api/state'); } catch (e) { App.toast(e.message, true); return; }
+  try { state = await api('/api/state'); } catch (e) { toast(e.message, true); return; }
   const list = Render.div('');
   if (!state.projects.length) list.appendChild(Render.div('hint', 'まだ保存したプロジェクトがありません。'));
   for (const p of state.projects) {
@@ -77,11 +77,11 @@ async function openProjectDialog() {
       try {
         const data = await api('/api/project?name=' + encodeURIComponent(p.file));
         Model.init(data);
-        App.projectName = p.file;
-        App.sessionVars = {};
+        Session.projectName = p.file;
+        Session.vars = {};
         closeModal();
-        App.toast(`「${p.title}」を開きました`);
-      } catch (e) { App.toast(e.message, true); }
+        toast(`「${p.title}」を開きました`);
+      } catch (e) { toast(e.message, true); }
     });
     list.appendChild(row);
   }
@@ -97,7 +97,7 @@ async function openSampleDialog() {
   try {
     index = await (await fetch('samples/index.json')).json();
   } catch (e) {
-    App.toast('お手本を読めませんでした', true);
+    toast('お手本を読めませんでした', true);
     return;
   }
   const list = Render.div('');
@@ -112,11 +112,11 @@ async function openSampleDialog() {
       try {
         const data = await (await fetch('samples/' + s.file)).json();
         Model.init(data);
-        App.projectName = '';          // 上書き保存ではなく、名前を付けて保存させる
-        App.sessionVars = {};
+        Session.projectName = '';          // 上書き保存ではなく、名前を付けて保存させる
+        Session.vars = {};
         closeModal();
-        App.toast(`お手本「${s.title}」を開きました。保存すると自分のものになります`);
-      } catch (e) { App.toast('お手本を読めませんでした', true); }
+        toast(`お手本「${s.title}」を開きました。保存すると自分のものになります`);
+      } catch (e) { toast('お手本を読めませんでした', true); }
     });
     list.appendChild(row);
   }
@@ -160,12 +160,27 @@ async function doExport(mode) {
     }).catch(() => {}));
     p.appendChild(open);
     box.appendChild(p);
-    App.toast('書き出しました');
+    toast('書き出しました');
   } catch (e) {
     box.textContent = '';
     box.appendChild(Render.div('status-line status-ng', e.message));
-    App.toast(e.message, true);
+    toast(e.message, true);
   }
 }
 
-export const Dialog = { saveProject, requestSaveAndClose, openProjectDialog, openSampleDialog, doExport, modal, closeModal };
+function init() {
+  $('#btn-export-dir').addEventListener('click', () => doExport('dir'));
+  $('#btn-export-nar').addEventListener('click', () => doExport('nar'));
+  $('#btn-import').addEventListener('click', async () => {
+    const p = $('#import-path').value.trim();
+    if (!p) return;
+    try {
+      const r = await api('/api/import', { method: 'POST', body: { path: p } });
+      Model.init(r.project);
+      Session.vars = {};
+      toast('読み込みました');
+    } catch (e) { toast(e.message, true); }
+  });
+}
+
+export const Dialog = { init, saveProject, requestSaveAndClose, openProjectDialog, openSampleDialog, doExport, modal, closeModal };

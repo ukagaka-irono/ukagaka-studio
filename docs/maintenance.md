@@ -28,7 +28,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | エディタの「ためす」 | `ukagaka-studio.exe`（64bit）に積んだ **同じ** `interp.cpp` |
 
 画面（`ui/js/`）はブロックを解釈しません。`POST /api/preview` に頼んで、
-返ってきたさくらスクリプトを `ui/js/player.js` が再生するだけです。
+返ってきたさくらスクリプトを `ui/js/model/player.js` がほどき、`ui/js/panels/shell.js` が再生するだけです。
 
 > むかしは `ui/js/sim.js` に同じ規則を JavaScript でもう一度書いていました。
 > 片方だけ直すと、エディタでは思ったとおりなのに SSP では違う、という形で
@@ -48,7 +48,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 順番に、4 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
 
-1. **`ui/js/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
+1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
    見た目と `ghost.json` の形が決まります。そして `PALETTE` の、置きたいカテゴリに
    名前を足します（足さないと、定義してもパレットに並びません）。
 2. **`shiori/src/interp.cpp`** — `RunBlock` に `if (type == "…")`。**ここだけが動かす側です。**
@@ -57,7 +57,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 4. **`shiori/test/parity/ghost.json`** — `OnP**` の帽子で 1 つ。`id` も付けてください。
    **毎回おなじ結果になる形**にしてください（乱数や時計を使うと、毎回ちがう答えになります）。
 
-「空だと困る欄」があるブロックなら、**`ui/js/lint.js`**（チェックタブ）にも足します。
+「空だと困る欄」があるブロックなら、**`ui/js/model/lint.js`**（チェックタブ）にも足します。
 
 `ui/` を直したら、**`studio\build.ps1` で exe を作りなおします**（UI は exe に埋め込まれています）。
 `interp.cpp` を直したときは、**栞とスタジオの両方**を作りなおしてください
@@ -87,7 +87,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
 | `node ui\test\editor.js` | 読みこみの整形（`model.js`）とチェックタブ（`lint.js`） |
-| `node ui\test\modules.js` | `ui\js\*.js` が `main.js` からたどれて、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか |
+| `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
 
 `parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
@@ -138,17 +138,48 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 * `index.html` が読むのは **`js/main.js` の 1 つだけ**（`<script type="module">`）。
   ほかのファイルは、`main.js` から `import` をたどって読みこまれます。
   **ファイルを足したら、どこかで `import` してください**（たどれないファイルは使われません）。
-* 使うものは、ファイルの先頭で `import { Model } from './model.js';` のように受け取ります。
-  読みこみ順を気にする必要はありません。
-* **`app.js` と、`render.js` / `drag.js` / `shell.js` / `search.js` / `dialog.js` / `ssp.js` は、
-  おたがいに import しあっています。** どちらが先に読まれても動くように、
-  * 相手のものは**関数の中でだけ**使ってください。ファイルのいちばん外で
-    `App.xxx = …` や `const api = App.api;` と書くと、読みこみの時点で落ちます。
-  * `app.js` からほかのファイルへ渡す関数は、**`function` で書いて**、`app.js` の終わりの
-    `export { … }` に足してください。`function` で書いた関数は読みこみ順にかかわらず
-    最初から呼べますが、`const f = () => …` は呼べません。
-  * ここは段階 1-2（`app.js` を分ける）で、おたがいに import しない形に直す予定です
-    （`docs/roadmap.md`）。
+* 使うものは、ファイルの先頭で `import { Model } from '../model/model.js';` のように受け取ります。
+
+### 4 つの層
+
+```
+ui/js/
+├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
+├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
+├── panels/        右の列のタブ   tabs / run / shell / vars / ghost / search / dialog / ssp
+├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu
+├── core/          画面の土台   dom / api / toast / session / title / commands
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / player / sample
+```
+
+**import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**
+（A が B を、B が A を import する形）。
+
+| 層 | import してよい先 |
+|---|---|
+| `model/` | `model/` |
+| `core/` | `core/` `model/` |
+| `editor/` | `editor/` `core/` `model/` |
+| `panels/` | `panels/` `editor/` `core/` `model/` |
+| 直下（`main.js` `shortcuts.js`） | どこでも。ただし直下のファイルを import できるのは `main.js` だけ |
+
+* **下の層から、上の層の操作を呼びたいとき**（ブロックの ▶ ボタンから「ためす」を動かす、など）は、
+  `core/commands.js` の `Commands` を通します。ここに名前を足し、持ち主が `init()` の中で
+  `provide({ … })` で中身を入れます。いまあるのは `runScript`（`panels/run.js`）と
+  `promptNewVariable`（`panels/vars.js`）の 2 つだけです。**増やす前に、その関数を下の層へ
+  動かせないかを先に考えてください。**
+* プロジェクトの中身（`ghost.json` になるもの）と、元にもどす・保存していない印は
+  `model/model.js` の `Model` が持ちます。変えるときは `Model.act(() => { … })` を通すと、
+  元にもどす記録と描きなおしがついてきます。
+* 保存しない「いまの画面の状態」（ズーム・ためすときの変数・コピーしたブロックなど）は
+  `core/session.js` の `Session` に置きます。
+* 部品は `{ init, render, … }` の形の 1 つのものを export します。ボタンをつなぐのは
+  その部品自身の `init()` で、`main.js` は順に呼ぶだけです。描きなおしは、`Model` が
+  変わるたびに `main.js` の `renderAll()` が各部品の `render()` を呼びます。
+* `model/` は DOM を触らないので、node のテスト（`ui\test\editor.js`）からそのまま使えます。
+
+### そのほか
+
 * 画面の外から触れるのは、`main.js` が `window.IKAGA` に載せたものだけです。
   exe（`studio/src/main.cpp`）が、閉じるときに `IKAGA.Model.dirty` と
   `IKAGA.Dialog.requestSaveAndClose()` を呼びます。名前を変えたら、そちらも直してください。
@@ -156,8 +187,8 @@ WebView2 も node も、書いたファイルをそのまま読みます。
   読むための印です。exe には入れていません（`studio/tools/embed.ps1`）。
 
 `node ui\test\modules.js` が、この決まりを守れているかを見ます。
-ファイルを 1 つずつ「最初に読みこむもの」にして別々に読みこむので、
-おたがいに import しあうところの読みこみ順の問題も、ファイルと行を名指しして止めます。
+層の向きがちがう import と、輪になった import を、ファイルと行を名指しして止めます。
+ほかに、ファイルを 1 つずつ「最初に読みこむもの」にして別々に読みこみ、落ちないかも見ます。
 
 node のテストは ES モジュールを `require()` で読むので、**Node.js 22.12 以降**が要ります
 （Actions は 24 を使っています）。
