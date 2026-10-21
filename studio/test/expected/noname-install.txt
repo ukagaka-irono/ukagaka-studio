@@ -1,0 +1,9 @@
+== folder: ikaga-ghost / 17 ファイル
+---- install.txt (157 バイト)
+charset,UTF-8
+type,ghost
+name,あたらしいゴースト
+directory,ikaga-ghost
+balloon.directory,ikaga-ghost-balloon
+balloon.source.directory,balloon
+

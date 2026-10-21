@@ -2,8 +2,8 @@
   "format": "ikaga/1",
   "meta": {
     "name": "あいさつゴースト",
-    "sakuraName": "なしこ",
-    "keroName": "つぶ",
+    "sakuraName": "いかがちゃん",
+    "keroName": "しおり",
     "version": "1.0.0",
     "description": "起動・終了・ダブルクリックだけの、いちばん小さいゴーストです。"
   },
@@ -14,7 +14,7 @@
       "id": "a_first", "kind": "event", "event": "OnFirstBoot", "x": 60, "y": 40,
       "blocks": [
         { "type": "surface", "who": 0, "id": 1 },
-        { "type": "say", "who": 0, "text": "はじめまして。なしこです。", "nl": 1 },
+        { "type": "say", "who": 0, "text": "はじめまして。いかがちゃんです。", "nl": 1 },
         { "type": "say", "who": 0, "text": "よろしくね。", "nl": 1 }
       ]
     },

@@ -12,7 +12,7 @@ std::string RuntimeProgramJson(const JValue& project) {
     root.set("format", JValue::makeStr("ikaga/1"));
 
     JValue m = JValue::makeObj();
-    m.set("name", JValue::makeStr(meta["name"].asStr("なしゴースト")));
+    m.set("name", JValue::makeStr(GhostName(project)));
     m.set("sakuraName", JValue::makeStr(meta["sakuraName"].asStr("さくら")));
     m.set("keroName", JValue::makeStr(meta["keroName"].asStr("うにゅう")));
     m.set("craftman", JValue::makeStr(meta["craftman"].asStr("")));

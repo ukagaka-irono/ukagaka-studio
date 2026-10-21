@@ -2,8 +2,8 @@
   "format": "ikaga/1",
   "meta": {
     "name": "時間で変わるゴースト",
-    "sakuraName": "なしこ",
-    "keroName": "つぶ",
+    "sakuraName": "いかがちゃん",
+    "keroName": "しおり",
     "version": "1.0.0",
     "description": "「いまごろ」で、朝・昼・夕方・夜のトークを出し分けます。"
   },

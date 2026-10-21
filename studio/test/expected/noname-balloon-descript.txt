@@ -1,0 +1,21 @@
+== folder: ikaga-ghost / 17 ファイル
+---- balloon/descript.txt (327 バイト)
+charset,UTF-8
+type,balloon
+name,あたらしいゴースト のバルーン
+craftman,テスト
+origin.x,18
+origin.y,16
+validrect.left,0
+validrect.top,0
+validrect.right,0
+validrect.bottom,-16
+wordwrappoint.x,-22
+font.color.r,46
+font.color.g,46
+font.color.b,44
+arrow0.x,300
+arrow0.y,8
+arrow1.x,300
+arrow1.y,-30
+

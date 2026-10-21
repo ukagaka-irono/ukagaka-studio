@@ -94,6 +94,11 @@ const cases = [
   ['plain.json', 'ghost/master/descript.txt', 'descript-plain.txt'],
   ['balloon.json', 'balloon/descript.txt', 'balloon-descript.txt'],
   ['balloon.json', 'install.txt', 'balloon-install.txt'],
+  // 名前が空のときは「あたらしいゴースト」になる（どこにも空の name が出ない）
+  ['noname.json', 'install.txt', 'noname-install.txt'],
+  ['noname.json', 'ghost/master/descript.txt', 'noname-descript.txt'],
+  ['noname.json', 'balloon/descript.txt', 'noname-balloon-descript.txt'],
+  ['noname.json', 'readme.txt', 'noname-readme.txt'],
 ];
 
 console.log('  ---- 書き出したファイルの中身');

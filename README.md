@@ -296,6 +296,7 @@ ukagaka-studio/
 │   ├── res/                アイコン・埋め込むサンプルプロジェクト
 │   ├── third_party/        WebView2 SDK（ヘッダ + 静的ローダ）
 │   ├── tools/embed.ps1     ui\ と ikaga.dll をリソース化
+│   ├── tools/make-icon.mjs ロゴ（ui/img/logo.svg）から exe のアイコンを作る
 │   └── src/
 │       ├── main.cpp        ウィンドウ・起動終了・多重起動防止
 │       ├── webview.cpp     WebView2 の埋め込みと要求の横取り
@@ -396,7 +397,7 @@ ukagaka-studio/
 
 ```powershell
 .\build.ps1 -Test
-.\shiori\dist\test_host.exe .\output\なしちゃん\ghost\master OnBoot OnMouseDoubleClick:0,0,0,0,Head OnClose
+.\shiori\dist\test_host.exe .\output\いかがちゃん\ghost\master OnBoot OnMouseDoubleClick:0,0,0,0,Head OnClose
 ```
 
 `イベント名:参照0,参照1,...` の形で指定します。`OnSecondChange:0,1*200` のように `*回数` を付けると繰り返せます。

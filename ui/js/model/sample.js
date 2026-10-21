@@ -4,7 +4,7 @@ import { Model } from './model.js';
 
 export function sampleProject() {
   const p = Model.newProject();
-  p.meta.name = 'なしゴースト';
+  p.meta.name = 'あたらしいゴースト';
   p.variables = [{ name: '好感度', value: 0 }];
   p.scripts = [
     {

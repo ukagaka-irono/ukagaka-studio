@@ -72,7 +72,7 @@ void AppendBalloon(std::vector<OutFile>& files, const JValue& project) {
     d.shell = false;
     d.name = "balloon/descript.txt";
     d.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "balloon") +
-             DescriptLine("name", project["meta"]["name"].asStr("なしゴースト") + " のバルーン") +
+             DescriptLine("name", GhostName(project) + " のバルーン") +
              DescriptLine("craftman", project["meta"]["craftman"].asStr("unknown"));
     d.data += "origin.x,18\r\norigin.y,16\r\n";
     d.data += "validrect.left,0\r\nvalidrect.top,0\r\nvalidrect.right,0\r\n";

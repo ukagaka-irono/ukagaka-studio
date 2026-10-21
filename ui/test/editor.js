@@ -60,7 +60,7 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
     name: p.meta.name, homeUrl: p.meta.homeUrl,
     interval: p.settings.randomTalkInterval,
     scripts: p.scripts.length, vars: p.variables.length, anims: p.animations.length,
-  }, { name: 'なしゴースト', homeUrl: '', interval: 180, scripts: 0, vars: 0, anims: 0 });
+  }, { name: 'あたらしいゴースト', homeUrl: '', interval: 180, scripts: 0, vars: 0, anims: 0 });
 }
 
 {

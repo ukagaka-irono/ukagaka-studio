@@ -268,6 +268,34 @@ SSP は **Windows 2000 以降**で動きます。栞は SSP に読みこまれ�
 
 ---
 
+## ロゴとマスコット
+
+**ロゴ**は `ui/img/logo.svg` の 1 枚だけです。上のバー・タブのアイコンはこれをそのまま使います。
+exe のアイコン（`studio/res/ukagaka-studio.ico`）は、描きかえたら作りなおしてください。
+
+```powershell
+node studio\tools\make-icon.mjs     # Windows の Edge で 16〜256px に描いて .ico にまとめる
+.\build.ps1                         # exe に入れなおす
+```
+
+ビルドのたびには走らせません（できあがった .ico をリポジトリに入れておきます）。
+
+**マスコット**（本体「いかがちゃん」・相方「しおり」）の名前は、お手本の中身にそのまま書いてあります。
+名前を変えるときに書きかえるのは、次のファイルです。
+
+| ファイル | 書いてあるところ |
+|---|---|
+| `ui/samples/*.json`（5 つ） | `meta.sakuraName` / `meta.keroName`、`aisatsu.json` はセリフにも |
+| `studio/res/sample-project.json` | はじめて起動したときのサンプル。`meta` とセリフ |
+| `studio/src/api.cpp` | はじめて起動したときに置くファイル名（`いかがちゃん.json`） |
+| `docs/ghost-json.md`・`README.md` | 例として |
+
+「新規」の既定の名前（**あたらしいゴースト**）は、画面（`model.js`・`sample.js`・`title.js`・`index.html`）と、
+書き出しの `GhostName()`（`studio/src/exporter.cpp`）にあります。栞のテスト用ゴースト・書き出しテストの材料に
+出てくる「なしこ」「つぶ」は、テストの材料なので変えていません。
+
+---
+
 ## つまずきやすいところ
 
 **スマートアプリコントロールが、作りたてのファイルを止める。**

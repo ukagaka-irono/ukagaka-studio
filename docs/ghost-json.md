@@ -13,9 +13,9 @@
   "format": "ikaga/1",
 
   "meta": {
-    "name": "なしちゃん",          // ゴースト名
-    "sakuraName": "なしちゃん",     // 本体の名前
-    "keroName": "つぶ",            // 相方の名前
+    "name": "いかがちゃん",        // ゴースト名
+    "sakuraName": "いかがちゃん",   // 本体の名前
+    "keroName": "しおり",          // 相方の名前
     "craftman": "作者名",
     "craftmanUrl": "",
     "homeUrl": "",                 // ネットワーク更新のありか（descript.txt の homeurl）

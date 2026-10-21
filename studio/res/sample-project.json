@@ -1,9 +1,9 @@
 {
   "format": "ikaga/1",
   "meta": {
-    "name": "なしちゃん",
-    "sakuraName": "なしちゃん",
-    "keroName": "つぶ",
+    "name": "いかがちゃん",
+    "sakuraName": "いかがちゃん",
+    "keroName": "しおり",
     "craftman": "あなたの名前",
     "craftmanUrl": "",
     "version": "1.0.0",
@@ -47,13 +47,13 @@
         {
           "type": "say",
           "who": 0,
-          "text": "はじめまして。\nわたしは なしちゃん。",
+          "text": "はじめまして。\nわたしは いかがちゃん。",
           "nl": 1
         },
         {
           "type": "say",
           "who": 1,
-          "text": "つぶです。よろしく。",
+          "text": "しおりです。よろしく。",
           "nl": 1
         },
         {
@@ -279,7 +279,7 @@
               {
                 "type": "say",
                 "who": 0,
-                "text": "なしって おいしいよね。",
+                "text": "おちゃでも いかが？",
                 "nl": 1
               }
             ]

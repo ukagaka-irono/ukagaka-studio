@@ -118,7 +118,7 @@ button, input, select, textarea { font-family: inherit; }
   z-index: 30;
 }
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 700; letter-spacing: .02em; }
-.brand-mark { font-size: 20px; }
+.brand-mark { width: 24px; height: 24px; display: block; }
 .brand-name { color: var(--text-2); }
 .proj-name { flex: 0 1 260px; }
 .proj-name input {

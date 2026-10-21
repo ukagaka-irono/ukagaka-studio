@@ -2,8 +2,8 @@
   "format": "ikaga/1",
   "meta": {
     "name": "話しかけるゴースト",
-    "sakuraName": "なしこ",
-    "keroName": "つぶ",
+    "sakuraName": "いかがちゃん",
+    "keroName": "しおり",
     "version": "1.0.0",
     "description": "ほかのゴーストに話しかけ、話しかけられたら返します。"
   },

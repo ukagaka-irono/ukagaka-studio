@@ -4,5 +4,5 @@ import { Model } from '../model/model.js';
 
 export function updateTitle() {
   document.title = (Model.dirty ? '● ' : '') +
-    (Model.project.meta.name || 'なしゴースト') + ' - 伺かスタジオ';
+    (Model.project.meta.name || 'あたらしいゴースト') + ' - 伺かスタジオ';
 }

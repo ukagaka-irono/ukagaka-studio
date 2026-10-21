@@ -1,0 +1,16 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "名前の欄を消して（空白だけにして）書き出したゴースト。",
+    "install.txt・descript.txt・バルーン・readme.txt の名前が空にならず、",
+    "「あたらしいゴースト」になることを確かめます。フォルダ名は ikaga-ghost になります。"
+  ],
+  "meta": { "name": "  ", "craftman": "テスト" },
+  "shell": { "balloonEnabled": true },
+  "scripts": [
+    {
+      "id": "n_boot", "kind": "event", "event": "OnBoot",
+      "blocks": [{ "type": "say", "who": 0, "text": "なまえが ないよ。", "nl": 1 }]
+    }
+  ]
+}

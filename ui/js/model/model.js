@@ -86,7 +86,7 @@ const Model = {
     return {
       format: FORMAT,
       meta: {
-        name: 'なしゴースト',
+        name: 'あたらしいゴースト',
         sakuraName: 'さくら',
         keroName: 'うにゅう',
         craftman: '',

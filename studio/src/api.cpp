@@ -75,7 +75,7 @@ void Api::Init() {
     if (ListFiles(projectsDir_, L"*.json").empty()) {
         std::string sample;
         if (LoadEmbedded(IDR_SAMPLE_PROJECT, sample)) {
-            WriteBinaryFile(PathJoin(projectsDir_, L"なしちゃん.json"), sample);
+            WriteBinaryFile(PathJoin(projectsDir_, L"いかがちゃん.json"), sample);
         }
     }
 }

@@ -37,6 +37,11 @@ std::string GhostFolderName(const JValue& project) {
     return SafeFolderName(folder, "ikaga-ghost");
 }
 
+std::string GhostName(const JValue& project) {
+    std::string name = project["meta"]["name"].asStr();
+    return Trim(name).empty() ? std::string("あたらしいゴースト") : name;
+}
+
 std::string DescriptLine(const char* key, const std::string& value) {
     std::string v = value;
     for (size_t i = 0; i < v.size(); i++) {
@@ -62,7 +67,7 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     f.shell = false;
     f.name = "install.txt";
     f.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "ghost") +
-             DescriptLine("name", meta["name"].asStr("なしゴースト")) + DescriptLine("directory", folder);
+             DescriptLine("name", GhostName(project)) + DescriptLine("directory", folder);
     if (withBalloon) {
         // アーカイブの中の balloon/ を、<フォルダ名>-balloon として入れてもらう
         f.data += DescriptLine("balloon.directory", folder + "-balloon") +
@@ -71,20 +76,20 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     files.push_back(f);
 
     f.name = "readme.txt";
-    f.data = meta["name"].asStr("なしゴースト");
+    f.data = GhostName(project);
     f.data += "\r\n\r\n";
     f.data += "作者      : " + meta["craftman"].asStr("(未設定)") + "\r\n";
     f.data += "バージョン: " + meta["version"].asStr("1.0.0") + "\r\n\r\n";
     f.data += meta["description"].asStr("") + "\r\n\r\n";
     f.data += "----\r\n";
-    f.data += "このゴーストは ikaga 栞 (ikaga.dll) で動いています。\r\n";
+    f.data += "このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n";
     f.data += "会話の中身は ghost/master/ghost.json にブロック形式で入っています。\r\n";
     f.data += "伺かスタジオで読み込むと編集できます。\r\n";
     files.push_back(f);
 
     f.name = "ghost/master/descript.txt";
     f.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "ghost") +
-             DescriptLine("name", meta["name"].asStr("なしゴースト")) +
+             DescriptLine("name", GhostName(project)) +
              DescriptLine("sakura.name", meta["sakuraName"].asStr("さくら")) +
              DescriptLine("kero.name", meta["keroName"].asStr("うにゅう")) +
              DescriptLine("craftman", meta["craftman"].asStr("unknown")) +

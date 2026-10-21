@@ -2,8 +2,8 @@
   "format": "ikaga/1",
   "meta": {
     "name": "好感度ゴースト",
-    "sakuraName": "なしこ",
-    "keroName": "つぶ",
+    "sakuraName": "いかがちゃん",
+    "keroName": "しおり",
     "version": "1.0.0",
     "description": "なでられると好感度が上がって、しゃべる内容が変わります。"
   },

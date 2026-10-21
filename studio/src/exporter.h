@@ -28,6 +28,10 @@ std::string SafeFolderName(const std::string& name, const char* fallback);
 // 書き出すときのフォルダ名（meta.folder、無ければ meta.name。どちらも無ければ ikaga-ghost）
 std::string GhostFolderName(const JValue& project);
 
+// ゴーストの名前（meta.name）。空や空白だけのときは「あたらしいゴースト」
+// （名前の欄を消して書き出しても、install.txt や descript.txt の name が空にならないように）
+std::string GhostName(const JValue& project);
+
 // 栞が読む ghost.json の中身（エディタ専用の項目を落としたもの）
 std::string RuntimeProgramJson(const JValue& project);
 
