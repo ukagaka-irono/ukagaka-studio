@@ -49,7 +49,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 順番に、4 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
 
 1. **`ui/js/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
-   見た目と `ghost.json` の形が決まります。そして `N.PALETTE` の、置きたいカテゴリに
+   見た目と `ghost.json` の形が決まります。そして `PALETTE` の、置きたいカテゴリに
    名前を足します（足さないと、定義してもパレットに並びません）。
 2. **`shiori/src/interp.cpp`** — `RunBlock` に `if (type == "…")`。**ここだけが動かす側です。**
    文字を出すときは直に足さず、**`Emit(ctx, …)`** を通してください（長さの上限がかかります）。
@@ -87,7 +87,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
 | `node ui\test\editor.js` | 読みこみの整形（`model.js`）とチェックタブ（`lint.js`） |
-| `node ui\test\modules.js` | `ui\js\*.js` が読みこめて、`N.Xxx.yyy()` の呼び先がそろっているか |
+| `node ui\test\modules.js` | `ui\js\*.js` が `main.js` からたどれて、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
 
 `parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
@@ -132,22 +132,35 @@ Actions の実行ページをいちばん下まで送ると **Artifacts** があ
 
 ## 画面のファイルの決まりごと
 
-`ui/js/` は `index.html` に書いた順に読みこまれ、それぞれ `window.IKAGA`（`N`）に
-自分のぶんを載せます。**読みこみ順が、そのまま依存の向き**です。
+`ui/js/` は **ES モジュール**です（`import` / `export`）。ビルドの道具は使いません。
+WebView2 も node も、書いたファイルをそのまま読みます。
 
-```
-blocks → model → player → lint → render → drag → app → shell / search / dialog / ssp
-```
+* `index.html` が読むのは **`js/main.js` の 1 つだけ**（`<script type="module">`）。
+  ほかのファイルは、`main.js` から `import` をたどって読みこまれます。
+  **ファイルを足したら、どこかで `import` してください**（たどれないファイルは使われません）。
+* 使うものは、ファイルの先頭で `import { Model } from './model.js';` のように受け取ります。
+  読みこみ順を気にする必要はありません。
+* **`app.js` と、`render.js` / `drag.js` / `shell.js` / `search.js` / `dialog.js` / `ssp.js` は、
+  おたがいに import しあっています。** どちらが先に読まれても動くように、
+  * 相手のものは**関数の中でだけ**使ってください。ファイルのいちばん外で
+    `App.xxx = …` や `const api = App.api;` と書くと、読みこみの時点で落ちます。
+  * `app.js` からほかのファイルへ渡す関数は、**`function` で書いて**、`app.js` の終わりの
+    `export { … }` に足してください。`function` で書いた関数は読みこみ順にかかわらず
+    最初から呼べますが、`const f = () => …` は呼べません。
+  * ここは段階 1-2（`app.js` を分ける）で、おたがいに import しない形に直す予定です
+    （`docs/roadmap.md`）。
+* 画面の外から触れるのは、`main.js` が `window.IKAGA` に載せたものだけです。
+  exe（`studio/src/main.cpp`）が、閉じるときに `IKAGA.Model.dirty` と
+  `IKAGA.Dialog.requestSaveAndClose()` を呼びます。名前を変えたら、そちらも直してください。
+* `ui/js/package.json`（`"type": "module"`）は、node のテストがここを ES モジュールとして
+  読むための印です。exe には入れていません（`studio/tools/embed.ps1`）。
 
-* **先に読まれるものは、載せてある名前をそのまま受け取れます**
-  （`const Model = N.Model;` のように、ファイルの先頭で）。
-* **あとに読まれるものを呼ぶときは、その場で引きます**（`N.Shell.playSakura(...)`）。
-  先頭で `const Shell = N.Shell;` と書くと、まだ載っていないので `undefined` になります。
-* `app.js` が分けたファイルへ渡すものは、`app.js` の終わりのほうで `App.api = api;` の形で
-  まとめて載せています。足すときはそこに書いてください。
+`node ui\test\modules.js` が、この決まりを守れているかを見ます。
+ファイルを 1 つずつ「最初に読みこむもの」にして別々に読みこむので、
+おたがいに import しあうところの読みこみ順の問題も、ファイルと行を名指しして止めます。
 
-`node ui\test\modules.js` が、この決まりを守れているかを見ます
-（`N.Xxx.yyy()` の呼び先が無ければ、ファイルと行を名指しします）。
+node のテストは ES モジュールを `require()` で読むので、**Node.js 22.12 以降**が要ります
+（Actions は 24 を使っています）。
 
 ---
 

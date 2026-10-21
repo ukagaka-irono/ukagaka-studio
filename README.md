@@ -214,9 +214,9 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 | **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
 | **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形（`model.js`）と、チェックタブが出す注意（`lint.js`）が期待どおりか |
 | **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
-| **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js` を `index.html` と同じ順に読みこんで、落ちないか・`N.Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます |
+| **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js`（ES モジュール）が入り口の `main.js` からたどれるか、どれを最初に読みこんでも落ちないか、`Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます |
 
-この 7 つだけ **Node.js** を使います（入っていなければ飛ばします。アプリの動作には要りません）。
+この 7 つだけ **Node.js**（22.12 以降）を使います（入っていなければ飛ばします。アプリの動作には要りません）。
 ふるまいテストには、わざと待つ場面（おそい SAORI と終了が重なるところ）があるので、
 10 秒ほどかかります。
 ブロックやふるまいを足したら、`shiori\test\` `studio\test\` `ui\test\` の材料と期待値も
@@ -315,7 +315,8 @@ ukagaka-studio/
 │   ├── test/               画面を出さずに動かすテスト
 │   │                         editor.js  … 整形とチェックタブ
 │   │                         modules.js … 読みこみと呼び先のそろい
-│   └── js/
+│   └── js/                 ES モジュール（index.html は main.js だけを読む）
+│       ├── main.js         入り口（exe から呼ぶものを window.IKAGA に載せる）
 │       ├── blocks.js       ブロック定義（ここを増やすとブロックが増える）
 │       ├── model.js        プロジェクトのデータと Undo
 │       ├── render.js       ブロックの描画

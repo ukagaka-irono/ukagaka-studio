@@ -33,8 +33,9 @@ New-Item -ItemType Directory -Force -Path $assetsDir | Out-Null
 
 # ---- UI ファイルを ASCII 名で並べ直す（rc.exe に日本語パスを渡さないため）----
 # ui\test\ は画面では使わない（node で動かすテスト）ので、exe には入れません
+# package.json も node むけの印なので入れません
 $files = Get-ChildItem -Path $PublicDir -Recurse -File |
-    Where-Object { $_.FullName -notmatch '\\test\\' } |
+    Where-Object { $_.FullName -notmatch '\\test\\' -and $_.Name -ne 'package.json' } |
     Sort-Object FullName
 $entries = @()
 $id = 1000

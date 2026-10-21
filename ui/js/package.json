@@ -1,0 +1,4 @@
+{
+  "//": "ui/js/ は ES モジュールです（node のテストが import で読むための印。exe には入れません）",
+  "type": "module"
+}

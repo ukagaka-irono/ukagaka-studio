@@ -102,7 +102,7 @@ static void AskThenClose(HWND hwnd) {
 
             g_waitingSave = true;
             SetTimer(hwnd, kSaveTimeoutTimer, 5000, NULL);   // 保存が終わらなくても閉じる
-            g_web.ExecuteScript(L"IKAGA.App.requestSaveAndClose()", NULL);
+            g_web.ExecuteScript(L"IKAGA.Dialog.requestSaveAndClose()", NULL);
         });
 }
 

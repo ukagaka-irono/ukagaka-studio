@@ -63,9 +63,7 @@ function read(rel) {
 
 const src = { cpp: read(CPP), doc: read(DOC) };
 
-global.window = {};
-(0, eval)(read(DEFS));
-const N = global.window.IKAGA;
+const N = require(path.join(root, DEFS.replace(/\\/g, path.sep)));
 if (!N || !N.BLOCKS) {
   console.error(`${C.red}[そろい] ${DEFS} を読めませんでした。${C.off}`);
   process.exit(2);
@@ -208,7 +206,7 @@ for (const cat in N.PALETTE) {
 const paletteMiss = [...palette].filter((k) => !defs[k]).sort();
 if (paletteMiss.length) {
   bad('パレットに、定義の無いブロックが並んでいます', paletteMiss.map(
-    (k) => `"${k}" … ${DEFS} の N.PALETTE から消すか、def({ … }) を足してください`
+    (k) => `"${k}" … ${DEFS} の PALETTE から消すか、def({ … }) を足してください`
   ));
 }
 const notInPalette = Object.keys(defs).filter(
@@ -216,7 +214,7 @@ const notInPalette = Object.keys(defs).filter(
 ).sort();
 if (notInPalette.length) {
   bad('定義したのに、パレットに出していないブロックがあります', notInPalette.map(
-    (k) => `"${k}" … ${DEFS} の N.PALETTE に足してください（置けないので誰にも使えません）`
+    (k) => `"${k}" … ${DEFS} の PALETTE に足してください（置けないので誰にも使えません）`
   ));
 }
 
@@ -227,7 +225,7 @@ const refOnly = Object.keys(N.EVENT_REFS).filter(
 ).sort();
 if (refOnly.length) {
   bad('EVENT_REFS にあるのに、えらべないイベントがあります', refOnly.map(
-    (e) => `"${e}" … ${DEFS} の N.EVENTS に足すか、N.EVENT_REFS から消してください`
+    (e) => `"${e}" … ${DEFS} の EVENTS に足すか、EVENT_REFS から消してください`
   ));
 }
 

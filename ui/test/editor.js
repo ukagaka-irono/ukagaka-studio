@@ -19,13 +19,9 @@ const root = path.resolve(__dirname, '..', '..');
 const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0m' };
 const { red, green, dim, off } = COLOR;
 
-// 画面のスクリプトをそのまま読みこむ（window があるつもりで動きます）
-global.window = {};
-for (const f of ['blocks.js', 'model.js', 'lint.js']) {
-  (0, eval)(fs.readFileSync(path.join(root, 'ui', 'js', f), 'utf8'));
-}
-const N = global.window.IKAGA;
-const { Model, Lint } = N;
+// 画面のモジュールをそのまま読みこむ（この 2 つは DOM を触りません）
+const { Model } = require('../js/model.js');
+const { Lint } = require('../js/lint.js');
 
 let failed = 0;
 let checked = 0;
