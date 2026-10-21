@@ -63,7 +63,8 @@ Invoke-Sub (Join-Path $root 'studio\build.ps1') $studioArgs
 #   export   … 書き出したファイル（surfaces.txt など）の中身が期待どおりか
 #   editor   … エディタのデータ整形とチェックタブが期待どおりか
 #   modules  … 画面のファイルが読みこめて、呼び先がそろっているか（分けたときの移し忘れ）
-#   imports  … 栞が Windows 2000 以降で読みこめるか（新しい API が混ざっていないか）
+#   imports  … 栞が Windows 2000 以降で読みこめるか（新しい API が混ざっていないか）。YAYA の yaya.dll も
+#   yaya     … YAYA（third_party\yaya\）が公式のビルドのままで、test_host から動かせるか
 if ($Test) {
     Write-Host ''
     Write-Host '=== テスト ===' -ForegroundColor Yellow
@@ -72,11 +73,15 @@ if ($Test) {
     } else {
         foreach ($t in @('tools\check-imports.js',
                          'shiori\test\parity\parity.js', 'shiori\test\behavior\behavior.js',
+                         'shiori\test\yaya\yaya.js',
                          'studio\test\export.js', 'ui\test\editor.js', 'ui\test\modules.js',
                          'ui\test\i18n.js')) {
             & node (Join-Path $root $t)
             if ($LASTEXITCODE -ne 0) { throw "$([System.IO.Path]::GetFileName($t)) が失敗しました。" }
         }
+        # 書き出したゴーストに入れる YAYA も、Windows 2000 から動くか見ます
+        & node (Join-Path $root 'tools\check-imports.js') (Join-Path $root 'third_party\yaya\yaya.dll')
+        if ($LASTEXITCODE -ne 0) { throw 'check-imports.js（yaya.dll）が失敗しました。' }
     }
 }
 
@@ -100,6 +105,13 @@ if ($Release) {
     }
     Get-ChildItem (Join-Path $root 'docs') -Filter '*.md' -ErrorAction SilentlyContinue |
         ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'docs') }
+    # exe に埋めこんだ YAYA の著作権表示とライセンス（third_party\ のうち、表示に要るものだけ）
+    $tp = Join-Path $stage 'third_party'
+    New-Item -ItemType Directory -Force (Join-Path $tp 'yaya'), (Join-Path $tp 'yaya-dic') | Out-Null
+    Copy-Item (Join-Path $root 'third_party\README.md') $tp
+    foreach ($f in @('yaya\LICENSE', 'yaya\readme-original.txt', 'yaya\README.md', 'yaya-dic\LICENSE')) {
+        Copy-Item (Join-Path $root "third_party\$f") (Join-Path $tp $f)
+    }
     # 文書の英語版（日本語版が正）は docs\en\ のまま入れます（中のリンクがそのまま通るように）
     New-Item -ItemType Directory -Force (Join-Path $stage 'docs\en') | Out-Null
     Get-ChildItem (Join-Path $root 'docs\en') -Filter '*.md' -ErrorAction SilentlyContinue |
@@ -112,7 +124,7 @@ if ($Release) {
     Compress-Archive -Path $stage -DestinationPath $zip
     $kb = [math]::Round((Get-Item $zip).Length / 1KB, 1)
     Write-Host "  できました -> $zip ($kb KB)" -ForegroundColor Green
-    Write-Host '  中身: ukagaka-studio.exe / README.md / README.en.md / CHANGELOG.md / LICENSE / docs（英語版の docs\en も）' -ForegroundColor DarkGray
+    Write-Host '  中身: ukagaka-studio.exe / README.md / README.en.md / CHANGELOG.md / LICENSE / docs（英語版の docs\en も）/ third_party（YAYA のライセンス）' -ForegroundColor DarkGray
 }
 
 Write-Host ''

@@ -2,9 +2,10 @@
  *
  * parity.js（プレビューとの一致テスト）と behavior.js（栞のふるまいテスト）で共用します。
  *
- * 動かせる相手は 2 つあります。どちらも同じ形で応答を返すので、同じ読みかたで比べられます。
+ * 動かせる相手は 3 つあります。どれも同じ形で応答を返すので、同じ読みかたで比べられます。
  *   run        … shiori\dist\test_host.exe    32bit の栞（SSP に入るもの）
  *   runPreview … studio\test\preview_host.exe 64bit のスタジオに積んだ、同じ栞
+ *   runYaya    … test_host.exe --dll yaya.dll  YAYA（段階 3 で如何栞と置きかえるもの）
  */
 'use strict';
 
@@ -16,6 +17,8 @@ const root = path.resolve(__dirname, '..', '..', '..');
 const dllSrc = path.join(root, 'shiori', 'dist', 'ikaga.dll');
 const testHost = path.join(root, 'shiori', 'dist', 'test_host.exe');
 const previewHost = path.join(root, 'studio', 'test', 'preview_host.exe');
+const yayaDll = path.join(root, 'third_party', 'yaya', 'yaya.dll');
+const yayaBase = path.join(root, 'third_party', 'yaya-dic', 'yaya_base');
 
 const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0m' };
 
@@ -78,6 +81,25 @@ function run(dir, specs) {
 }
 
 /**
+ * YAYA（third_party\yaya\yaya.dll）にイベントを順に投げる。
+ * dir には yaya.txt と辞書を置いておく。yaya.dll と受け口の辞書 yaya_base はここで置き、
+ * 前回の変数の保存（yaya_variable.cfg）は消す。
+ */
+function runYaya(dir, specs) {
+  if (!fs.existsSync(testHost)) {
+    throw new Error('test_host.exe がありません。先に .\\build.ps1 -Test を実行してください。');
+  }
+  if (!fs.existsSync(yayaDll)) throw new Error(`yaya.dll がありません: ${yayaDll}`);
+  fs.copyFileSync(yayaDll, path.join(dir, 'yaya.dll'));
+  fs.cpSync(yayaBase, path.join(dir, 'yaya_base'), { recursive: true });
+  const saved = path.join(dir, 'yaya_variable.cfg');
+  if (fs.existsSync(saved)) fs.unlinkSync(saved);
+  noSpaces(specs, 'test_host');
+  return parse(execFileSync(testHost, ['--dll', 'yaya.dll', dir, ...specs],
+    { encoding: 'utf8', maxBuffer: 1 << 24 }));
+}
+
+/**
  * 伺かスタジオに積んだ栞（64bit）で、同じかたまりを動かす。
  * specs は "p01" か "p27:参照0,参照1" の形（イベント名ではなく、かたまりの id）。
  */
@@ -99,5 +121,5 @@ function repeat(spec, times) {
 }
 
 module.exports = {
-  root, run, runPreview, prepare, repeat, COLOR, testHost, previewHost, dllSrc,
+  root, run, runPreview, runYaya, prepare, repeat, COLOR, testHost, previewHost, dllSrc, yayaDll,
 };

@@ -60,7 +60,7 @@ and then **the DLL fails to load at all** on anything older.
 
 In Actions, scroll the run page to the bottom: they are under **Artifacts**.
 
-* `ukagaka-studio-<version>-<sha>` … the same contents as the Releases zip (exe / README in Japanese and English / CHANGELOG / LICENSE / docs)
+* `ukagaka-studio-<version>-<sha>` … the same contents as the Releases zip (exe / README in Japanese and English / CHANGELOG / LICENSE / docs / third_party with YAYA's license)
 * `ikaga-dll-<version>-<sha>` … the SHIORI only, for people who put it into a ghost themselves
 
 > Actions artifacts **cannot be downloaded without logging in to GitHub** (the button does not appear).
@@ -231,20 +231,21 @@ The version number is the single line in the **`VERSION` file at the root**. Cha
 updates both the zip name and the exe's properties (right-click → Properties → Details).
 Add what changed to `CHANGELOG.md`.
 
-With `-Test`, eight tests run.
+With `-Test`, nine tests run.
 
 | | |
 |---|---|
 | **Block coverage** (`tools\check-blocks.js`) | Whether every block is present in the definitions, the SHIORI, the docs (Japanese and English) and the tests. It needs no build, so it runs first |
 | **Parity test** (`shiori\test\parity\parity.js`) | Builds the same `interp.cpp` as **32-bit (the SHIORI that goes into SSP)** and **64-bit (Ukagaka Studio's “Try”)**, feeds both the same `ghost.json`, and compares the Sakura Script that comes out (catches code that depends on the bit width) |
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions only the SHIORI makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
+| **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`), which is to replace ikaga SHIORI, is still the official build (SHA-256), and whether the test host can load it and get answers to events |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, and that every example is clean |
-| **Import check** (`tools\check-imports.js`) | Reads the import table of the built `ikaga.dll` directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows |
+| **Import check** (`tools\check-imports.js`) | Reads the import tables of the built `ikaga.dll` and of YAYA's `yaya.dll` directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
 | **UI language check** (`ui\test\i18n.js`) | Whether all Japanese UI text goes through `t()` and has an English translation (so no Japanese is left on the English screen), whether the dictionary has stale entries or mismatched `{placeholders}`, whether every error code the exe returns has UI text, and whether every document has an English version |
 
-Only these eight use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
+Only these nine use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
 The behavior test waits on purpose in one place (a slow SAORI overlapping with closing),
 so it takes about 10 seconds.
 When you add blocks or behavior, update the inputs and expected results in `shiori\test\`, `studio\test\` and `ui\test\`
@@ -254,12 +255,18 @@ regenerate the expected files with `node studio\test\export.js --update`.
 **The steps for adding one block** (which file gets what) and the common pitfalls are collected in
 [`docs/en/maintenance.md`](docs/en/maintenance.md).
 
-These eight also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
+These nine also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
 so they stop you even if you forget. The settings are in `.github/workflows/build.yml`.
 
 To build one part, use `shiori\build.ps1` / `studio\build.ps1`.
-The studio build runs `studio\tools\embed.ps1`, which packs everything under `ui\` and `ikaga.dll`
+The studio build runs `studio\tools\embed.ps1`, which packs everything under `ui\` plus `ikaga.dll` and `yaya.dll`
 into resources embedded in the exe (rebuild after changing the UI).
+
+The official build of the **YAYA** SHIORI (`yaya.dll`) and its entry dictionary `yaya_base` are in `third_party\`
+(they are there to replace ikaga SHIORI in stage 3; see [`docs/roadmap.md`](docs/roadmap.md)). YAYA is not built from source
+(built with today's Visual Studio it no longer runs on Windows 2000). Where they came from and how to upgrade them is in
+[`third_party/README.md`](third_party/README.md). The text of YAYA's license (AYA Ver.5 terms / BSD 3-Clause)
+is in `third_party\yaya\` and is included in the release zip.
 
 The WebView2 SDK is in `studio\third_party\webview2\` (only the headers and the static
 `WebView2LoaderStatic.lib`; **BSD 3-Clause**). No download is needed.
@@ -313,7 +320,8 @@ ukagaka-studio/
 │   │   ├── lib/            test helpers (run the 32/64-bit SHIORI and parse its replies)
 │   │   ├── parity/         parity test comparing the 32-bit and 64-bit output
 │   │   ├── saori/          a “deliberately slow SAORI” for tests
-│   │   └── behavior/       tests of the SHIORI's behavior (what it picks, default reactions)
+│   │   ├── behavior/       tests of the SHIORI's behavior (what it picks, default reactions)
+│   │   └── yaya/           test that YAYA runs (stage 3)
 │   └── dist/               build results (ikaga.dll / test_host.exe)
 ├── studio/                 Ukagaka Studio (C++ / 64-bit EXE)
 │   ├── build.ps1
@@ -322,7 +330,7 @@ ukagaka-studio/
 │   │                         preview_host … shows the result of “Try”
 │   ├── res/                the icon and the first-run samples (Japanese and English)
 │   ├── third_party/        WebView2 SDK (headers + static loader)
-│   ├── tools/embed.ps1     turns ui\ and ikaga.dll into resources
+│   ├── tools/embed.ps1     turns ui\, ikaga.dll and yaya.dll into resources
 │   ├── tools/make-icon.mjs makes the exe icon from the logo (ui/img/logo.svg)
 │   └── src/
 │       ├── main.cpp        window, startup and shutdown, single instance
@@ -383,7 +391,10 @@ ukagaka-studio/
 │           └── ssp.js      working with a running SSP
 ├── tools/
 │   ├── check-blocks.js     checks every block is present in every file (no build needed)
-│   └── check-imports.js    checks the SHIORI can be loaded from Windows 2000
+│   └── check-imports.js    checks the SHIORI (and yaya.dll) can be loaded from Windows 2000
+├── third_party/            files from elsewhere (do not edit)
+│   ├── yaya/               YAYA's official yaya.dll and its license
+│   └── yaya-dic/           YAYA's system dictionary yaya_base (the SHIORI/3.0 entry)
 └── docs/
     ├── blocks.md           the block reference
     ├── ghost-json.md       the ghost.json specification
@@ -554,6 +565,9 @@ It is provided as is. The author cannot take responsibility for anything that ha
 
 `ukagaka-studio.exe` statically links the **Microsoft Edge WebView2 SDK** (BSD 3-Clause).
 Its copyright notice is at the end of `LICENSE` and is always included in the release zip.
+
+It also embeds the **YAYA** SHIORI (`yaya.dll`; AYA Ver.5 terms when built into Ukagaka ghosts and related programs,
+BSD 3-Clause otherwise). Its notice and the license texts are in `third_party\` in the release zip.
 
 > **Because the license is custom, GitHub does not show a license name.**
 > It is permissive (in the same family as MIT and zlib), not copyleft.

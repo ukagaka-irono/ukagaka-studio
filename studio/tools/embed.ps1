@@ -8,6 +8,7 @@ param(
     [Parameter(Mandatory = $true)][string]$PublicDir,
     [Parameter(Mandatory = $true)][string]$StageDir,
     [string]$DllPath,
+    [string]$YayaDllPath,
     [string]$SamplePath,
     [string]$SampleEnPath,
     [string]$IconPath,
@@ -64,6 +65,13 @@ if ($DllPath -and (Test-Path $DllPath)) {
     [void]$rc.AppendLine('900 RCDATA "assets\\ikaga.dll"')
 } else {
     Write-Warning '[embed] ikaga.dll が見つかりません。栞なしの exe になります。'
+}
+# YAYA の公式ビルド（third_party\yaya\。段階 3 で如何栞と置きかえます）
+if ($YayaDllPath -and (Test-Path $YayaDllPath)) {
+    Copy-Item $YayaDllPath (Join-Path $assetsDir 'yaya.dll') -Force
+    [void]$rc.AppendLine('903 RCDATA "assets\\yaya.dll"')
+} else {
+    Write-Warning '[embed] yaya.dll が見つかりません。YAYA なしの exe になります。'
 }
 if ($SamplePath -and (Test-Path $SamplePath)) {
     Copy-Item $SamplePath (Join-Path $assetsDir 'sample.json') -Force

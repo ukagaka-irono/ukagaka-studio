@@ -1,6 +1,9 @@
 // ikaga SHIORI - stand-alone test host.
 //
-//   test_host.exe <moduleDir> [request ...]
+//   test_host.exe [--dll <name>] <moduleDir> [request ...]
+//
+// --dll picks the SHIORI DLL inside <moduleDir> (default: ikaga.dll),
+// so the same host can drive yaya.dll too.
 //
 // A request is written as  ID  or  ID:ref0,ref1,...
 // Example:
@@ -57,8 +60,15 @@ static std::string WideToUtf8(const wchar_t* w) { return WideToCp(w, CP_UTF8); }
 
 int wmain(int argc, wchar_t** wargv) {
     SetConsoleOutputCP(CP_UTF8);
+    // "--dll <name>" comes first; the rest keeps its old positions
+    std::wstring dllName = L"ikaga.dll";
+    if (argc >= 3 && wcscmp(wargv[1], L"--dll") == 0) {
+        dllName = wargv[2];
+        argc -= 2;
+        wargv += 2;
+    }
     if (argc < 2) {
-        printf("usage: test_host <moduleDir> [ID | ID:ref0,ref1 ...]\n");
+        printf("usage: test_host [--dll <name>] <moduleDir> [ID | ID:ref0,ref1 ...]\n");
         return 1;
     }
 
@@ -71,7 +81,7 @@ int wmain(int argc, wchar_t** wargv) {
     // SSP はモジュールのパスを OS の ANSI コードページで渡してくる
     std::string dir = WideToCp(wdir.c_str(), CP_ACP);
 
-    HMODULE dll = LoadLibraryW((wdir + L"ikaga.dll").c_str());
+    HMODULE dll = LoadLibraryW((wdir + dllName).c_str());
     if (!dll) {
         printf("cannot load %s (error %lu)\n", WideToUtf8(wdir.c_str()).c_str(), GetLastError());
         return 2;

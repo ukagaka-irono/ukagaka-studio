@@ -15,7 +15,7 @@ What goes here are **the rules written in places far apart, which break silently
 
 ```powershell
 node tools\check-blocks.js     # 1 second. No build. Are all blocks present everywhere?
-.\build.ps1 -Test              # about 3 minutes. Build, then the 8 tests
+.\build.ps1 -Test              # about 3 minutes. Build, then the 9 tests
 ```
 
 `check-blocks.js` needs no build, so **run it first whenever you change something**.
@@ -87,20 +87,21 @@ Some types and operators are not shown in the palette and exist for hand-written
 
 ---
 
-## The 8 tests and what each protects
+## The 9 tests and what each protects
 
 | How to run | What it protects |
 |---|---|
 | `node tools\check-blocks.js` | that blocks are present in all 5 places (catches forgotten files) |
 | `node shiori\test\parity\parity.js` | that the same `interp.cpp` built as 32-bit and 64-bit gives the same output (catches code relying on bit width) |
 | `node shiori\test\behavior\behavior.js` | the decisions **only** the SHIORI makes (what it picks, default reactions, thinning, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day” |
+| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`), and that test_host can load it and get answers through the entry dictionary `yaya_base` |
 | `node studio\test\export.js` | the contents of exported files (compared byte by byte), including English ghosts' readme.txt, fallback names and `meta.lang` |
 | `node ui\test\editor.js` | normalizing loaded projects and format versions (`model.js`), the Check tab (`lint.js`), searching blocks by text (`blockindex.js`), and that the examples (Japanese and English) pass the Check tab |
 | `node ui\test\modules.js` | that `ui\js\` is reachable from `main.js`, imports follow the layer rules with no cycles, any file loads first without failing, and every `Xxx.yyy()` has a target. That colors in `style.css` go through tokens |
-| `node tools\check-imports.js` | that `ikaga.dll` loads from Windows 2000 (reads the import table directly) |
+| `node tools\check-imports.js` | that `ikaga.dll` loads from Windows 2000 (reads the import table directly). `.\build.ps1 -Test` also checks `third_party\yaya\yaya.dll` with it |
 | `node ui\test\i18n.js` | that all Japanese UI text goes through `t()` and has an English translation; that the English dictionary has no unused entries or mismatched `{placeholders}` / `%slots`; that every error code the exe returns has UI text; that every document has an English version |
 
-`parity` and `behavior` use `shiori\dist\test_host.exe`, and `parity` also
+`parity`, `behavior` and `yaya` use `shiori\dist\test_host.exe`, and `parity` also
 `studio\test\preview_host.exe`, so **they need a build first** (`.\build.ps1 -Test`).
 `check-imports` looks at the built `ikaga.dll`, so it needs a build too.
 `check-blocks`, `editor` and `modules` run without a build.
@@ -126,7 +127,7 @@ Scroll an Actions run page to the bottom for **Artifacts**. They are kept for **
 
 | Name | Contents |
 |---|---|
-| `ukagaka-studio-<version>-<sha>` | exactly the same as the distributed zip (`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`, including the English `docs/en`) |
+| `ukagaka-studio-<version>-<sha>` | exactly the same as the distributed zip (`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`, including the English `docs/en` / `third_party` with YAYA's license) |
 | `ikaga-dll-<version>-<sha>` | `ikaga.dll` only, for people who put it into a ghost themselves (the editor's exe carries the same one) |
 
 `LICENSE` is always included because the bundled WebView2 SDK requires its copyright notice
@@ -261,6 +262,15 @@ ui/js/
 * Colors set from JS use tokens too, such as `var(--danger)`. Block category colors are `--cat-<id>`.
 * `core/theme.js` picks the theme with `data-theme` on `html` (none means follow Windows).
   It also sends `theme:dark` / `theme:light` to the exe to match the title bar (`studio/src/main.cpp`).
+
+### Files from elsewhere (`third_party/`)
+
+* `third_party/` holds YAYA's official build (`yaya/`) and its system dictionary `yaya_base` (`yaya-dic/`)
+  **byte-for-byte as distributed** (`.gitattributes` keeps git from rewriting line endings). **Do not edit them.**
+* To upgrade, replace them as a whole and update the version, date and SHA-256 in `third_party/README.md`.
+  `shiori\test\yaya\yaya.js` checks that `yaya.dll` matches that SHA-256.
+* YAYA is not built from source: built with today's Visual Studio, it pulls in APIs Windows 2000 does not have (step 3-0 in `docs/roadmap.md`).
+* `yaya.dll` is embedded in the exe, so the release zip carries the text of YAYA's license (`-Release` in `build.ps1`).
 
 ### Documents (Japanese and English)
 

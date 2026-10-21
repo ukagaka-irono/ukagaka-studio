@@ -434,7 +434,7 @@ Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into *
 >   Hand-written YAYA ghosts usually use it too, which makes it easy to put the studio's dictionaries alongside.
 >   It also has a way to raise something at the next event (`SHIORI3FW.DelayEvent`), usable for `OnSaoriDone`.
 
-### 3-1. Bring YAYA in
+### 3-1. Bring YAYA in (done)
 
 * Put the official `yaya.dll` (currently Tc607-2) in `third_party/yaya/`, together with `LICENSE` and `readme-original.txt`.
   Put the entry dictionary `yaya_base` in `third_party/yaya-dic/`. Neither is downloaded at build time.
@@ -444,6 +444,18 @@ Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into *
 * Let `shiori/test/test_host.cpp` choose which DLL to load instead of always loading `ikaga.dll`.
 
 Done when: test_host sends `OnBoot` to YAYA with a small dictionary and gets an answer.
+
+> Done:
+>
+> * The official `yaya.dll` (Tc607-2) and its accompanying files are in `third_party/yaya/`, and `yaya_base` is in
+>   `third_party/yaya-dic/`, byte-for-byte as distributed (`.gitattributes` keeps line endings too). Origin and upgrade steps: `third_party/README.md`.
+> * `test_host.exe` takes `--dll yaya.dll` to choose the DLL (without it, `ikaga.dll` as before).
+>   Node tests drive it through `runYaya` in `shiori/test/lib/host.js` (which puts `yaya.dll` and `yaya_base` in place).
+> * New test `shiori\test\yaya\yaya.js`: `yaya.dll` matches the SHA-256 in `third_party/README.md`, and with the smallest
+>   dictionary it answers `OnBoot`, receives References, and returns 204 for an event with no function (6 checks).
+>   `.\build.ps1 -Test` also runs the import check on `yaya.dll`. There are now 9 tests.
+> * `yaya.dll` is embedded in the exe (resource 903, `IDR_YAYA_DLL`). Exports do not use it yet.
+> * The release zip now carries the text of YAYA's license (`third_party/`), and the README's “Bundled components” says so.
 
 ### 3-2. Translate blocks into YAYA
 

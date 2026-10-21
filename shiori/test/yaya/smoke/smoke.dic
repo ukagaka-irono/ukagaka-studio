@@ -1,0 +1,11 @@
+// YAYA を動かせるかだけを見る、いちばん小さな辞書（shiori\test\yaya\yaya.js）
+
+OnBoot
+{
+	'\0\s[0]YAYA です。\e'
+}
+
+OnEcho
+{
+	'\0' + reference[0] + '\e'
+}

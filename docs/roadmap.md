@@ -430,7 +430,7 @@ ui/js/
 >   手書きの YAYA ゴーストもたいていこれを使っているので、スタジオの辞書と並べやすくなります。
 >   次のイベントの時に何かを起こすしくみ（`SHIORI3FW.DelayEvent`）もあり、`OnSaoriDone` に使えます。
 
-### 3-1. YAYA を組みこむ
+### 3-1. YAYA を組みこむ（済）
 
 * 公式の `yaya.dll`（いまは Tc607-2）を、`LICENSE`・`readme-original.txt` と一緒に `third_party/yaya/` に置きます。
   受け口の辞書 `yaya_base` も、`third_party/yaya-dic/` に置きます。どちらもビルドのときにはネットから落としません。
@@ -440,6 +440,18 @@ ui/js/
 * `shiori/test/test_host.cpp` が、`ikaga.dll` に決めうちせず、読みこむ DLL を選べるようにします。
 
 終わりの目安: 小さな辞書を入れた YAYA に test_host から `OnBoot` を送って、答えが返る。
+
+> 済ませたこと:
+>
+> * `third_party/yaya/` に公式の `yaya.dll`（Tc607-2）と添えものを、`third_party/yaya-dic/` に `yaya_base` を、
+>   配られたときのバイトのまま置きました（`.gitattributes` で改行も書きかえません）。もとと版の上げかたは `third_party/README.md` に。
+> * `test_host.exe` は `--dll yaya.dll` で、読みこむ DLL を選べます（書かなければ、いままでどおり `ikaga.dll`）。
+>   node のテストからは `shiori/test/lib/host.js` の `runYaya` で動かします（`yaya.dll` と `yaya_base` をそこで置きます）。
+> * 新しいテスト `shiori\test\yaya\yaya.js`: `yaya.dll` が `third_party/README.md` に書いた SHA-256 と同じか、
+>   いちばん小さな辞書で `OnBoot` に答え、Reference を受けとり、関数が無いイベントに 204 を返すか（6 か所）。
+>   `.\build.ps1 -Test` は、`yaya.dll` の輸入の点検も走らせます。テストは 9 本になりました。
+> * exe に `yaya.dll` を埋めこみました（リソース 903、`IDR_YAYA_DLL`）。まだ書き出しには使っていません。
+> * 配布用の zip に、YAYA のライセンスの本文（`third_party/`）を入れるようにしました。README の「同梱しているもの」にも書きました。
 
 ### 3-2. ブロックを YAYA に訳す
 

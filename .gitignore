@@ -20,6 +20,10 @@ shiori/test/*/ikaga.dll
 shiori/test/*/*/ikaga.dll
 shiori/test/*/slow_saori.dll
 shiori/test/*/*/slow_saori.dll
+# YAYA のテスト（shiori/test/yaya/）が置くものと、YAYA が書く変数の保存
+shiori/test/*/*/yaya.dll
+shiori/test/*/*/yaya_base/
+**/yaya_variable.cfg
 # 名前を一つずつ書くと、テスト用の exe を増やしたとき書き忘れます
 studio/test/*_host.exe
 studio/test/render_out/

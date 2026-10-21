@@ -55,7 +55,7 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 
 Actions のほうは、実行ページをいちばん下まで送ると **Artifacts** にあります。
 
-* `ukagaka-studio-<版>-<sha>` … Releases の zip と同じ中身（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs）
+* `ukagaka-studio-<版>-<sha>` … Releases の zip と同じ中身（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs / third_party（YAYA のライセンス））
 * `ikaga-dll-<版>-<sha>` … 栞だけ。自分でゴーストに入れる人むけ
 
 > Actions の成果物は、**GitHub にログインしていないと落とせません**（ボタンが出ません）。
@@ -224,20 +224,21 @@ Visual Studio の「C++ によるデスクトップ開発」が入っていれ�
 zip の名前と exe のプロパティ（右クリック→プロパティ→詳細）の両方に入ります。
 変わったことは `CHANGELOG.md` に足してください。
 
-`-Test` を付けると、8 つのテストが走ります。
+`-Test` を付けると、9 つのテストが走ります。
 
 | | |
 |---|---|
 | **そろい点検**（`tools\check-blocks.js`） | ブロックが「定義・栞・説明（日本語と英語）・テスト」のすべてにそろっているか。ビルドが要らないので、いちばん先に走ります |
 | **一致テスト**（`shiori\test\parity\parity.js`） | 同じ `interp.cpp` を **32bit（SSP に入る栞）** と **64bit（伺かスタジオの「ためす」）** で組んで、同じ `ghost.json` を流し、出てきたさくらスクリプトが一致するか見くらべます（ビット幅に頼った書きかたを見つけます） |
 | **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | 栞だけが持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応（英語のゴーストなら英語で）、`OnClose` の `\-`、「◯秒ごと」の間引き、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
+| **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | 如何栞と置きかえる予定の YAYA（`third_party\yaya\`）が公式のビルドのままか（SHA-256）と、テストホストから読みこんでイベントに答えるか |
 | **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
 | **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形と形の版の確かめ（`model.js`）と、チェックタブが出す注意（`lint.js`）、ブロックを字でさがすところが期待どおりか。お手本がどれもチェックに引っかからないか |
-| **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
+| **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` と、YAYA の `yaya.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
 | **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js`（ES モジュール）が入り口の `main.js` からたどれるか、どれを最初に読みこんでも落ちないか、`Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます。`style.css` の色がトークンを通っているか（暗い表示で色がぬけないように）も見ます |
 | **画面の言葉の点検**（`ui\test\i18n.js`） | 画面の日本語がすべて `t()` を通り、英語の訳があるか（英語の画面でそこだけ日本語が残らないように）、英語の辞書に古い訳や `{差しこみ}` のずれが無いか、exe が返すエラーのコードがすべて画面の文になるか。文書の英語版がそろっているか |
 
-この 8 つだけ **Node.js**（22.12 以降）を使います（入っていなければ飛ばします。アプリの動作には要りません）。
+この 9 つだけ **Node.js**（22.12 以降）を使います（入っていなければ飛ばします。アプリの動作には要りません）。
 ふるまいテストには、わざと待つ場面（おそい SAORI と終了が重なるところ）があるので、
 10 秒ほどかかります。
 ブロックやふるまいを足したら、`shiori\test\` `studio\test\` `ui\test\` の材料と期待値も
@@ -247,12 +248,18 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 **ブロックを 1 つ足すときの手順**（どのファイルに何を書くか）と、つまずきやすいところは
 [`docs/maintenance.md`](docs/maintenance.md) にまとめてあります。
 
-この 8 つは **GitHub でも自動で走ります**（`main` への push・`v*` タグ・プルリク）。
+この 9 つは **GitHub でも自動で走ります**（`main` への push・`v*` タグ・プルリク）。
 打ち忘れても止まるようにするためのものです。設定は `.github/workflows/build.yml`。
 
 個別に作るときは `shiori\build.ps1` / `studio\build.ps1`。
-スタジオのビルドでは `studio\tools\embed.ps1` が `ui\` 以下と `ikaga.dll` を
+スタジオのビルドでは `studio\tools\embed.ps1` が `ui\` 以下と `ikaga.dll`・`yaya.dll` を
 リソースにまとめ、exe に埋め込みます（UI を直したら再ビルドしてください）。
+
+栞 **YAYA** の公式ビルド（`yaya.dll`）と、その受け口の辞書 `yaya_base` は `third_party\` に入れてあります
+（段階 3 で如何栞と置きかえるためのものです。[`docs/roadmap.md`](docs/roadmap.md)）。ソースからは組みません
+（いまの Visual Studio で組むと Windows 2000 で動かなくなるため）。どこから持ってきたか・版の上げかたは
+[`third_party/README.md`](third_party/README.md) にあります。YAYA のライセンス（AYA Ver.5 の条件／BSD 3-Clause）の
+本文は `third_party\yaya\` にあり、配布用の zip にも入ります。
 
 WebView2 の SDK は `studio\third_party\webview2\` に入れてあります（ヘッダと静的リンク用の
 `WebView2LoaderStatic.lib` だけ。**BSD 3-Clause**）。ダウンロードは不要です。
@@ -307,7 +314,8 @@ ukagaka-studio/
 │   │   ├── lib/            テスト用の道具箱（32bit / 64bit の栞を動かして応答をほどく）
 │   │   ├── parity/         32bit と 64bit の栞の出力を見くらべる一致テスト
 │   │   ├── saori/          テスト用の「わざとおそい SAORI」
-│   │   └── behavior/       栞のふるまい（どれを選ぶか・既定の反応）のテスト
+│   │   ├── behavior/       栞のふるまい（どれを選ぶか・既定の反応）のテスト
+│   │   └── yaya/           YAYA が動くかのテスト（段階 3）
 │   └── dist/               ビルド結果（ikaga.dll / test_host.exe）
 ├── studio/                 伺かスタジオ（C++ / 64bit EXE）
 │   ├── build.ps1
@@ -316,7 +324,7 @@ ukagaka-studio/
 │   │                         preview_host … 「ためす」の結果を見る
 │   ├── res/                アイコン・はじめて起動したときに置くサンプル（日本語と英語）
 │   ├── third_party/        WebView2 SDK（ヘッダ + 静的ローダ）
-│   ├── tools/embed.ps1     ui\ と ikaga.dll をリソース化
+│   ├── tools/embed.ps1     ui\ と ikaga.dll・yaya.dll をリソース化
 │   ├── tools/make-icon.mjs ロゴ（ui/img/logo.svg）から exe のアイコンを作る
 │   └── src/
 │       ├── main.cpp        ウィンドウ・起動終了・多重起動防止
@@ -377,7 +385,10 @@ ukagaka-studio/
 │           └── ssp.js      動いている SSP との連携
 ├── tools/
 │   ├── check-blocks.js     ブロックが全部のファイルにそろっているか見る（ビルド不要）
-│   └── check-imports.js    栞が Windows 2000 から読みこめるか見る
+│   └── check-imports.js    栞（と yaya.dll）が Windows 2000 から読みこめるか見る
+├── third_party/            よそから持ってきたもの（手を入れない）
+│   ├── yaya/               YAYA の公式ビルド yaya.dll とライセンス
+│   └── yaya-dic/           YAYA のシステム辞書 yaya_base（SHIORI/3.0 の受け口）
 └── docs/
     ├── blocks.md           ブロック一覧
     ├── ghost-json.md       ghost.json の仕様
@@ -547,6 +558,9 @@ https://github.com/miyagawa-yukinterface/nashi-shiori-studio
 `ukagaka-studio.exe` には **Microsoft Edge WebView2 SDK**（BSD 3-Clause）を
 静的リンクしています。その著作権表示は `LICENSE` の後ろに入っていて、
 配布用の zip にも必ず入ります。
+
+また、栞 **YAYA**（`yaya.dll`。伺かのゴーストとその周りに組みこむときは AYA Ver.5 の条件、それ以外は BSD 3-Clause）を
+exe に埋めこんでいます。その表示とライセンスの本文は、配布用の zip の `third_party\` に入っています。
 
 > **独自ライセンスなので、GitHub はライセンス名を表示しません。**
 > 中身は許諾型（MIT や zlib と同じ系統）で、コピーレフトではありません。

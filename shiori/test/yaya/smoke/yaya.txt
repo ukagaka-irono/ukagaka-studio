@@ -1,0 +1,3 @@
+charset, UTF-8
+dic, smoke.dic
+dicdir, yaya_base

@@ -107,6 +107,7 @@ $libsCommon = @('kernel32.lib', 'user32.lib', 'shell32.lib', 'shlwapi.lib',
 
 # ---- 埋め込みリソースを作る ------------------------------------------------
 $dll = Join-Path $repo 'shiori\dist\ikaga.dll'
+$yayaDll = Join-Path $repo 'third_party\yaya\yaya.dll'
 $sample = Join-Path $root 'res\sample-project.json'
 $sampleEn = Join-Path $root 'res\sample-project.en.json'
 
@@ -119,6 +120,7 @@ Write-Host "[studio] リソースを準備中... (v$version)" -ForegroundColor C
     -PublicDir (Join-Path $repo 'ui') `
     -StageDir $obj `
     -DllPath $dll `
+    -YayaDllPath $yayaDll `
     -SamplePath $sample `
     -SampleEnPath $sampleEn `
     -IconPath (Join-Path $root 'res\ukagaka-studio.ico')

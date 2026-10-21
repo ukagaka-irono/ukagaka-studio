@@ -12,7 +12,7 @@ English: [en/maintenance.md](en/maintenance.md)（英語版。こちらの日本
 
 ```powershell
 node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろっているか
-.\build.ps1 -Test              # 3 分ほど。ビルドしてテスト 8 本
+.\build.ps1 -Test              # 3 分ほど。ビルドしてテスト 9 本
 ```
 
 `check-blocks.js` はビルドが要らないので、**手を入れたら、まずこれ**です。
@@ -85,20 +85,21 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 ---
 
-## テスト 8 本と、それぞれが守っているもの
+## テスト 9 本と、それぞれが守っているもの
 
 | 走らせかた | 守っているもの |
 |---|---|
 | `node tools\check-blocks.js` | ブロックが 5 か所にそろっているか（書き忘れ探し） |
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も |
+| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で、test_host から読みこんで受け口の辞書 `yaya_base` を通して答えるか |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
-| `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
+| `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む）。`.\build.ps1 -Test` は、`third_party\yaya\yaya.dll` もこれで見ます |
 | `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通り、英語の訳があるか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか。exe が返すエラーのコードが、すべて画面の文になるか。文書の英語版がそろっているか |
 
-`parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
+`parity` と `behavior` と `yaya` は `shiori\dist\test_host.exe` を、`parity` はさらに
 `studio\test\preview_host.exe` を使うので、**先にビルドが要ります**（`.\build.ps1 -Test`）。
 `check-imports` も出来あがった `ikaga.dll` を見るので、ビルドが要ります。
 `check-blocks` と `editor` と `modules` はビルド無しで走ります。
@@ -124,7 +125,7 @@ Actions の実行ページをいちばん下まで送ると **Artifacts** があ
 
 | 名前 | 中身 |
 |---|---|
-| `ukagaka-studio-<版>-<sha>` | 配る zip とまったく同じ（`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`（英語版の `docs/en` も）） |
+| `ukagaka-studio-<版>-<sha>` | 配る zip とまったく同じ（`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`（英語版の `docs/en` も）/ `third_party`（YAYA のライセンス）） |
 | `ikaga-dll-<版>-<sha>` | `ikaga.dll` だけ。自分でゴーストに入れる人むけ（エディタの exe にも同じものが入っています） |
 
 `LICENSE` を必ず添えるのは、同梱している WebView2 SDK が配るときに著作権表示を
@@ -252,6 +253,15 @@ ui/js/
 * JS から色を付けるときも `var(--danger)` のようにトークンを使います。ブロックのカテゴリの色は `--cat-<id>` です。
 * どちらの表示にするかは `core/theme.js` が `html` の `data-theme` で決めます（無ければ Windows の設定に合わせる）。
   exe にも `theme:dark` / `theme:light` を送って、タイトルバーの色をそろえています（`studio/src/main.cpp`）。
+
+### よそから持ってきたもの（`third_party/`）
+
+* `third_party/` には、YAYA の公式ビルド（`yaya/`）とシステム辞書 `yaya_base`（`yaya-dic/`）を、
+  **配られたときのバイトのまま**入れています（`.gitattributes` で改行も書きかえません）。**手を入れないでください。**
+* 版を上げるときは、まるごと差しかえて、`third_party/README.md` の版・日付・SHA-256 を書きかえます。
+  `shiori\test\yaya\yaya.js` が、`yaya.dll` がその SHA-256 と同じかを見ます。
+* YAYA はソースからは組みません。いまの Visual Studio で組むと、Windows 2000 に無い API が入るためです（`docs/roadmap.md` の 3-0）。
+* exe に `yaya.dll` を埋めこんでいるので、配布用の zip には YAYA のライセンスの本文を入れています（`build.ps1` の `-Release`）。
 
 ### 文書（日本語と英語）
 
