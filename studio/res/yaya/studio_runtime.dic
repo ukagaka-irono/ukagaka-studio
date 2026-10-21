@@ -1,0 +1,1497 @@
+//==============================================================================
+// 伺かスタジオ — しくみの辞書（studio_runtime.dic）
+//
+// ブロックで組んだゴーストを YAYA で動かすための、決まった部分です。
+// ブロックそのものは studio_program.dic に YAYA の文として書き出され、
+// そこから、この辞書の Studio.〜 という関数を呼びます。
+//
+// ここに書いてあるのは、もとの如何栞（shiori/src/shiori.cpp と interp.cpp）が
+// C++ で持っていた判断を、同じ答えになるように YAYA で書きなおしたものです。
+//   ・イベントにブロックが複数あるとき、どれを選ぶか（しぼり込み・重み・直前を避ける）
+//   ・「◯秒ごと」の間引き、ランダムトーク（直近のトークを避ける）、「◯秒後によぶ」
+//   ・ブロックが無いイベントの既定の反応（ゴーストの言語で日本語／英語）、OnClose の \-
+//   ・ゴースト間通信の届け先と、話しかけ合いの打ち切り、なでなでの生成、入力ボックスの答え
+//   ・値の決まり（数と文字、くらべかた、数の書きかた、長さの上限）
+//
+// 書き出すたびに上書きします。手で直さないでください。
+// 手で YAYA を書くときは、べつの辞書ファイルに書いてください。
+// ブロックの変数は Studio.var['名前'] で読み書きできます。
+//
+// 受け口（SHIORI/3.0 の受け答え）は YAYA のシステム辞書 yaya_base が受け持ちます。
+//==============================================================================
+
+// ---- 上限（如何栞と同じ） ----------------------------------------------------
+//   Studio.MAX_OUT   … 1 回に出すさくらスクリプトの長さ（UTF-8 のバイト数）
+//   Studio.MAX_VALUE … 変数 1 つぶんの文字の長さ（UTF-8 のバイト数）
+//   Studio.MAX_LOOP  … くりかえし 1 つの回数
+//   Studio.MAX_STEPS … 1 回に動かせる量（くりかえしとトークをよぶ回数で数えます）
+
+//------------------------------------------------------------------------------
+// 読みこみと終わり（yaya_base が OnGhostLoad〜 / OnGhostUnload〜 を呼びます）
+//------------------------------------------------------------------------------
+OnGhostLoad.Studio : void
+{
+	Studio.MAX_OUT = 32000
+	Studio.MAX_VALUE = 32000
+	Studio.MAX_LOOP = 5000
+	Studio.MAX_STEPS = 40000
+
+	// 保存されて残るもの（YAYA が yaya_variable.cfg に書きます）
+	if GETTYPE(Studio.var) != 5 { Studio.var = IHASH }
+	if ISVAR('Studio.boots') == 0 { Studio.boots = 0 }
+	if GETTYPE(Studio.recent) != 4 { Studio.recent = IARRAY }
+
+	// 起動しているあいだだけのもの
+	Studio.uptime = 0
+	Studio.talks = 0
+	Studio.sinceTalk = 0
+	Studio.timerDue = IARRAY
+	Studio.timerName = IARRAY
+	Studio.saoriWaitFile = IARRAY
+	Studio.saoriWaitInto = IARRAY
+	Studio.saoriWaitValue = IARRAY
+	Studio.saoriDoneFile = IARRAY
+	Studio.saoriDoneValue = IARRAY
+	Studio.lastPick = IHASH
+	Studio.commChain = 0
+	Studio.strokeKey = ''
+	Studio.strokeCount = 0
+	Studio.strokeTick = 0
+	Studio.shellName = ''
+	Studio.ghostName = ''
+	Studio.lastTalk = ''
+	if ARRAYSIZE(Studio.recent) > 0 { Studio.lastTalk = Studio.recent[0] }
+
+	// yaya_base のランダムトークは使いません（ランダムトークはこの辞書が出します）
+	aitalkinterval = 0
+
+	// ブロックの中身（studio_program.dic が書きます）
+	Studio.meta.name = ''
+	Studio.meta.sakuraName = ''
+	Studio.meta.lang = ''
+	Studio.set.interval = 180
+	Studio.set.enabled = 1
+	Studio.set.noRepeat = 0
+	Studio.s.id = IARRAY
+	Studio.s.fn = IARRAY
+	Studio.s.kind = IARRAY
+	Studio.s.event = IARRAY
+	Studio.s.name = IARRAY
+	Studio.s.group = IARRAY
+	Studio.s.weight = IARRAY
+	Studio.s.every = IARRAY
+	Studio.s.area = IARRAY
+	Studio.s.who = IARRAY
+	Studio.s.from = IARRAY
+	Studio.s.contains = IARRAY
+	Studio.s.off = IARRAY
+	if ISFUNC('Studio.Program.Init') { Studio.Program.Init }
+
+	Studio.ResetRun
+	Studio.refs = IARRAY
+	Studio.reqCommTo = ''
+	Studio.found = 0
+}
+
+OnGhostUnload.Studio : void
+{
+	// 起動しているあいだだけのものは、保存しない
+	_names = ('Studio.uptime', 'Studio.talks', 'Studio.sinceTalk', 'Studio.timerDue', 'Studio.timerName', /
+		'Studio.saoriWaitFile', 'Studio.saoriWaitInto', 'Studio.saoriWaitValue', 'Studio.saoriDoneFile', /
+		'Studio.saoriDoneValue', 'Studio.lastPick', 'Studio.commChain', 'Studio.strokeKey', 'Studio.strokeCount', /
+		'Studio.strokeTick', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
+		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
+		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', /
+		'Studio.meta.name', 'Studio.meta.sakuraName', 'Studio.meta.lang', 'Studio.set.interval', /
+		'Studio.set.enabled', 'Studio.set.noRepeat', 'Studio.s.id', 'Studio.s.fn', 'Studio.s.kind', /
+		'Studio.s.event', 'Studio.s.name', 'Studio.s.group', 'Studio.s.weight', 'Studio.s.every', /
+		'Studio.s.area', 'Studio.s.who', 'Studio.s.from', 'Studio.s.contains', 'Studio.s.off', /
+		'Studio.MAX_OUT', 'Studio.MAX_VALUE', 'Studio.MAX_LOOP', 'Studio.MAX_STEPS')
+	foreach _names; _n { ERASEVAR(_n) }
+}
+
+//------------------------------------------------------------------------------
+// studio_program.dic が使う、登録の関数
+//------------------------------------------------------------------------------
+
+// かたまりを 1 つ登録する
+//   (id, 関数名, 種類, イベント, 名前, まとまり, 重み, ◯秒ごと, 場所, だれ, 相手, ふくむ言葉, 無効)
+Studio.Def : void
+{
+	Studio.s.id ,= _argv[0]
+	Studio.s.fn ,= _argv[1]
+	Studio.s.kind ,= _argv[2]
+	Studio.s.event ,= _argv[3]
+	Studio.s.name ,= _argv[4]
+	Studio.s.group ,= _argv[5]
+	Studio.s.weight ,= TOREAL(_argv[6])
+	Studio.s.every ,= TOINT(_argv[7])
+	Studio.s.area ,= _argv[8]
+	Studio.s.who ,= TOINT(_argv[9])
+	Studio.s.from ,= _argv[10]
+	Studio.s.contains ,= _argv[11]
+	Studio.s.off ,= TOINT(_argv[12])
+}
+
+// 変数の初期値。保存されている値があれば、そちらが勝ちます
+Studio.InitVar : void
+{
+	if !HASH_EXIST(_argv[0], Studio.var) { Studio.var[_argv[0]] = _argv[1] }
+}
+
+//------------------------------------------------------------------------------
+// イベントの入り口（studio_program.dic の OnBoot などから呼ばれます）
+//------------------------------------------------------------------------------
+Studio.Event
+{
+	_id = _argv[0]
+
+	// Reference は、YAYA が数に変える前の文字のまま使う
+	Studio.refs = IARRAY
+	_n = ARRAYSIZE(reference.raw)
+	for _i = 0; _i < _n; _i++ { Studio.refs ,= TOSTR(reference.raw[_i]) }
+
+	Studio.DrainSaori
+	Studio.reqCommTo = ''
+	_out = Studio.Dispatch(_id)
+
+	// ゴースト同士で話しかけ合うと止まらなくなることがあるので、
+	// 話しかけ返しが続いたら、しゃべるだけにして通信は打ち切る
+	if _id == 'OnCommunicate' {
+		if Studio.reqCommTo != '' {
+			Studio.commChain += 1
+			if Studio.commChain > 8 { Studio.reqCommTo = '' }
+		}
+	}
+	elseif Studio.reqCommTo != '' { Studio.commChain = 1 }
+	else { Studio.commChain = 0 }
+
+	_out = Studio.CloseScript(_out, (_id == 'OnClose' || _id == 'OnCloseAll'))
+	if REQ.COMMAND == 'NOTIFY' { _out = '' }
+
+	// 応答の 1 行に収める（改行は \n にする）
+	_out = REPLACE(REPLACE(_out, CHR(13), ''), CHR(10), '\n')
+
+	if _out != '' && Studio.reqCommTo != '' {
+		_to = REPLACE(REPLACE(Studio.reqCommTo, CHR(13), ''), CHR(10), '')
+		if _to != '' {
+			res_reference = _to
+			// やりとりの世代数。初回が 0 で、返すたびに増える
+			_age = 0
+			if Studio.commChain > 0 { _age = Studio.commChain - 1 }
+			SHIORI3FW.PushAdditionalReturn('Age', _age)
+		}
+	}
+	_out
+}
+
+Studio.Dispatch
+{
+	_id = _argv[0]
+
+	if _id == 'OnBoot' || _id == 'OnFirstBoot' {
+		Studio.boots += 1
+		Studio.shellName = Studio.Ref(0)
+		Studio.ghostName = Studio.meta.name
+	}
+
+	if _id == 'OnSecondChange' {
+		Studio.uptime += 1
+		Studio.sinceTalk += 1
+
+		// 待たずに呼んだ SAORI の答えが届いていたら、まずそれを知らせる
+		while ARRAYSIZE(Studio.saoriDoneFile) > 0 {
+			_keep = Studio.refs
+			Studio.refs = (IARRAY, Studio.saoriDoneFile[0], Studio.saoriDoneValue[0])
+			Studio.saoriDoneFile = Studio.Rest(Studio.saoriDoneFile)
+			Studio.saoriDoneValue = Studio.Rest(Studio.saoriDoneValue)
+			_sout = Studio.RunHandlers('OnSaoriDone')
+			_sfound = Studio.found
+			Studio.refs = _keep
+			if _sout != '' {
+				Studio.sinceTalk = 0
+				_sout
+				return
+			}
+			// 受け取るブロックが無いなら、残りも同じ。変数には入っているので捨てる
+			if !_sfound {
+				Studio.saoriDoneFile = IARRAY
+				Studio.saoriDoneValue = IARRAY
+				break
+			}
+		}
+
+		// 「N 秒後によぶ」の予約。時間が来たものを 1 つだけ動かす
+		_n = ARRAYSIZE(Studio.timerDue)
+		for _i = 0; _i < _n; _i++ {
+			if Studio.timerDue[_i] > Studio.uptime { continue }
+			_name = Studio.timerName[_i]
+			Studio.timerDue = Studio.Without(Studio.timerDue, _i)
+			Studio.timerName = Studio.Without(Studio.timerName, _i)
+			_k = Studio.FindCallable(_name)
+			if _k < 0 { break }
+			_tout = Studio.RunOne(_k)
+			if _tout != '' {
+				Studio.sinceTalk = 0
+				_tout
+				return
+			}
+			break
+		}
+
+		_canTalk = 1
+		if ARRAYSIZE(Studio.refs) > 1 && Studio.refs[1] != '' { _canTalk = (Studio.refs[1] == '1') }
+
+		_out = Studio.RunHandlers(_id)
+		if _out != '' {
+			Studio.sinceTalk = 0
+			_out
+			return
+		}
+
+		_interval = Studio.TalkIntervalNow
+		if _canTalk && _interval > 0 && Studio.sinceTalk >= _interval {
+			Studio.sinceTalk = 0
+			Studio.PlayRandomTalk
+			return
+		}
+		''
+		return
+	}
+
+	// 同じ場所の上でマウスが動きつづけたら「なでられた」ことにする
+	if _id == 'OnMouseMove' {
+		_key = Studio.Ref(3) + '/' + Studio.Ref(4)
+		_now = GETTICKCOUNT
+		if _key != Studio.strokeKey || _now - Studio.strokeTick > 1500 {
+			Studio.strokeKey = _key
+			Studio.strokeCount = 0
+		}
+		Studio.strokeTick = _now
+		Studio.strokeCount += 1
+		// 当たり判定の外（服のすき間など）はなでたことにしない
+		if Studio.Ref(4) != '' && Studio.strokeCount >= 8 {
+			Studio.strokeCount = 0
+			_nout = Studio.RunHandlers('OnNadeNade')
+			if _nout == '' && !Studio.found { _nout = Studio.BuiltinDefault('OnNadeNade') }
+			if _nout != '' {
+				Studio.sinceTalk = 0
+				_nout
+				return
+			}
+		}
+	}
+
+	// 入力ボックスの答え。「たずねる」ブロックが付けた ID（ikaga:変数名）なら、変数に入れる
+	if _id == 'OnUserInput' && ARRAYSIZE(Studio.refs) > 0 {
+		_box = Studio.refs[0]
+		if SUBSTR(_box, 0, 6) == 'ikaga:' && STRLEN(_box) > 6 {
+			Studio.var[SUBSTR(_box, 6, STRLEN(_box) - 6)] = Studio.Ref(1)
+		}
+	}
+
+	if _id == 'OnChoiceSelect' || _id == 'OnAnchorSelect' {
+		_k = Studio.FindCallable(Studio.Ref(0))
+		if _k >= 0 {
+			Studio.sinceTalk = 0
+			Studio.RunOne(_k)
+			return
+		}
+	}
+
+	_out = Studio.RunHandlers(_id)
+	if _out == '' && !Studio.found { _out = Studio.BuiltinDefault(_id) }
+	if _out != '' { Studio.sinceTalk = 0 }
+
+	if _id == 'OnClose' || _id == 'OnCloseAll' {
+		if _out == '' {
+			if Studio.English { _out = '\0\s[0]See you.' }
+			else { _out = '\0\s[0]またね。' }
+		}
+		_out = Studio.CloseScript(_out, 1)
+		void SAVEVAR
+	}
+	_out
+}
+
+// トークの終わりに付ける印。ふつうは \e で閉じ、終了イベントは \- で閉じる
+Studio.CloseScript
+{
+	_s = _argv[0]
+	if _s == '' {
+		''
+		return
+	}
+	if _argv[1] {
+		if STRSTR(_s, '\-', 0) < 0 { _s += '\-' }
+	}
+	elseif STRSTR(_s, '\e', 0) < 0 && STRSTR(_s, '\-', 0) < 0 { _s += '\e' }
+	_s
+}
+
+//------------------------------------------------------------------------------
+// どのかたまりを動かすか
+//------------------------------------------------------------------------------
+
+// このイベントのかたまりを選んで動かす。見つかったかは Studio.found に入る
+Studio.RunHandlers
+{
+	_ev = _argv[0]
+	_list = IARRAY
+	_n = ARRAYSIZE(Studio.s.id)
+	for _i = 0; _i < _n; _i++ {
+		if Studio.s.kind[_i] != 'event' || Studio.s.off[_i] || Studio.s.event[_i] != _ev { continue }
+		if Studio.Matches(_i) { _list ,= _i }
+	}
+	Studio.found = (ARRAYSIZE(_list) > 0)
+	if !Studio.found {
+		''
+		return
+	}
+
+	// 条件を書いたかたまりがあるときは、そちらだけを候補にする
+	_best = 0
+	foreach _list; _k { if Studio.Specificity(_k) > _best { _best = Studio.Specificity(_k) } }
+	if _best > 0 {
+		_narrow = IARRAY
+		foreach _list; _k { if Studio.Specificity(_k) == _best { _narrow ,= _k } }
+		_list = _narrow
+	}
+
+	// 同じイベントに複数のかたまりがあるとき、直前と同じものは避ける
+	if ARRAYSIZE(_list) > 1 && HASH_EXIST(_ev, Studio.lastPick) {
+		_m = ARRAYSIZE(_list)
+		for _j = 0; _j < _m; _j++ {
+			if Studio.s.id[_list[_j]] == Studio.lastPick[_ev] {
+				_list = Studio.Without(_list, _j)
+				break
+			}
+		}
+	}
+
+	for _attempt = 0; _attempt < 4 && ARRAYSIZE(_list) > 0; _attempt++ {
+		_p = Studio.PickWeighted(_list)
+		_k = _list[_p]
+		_out = Studio.RunOne(_k)
+		if _out != '' {
+			Studio.lastPick[_ev] = Studio.s.id[_k]
+			_out
+			return
+		}
+		_list = Studio.Without(_list, _p)
+	}
+	''
+}
+
+// このかたまりを、今回の要求で動かしてよいか
+Studio.Matches
+{
+	_k = _argv[0]
+	_every = Studio.s.every[_k]
+	if _every > 1 && (Studio.uptime % _every) != 0 {
+		0
+		return
+	}
+	_area = Studio.s.area[_k]
+	if _area != '' && TOLOWER(Studio.Ref(4)) != TOLOWER(_area) {
+		0
+		return
+	}
+	_who = Studio.s.who[_k]
+	if _who >= 0 && Studio.Atoi(Studio.Ref(3)) != _who {
+		0
+		return
+	}
+	_from = Studio.Trim(Studio.s.from[_k])
+	if _from != '' && STRSTR(Studio.Ref(0), _from, 0) < 0 {
+		0
+		return
+	}
+	_word = Studio.Trim(Studio.s.contains[_k])
+	if _word != '' && STRSTR(Studio.Ref(1), _word, 0) < 0 {
+		0
+		return
+	}
+	1
+}
+
+// しぼり込みの細かさ。条件を書いたかたまりを、条件なしより先に使うための目安
+Studio.Specificity
+{
+	_k = _argv[0]
+	_s = 0
+	if Studio.s.area[_k] != '' { _s += 1 }
+	if Studio.s.who[_k] >= 0 { _s += 1 }
+	if Studio.s.from[_k] != '' { _s += 1 }
+	if Studio.s.contains[_k] != '' { _s += 1 }
+	_s
+}
+
+// 重み（えらばれやすさ）でくじを引く。返すのは _argv の中の位置
+Studio.PickWeighted
+{
+	_n = ARRAYSIZE(_argv)
+	_total = 0.0
+	foreach _argv; _k { _total += Studio.Max0(Studio.s.weight[_k]) }
+	if _total <= 0 {
+		RAND(_n)
+		return
+	}
+	_r = Studio.RandUnit * _total
+	for _i = 0; _i < _n; _i++ {
+		_w = Studio.Max0(Studio.s.weight[_argv[_i]])
+		if _r < _w {
+			_i
+			return
+		}
+		_r -= _w
+	}
+	_n - 1
+}
+
+Studio.Max0
+{
+	if _argv[0] < 0 {
+		0.0
+		return
+	}
+	_argv[0]
+}
+
+// 名前（トーク・関数）か id で、かたまりの番号を探す。無ければ -1
+Studio.FindCallable
+{
+	_name = _argv[0]
+	if _name == '' {
+		-1
+		return
+	}
+	_n = ARRAYSIZE(Studio.s.id)
+	for _i = 0; _i < _n; _i++ {
+		if (Studio.s.kind[_i] == 'function' || Studio.s.kind[_i] == 'talk') && Studio.s.name[_i] == _name {
+			_i
+			return
+		}
+	}
+	for _i = 0; _i < _n; _i++ {
+		if Studio.s.id[_i] == _name {
+			_i
+			return
+		}
+	}
+	-1
+}
+
+//------------------------------------------------------------------------------
+// かたまりを動かす
+//------------------------------------------------------------------------------
+
+Studio.ResetRun : void
+{
+	Studio.out = ''
+	Studio.outBytes = 0
+	Studio.scope = -1
+	Studio.stop = 0
+	Studio.steps = 0
+	Studio.stack = IARRAY
+	Studio.commTo = ''
+	Studio.laterSec = IARRAY
+	Studio.laterName = IARRAY
+}
+
+// かたまり 1 つを、まっさらな状態から動かして、出たさくらスクリプトを返す
+Studio.RunOne
+{
+	_k = _argv[0]
+	Studio.ResetRun
+	void EVAL(Studio.s.fn[_k])
+
+	// 出力を捨てる場合（空だったので別のかたまりを試す）は、話しかけ先も覚えない
+	if Studio.out != '' && Studio.commTo != '' { Studio.reqCommTo = Studio.commTo }
+
+	// 「N 秒後によぶ」の予約を引き取る（動かすのは、つぎの OnSecondChange）
+	_n = ARRAYSIZE(Studio.laterSec)
+	for _i = 0; _i < _n && ARRAYSIZE(Studio.timerDue) < 32; _i++ {
+		Studio.timerDue ,= Studio.uptime + Studio.laterSec[_i]
+		Studio.timerName ,= Studio.laterName[_i]
+	}
+	Studio.out
+}
+
+// 「トークをよぶ」。動いている最中のものは、もう一度よばない
+Studio.Call : void
+{
+	Studio.CallIndex(Studio.FindCallable(_argv[0]))
+}
+
+Studio.CallIndex : void
+{
+	_k = _argv[0]
+	if _k < 0 { return }
+	foreach Studio.stack; _s { if _s == _k { return } }
+	if ARRAYSIZE(Studio.stack) > 16 { return }
+	Studio.steps += 1
+	if Studio.steps > Studio.MAX_STEPS {
+		Studio.stop = 1
+		return
+	}
+	Studio.stack ,= _k
+	void EVAL(Studio.s.fn[_k])
+	Studio.stack = Studio.Without(Studio.stack, ARRAYSIZE(Studio.stack) - 1)
+}
+
+// 同じ「まとまり」に入れたランダムトークから、1 つえらんでよぶ
+Studio.CallGroup : void
+{
+	_group = Studio.Trim(Studio.S(_argv[0]))
+	if _group == '' { return }
+	_list = IARRAY
+	_n = ARRAYSIZE(Studio.s.id)
+	for _i = 0; _i < _n; _i++ {
+		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] && Studio.s.group[_i] == _group { _list ,= _i }
+	}
+	if ARRAYSIZE(_list) == 0 { return }
+
+	// 直前に出したものは、ほかに候補があるなら避ける
+	if ARRAYSIZE(_list) > 1 && Studio.lastTalk != '' {
+		_m = ARRAYSIZE(_list)
+		for _j = 0; _j < _m; _j++ {
+			if Studio.s.id[_list[_j]] == Studio.lastTalk {
+				_list = Studio.Without(_list, _j)
+				break
+			}
+		}
+	}
+	// えらばれやすさ（weight）ぶんのくじを引く
+	_total = 0.0
+	foreach _list; _k { if Studio.s.weight[_k] > 0 { _total += Studio.s.weight[_k] } }
+	_pick = -1
+	if _total <= 0 {
+		_pick = _list[RAND(ARRAYSIZE(_list))]
+	}
+	else {
+		_r = Studio.RandUnit * _total
+		foreach _list; _k {
+			if Studio.s.weight[_k] <= 0 { continue }
+			_r -= Studio.s.weight[_k]
+			if _r <= 0 {
+				_pick = _k
+				break
+			}
+		}
+		if _pick < 0 { _pick = _list[ARRAYSIZE(_list) - 1] }
+	}
+	Studio.CallIndex(_pick)
+}
+
+// くりかえし 1 回ぶん。動かしすぎたら止める（1 を返す）
+Studio.Tick
+{
+	Studio.steps += 1
+	if Studio.steps > Studio.MAX_STEPS { Studio.stop = 1 }
+	Studio.stop
+}
+
+// くりかえしの回数（多すぎるときは上限まで）
+Studio.Count
+{
+	_n = Studio.Int(_argv[0], 1)
+	if _n > Studio.MAX_LOOP { _n = Studio.MAX_LOOP }
+	_n
+}
+
+//------------------------------------------------------------------------------
+// ランダムトーク
+//------------------------------------------------------------------------------
+
+Studio.TalkIntervalNow
+{
+	if HASH_EXIST('@talkInterval', Studio.var) {
+		_v = TOINT(Studio.N(Studio.var['@talkInterval']))
+		if _v >= 0 {
+			_v
+			return
+		}
+	}
+	if !Studio.set.enabled {
+		0
+		return
+	}
+	_iv = TOINT(Studio.set.interval)
+	if _iv < 0 { _iv = 0 }
+	_iv
+}
+
+// 直近に出したトークを何個ぶん避けるか。設定が 0 なら、トークの数の半分（最大 8）
+Studio.NoRepeatCount
+{
+	_count = _argv[0]
+	_n = TOINT(Studio.set.noRepeat)
+	if _n <= 0 {
+		_n = _count / 2
+		if _n > 8 { _n = 8 }
+	}
+	if _n > _count - 1 { _n = _count - 1 }
+	if _n < 0 { _n = 0 }
+	_n
+}
+
+Studio.PlayRandomTalk
+{
+	_all = IARRAY
+	_n = ARRAYSIZE(Studio.s.id)
+	for _i = 0; _i < _n; _i++ {
+		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] { _all ,= _i }
+	}
+	if ARRAYSIZE(_all) == 0 {
+		''
+		return
+	}
+
+	// 直近に出したものを候補から外す。外しすぎて空になったら、古いほうから戻す
+	_avoid = Studio.NoRepeatCount(ARRAYSIZE(_all))
+	_talks = IARRAY
+	while 1 {
+		_talks = IARRAY
+		foreach _all; _k {
+			_recent = 0
+			for _j = 0; _j < _avoid && _j < ARRAYSIZE(Studio.recent); _j++ {
+				if Studio.recent[_j] == Studio.s.id[_k] {
+					_recent = 1
+					break
+				}
+			}
+			if !_recent { _talks ,= _k }
+		}
+		if ARRAYSIZE(_talks) > 0 || _avoid <= 0 { break }
+		_avoid -= 1
+	}
+	if ARRAYSIZE(_talks) == 0 { _talks = _all }
+
+	for _attempt = 0; _attempt < 5 && ARRAYSIZE(_talks) > 0; _attempt++ {
+		_p = Studio.PickWeighted(_talks)
+		_k = _talks[_p]
+		_out = Studio.RunOne(_k)
+		if _out != '' {
+			Studio.RememberTalk(Studio.s.id[_k])
+			Studio.talks += 1
+			_out
+			return
+		}
+		_talks = Studio.Without(_talks, _p)
+	}
+	''
+}
+
+Studio.RememberTalk : void
+{
+	_id = _argv[0]
+	Studio.lastTalk = _id
+	if _id == '' { return }
+	_keep = (IARRAY, _id)
+	foreach Studio.recent; _r { if _r != _id && ARRAYSIZE(_keep) < 16 { _keep ,= _r } }
+	Studio.recent = _keep
+}
+
+//------------------------------------------------------------------------------
+// 待たずに呼んだ SAORI（YAYA では答えを待って呼び、知らせるのは次の秒）
+//------------------------------------------------------------------------------
+
+// 前の要求で呼んだ答えを、変数に入れて「届いた」ことにする
+Studio.DrainSaori : void
+{
+	_n = ARRAYSIZE(Studio.saoriWaitFile)
+	for _i = 0; _i < _n; _i++ {
+		if Studio.saoriWaitInto[_i] != '' { Studio.var[Studio.saoriWaitInto[_i]] = Studio.saoriWaitValue[_i] }
+		Studio.saoriDoneFile ,= Studio.saoriWaitFile[_i]
+		Studio.saoriDoneValue ,= Studio.saoriWaitValue[_i]
+		// 知らせきれないほど溜まったら、古いものから捨てる
+		if ARRAYSIZE(Studio.saoriDoneFile) > 32 {
+			Studio.saoriDoneFile = Studio.Rest(Studio.saoriDoneFile)
+			Studio.saoriDoneValue = Studio.Rest(Studio.saoriDoneValue)
+		}
+	}
+	Studio.saoriWaitFile = IARRAY
+	Studio.saoriWaitInto = IARRAY
+	Studio.saoriWaitValue = IARRAY
+}
+
+// SAORI を呼んで、答え（Result か ValueN）を返す。呼べなければ空
+//   (何番目の Value か（-1 で Result）, ファイル, 引数…)
+Studio.Saori
+{
+	_want = TOINT(_argv[0])
+	_file = Studio.Trim(Studio.S(_argv[1]))
+	if _file == '' {
+		''
+		return
+	}
+	if FUNCTIONLOAD(_file) == 0 {
+		''
+		return
+	}
+	_req = 'EXECUTE SAORI/1.0' + C_CRLF + 'Charset: UTF-8' + C_CRLF + 'Sender: ikaga' + C_CRLF + 'SecurityLevel: local' + C_CRLF
+	for _i = 2; _i < _argc; _i++ {
+		_v = REPLACE(REPLACE(Studio.S(_argv[_i]), CHR(13), ' '), CHR(10), ' ')
+		_req += 'Argument' + (_i - 2) + ': ' + _v + C_CRLF
+	}
+	_req += C_CRLF
+	_res = REQUESTLIB(_file, _req)
+
+	// 1 行目 "SAORI/1.0 200 OK"、あとは "見出し: 中身"（中身は文字のまま）
+	_lines = SPLIT(REPLACE(_res, CHR(13), ''), CHR(10))
+	_result = ''
+	_values = IARRAY
+	_n = ARRAYSIZE(_lines)
+	for _i = 1; _i < _n; _i++ {
+		_line = _lines[_i]
+		_pos = STRSTR(_line, ': ', 0)
+		if _pos < 0 { continue }
+		_key = SUBSTR(_line, 0, _pos)
+		_val = SUBSTR(_line, _pos + 2, STRLEN(_line) - _pos - 2)
+		if _key == 'Result' { _result = _val }
+		elseif SUBSTR(_key, 0, 5) == 'Value' { _values[TOINT(SUBSTR(_key, 5, 3))] = _val }
+	}
+	if _want < 0 {
+		_result
+		return
+	}
+	if _want < ARRAYSIZE(_values) {
+		TOSTR(_values[_want])
+		return
+	}
+	''
+}
+
+// 答えを待たずによぶブロック（YAYA では待って呼び、知らせるのは次の秒の OnSaoriDone）
+//   (入れる変数, 何番目の Value か, ファイル, 引数…)
+Studio.SaoriCall : void
+{
+	_file = Studio.Trim(Studio.S(_argv[2]))
+	if _file == '' { return }
+	_into = Studio.Trim(_argv[0])
+	_args = (IARRAY, _argv[1], _file)
+	for _i = 3; _i < _argc; _i++ { _args ,= _argv[_i] }
+	_value = Studio.Saori(_args)
+	Studio.saoriWaitFile ,= _file
+	Studio.saoriWaitInto ,= _into
+	Studio.saoriWaitValue ,= _value
+}
+
+//------------------------------------------------------------------------------
+// ブロックが無いイベントの、既定の反応
+//------------------------------------------------------------------------------
+
+Studio.English
+{
+	(Studio.meta.lang == 'en')
+}
+
+Studio.BuiltinDefault
+{
+	_id = _argv[0]
+	_en = Studio.English
+	_sakura = Studio.meta.sakuraName
+
+	if _id == 'OnFirstBoot' {
+		if _en { '\0\s[0]Nice to meet you.\nI' + "'" + 'm ' + Studio.EscapeText(_sakura) + '.\nLet' + "'" + 's get along!' }
+		else { '\0\s[0]はじめまして。\n' + Studio.EscapeText(_sakura) + 'です。\nよろしくね。' }
+		return
+	}
+	if _id == 'OnBoot' {
+		if _en { '\0\s[0]Welcome back.' }
+		else { '\0\s[0]おかえりなさい。' }
+		return
+	}
+	if _id == 'OnClose' || _id == 'OnCloseAll' {
+		if _en { '\0\s[0]See you.\-' }
+		else { '\0\s[0]またね。\-' }
+		return
+	}
+	if _id == 'OnMouseDoubleClick' {
+		_r = RAND(3)
+		if _en { '\0\s[0]' + ('What is it?', 'Did you call me?', 'What' + "'" + 's up?')[_r] }
+		else { '\0\s[0]' + ('なに？', '呼んだ？', 'どうしたの？')[_r] }
+		return
+	}
+	if _id == 'OnNadeNade' {
+		if TOLOWER(Studio.Ref(4)) == 'head' {
+			_r = RAND(3)
+			if _en { '\0\s[1]' + ('Hehe.', 'That tickles.', 'You patted my head.')[_r] }
+			else { '\0\s[1]' + ('えへへ。', 'くすぐったいよ。', 'なでなでされちゃった。')[_r] }
+			return
+		}
+		if _en { '\0\s[2]...Please don' + "'" + 't touch me so much.' }
+		else { '\0\s[2]……あんまり触らないで。' }
+		return
+	}
+	// ネットワーク更新。ブロックを書いていなくても、結果だけは知らせる
+	if _id == 'OnUpdateComplete' {
+		// "none" = 新しいものは無かった。黙っておく
+		if Studio.Ref(0) != 'changed' {
+			''
+			return
+		}
+		if _en { '\0\s[0]Update complete.\nThe new parts take effect the next time I start.' }
+		else { '\0\s[0]更新できたよ。\n新しくなったところは、つぎに起動したときからだよ。' }
+		return
+	}
+	if _id == 'OnUpdateFailure' {
+		_why = Studio.Ref(0)
+		// 自分でやめたときは黙る
+		if _why == 'artificial' {
+			''
+			return
+		}
+		_out = '\0\s[0]更新できなかったみたい。'
+		if _en { _out = '\0\s[0]Looks like the update didn' + "'" + 't work.' }
+		if _why != '' {
+			if _en { _out += '\n(' + Studio.EscapeText(_why) + ')' }
+			else { _out += '\n（' + Studio.EscapeText(_why) + '）' }
+		}
+		_out
+		return
+	}
+	''
+}
+
+//------------------------------------------------------------------------------
+// 出力（さくらスクリプトをためる）
+//------------------------------------------------------------------------------
+
+// ためる。上限をこえる分は、まるごと捨てる
+Studio.Emit : void
+{
+	_s = _argv[0]
+	if _s == '' { return }
+	_b = Studio.Bytes(_s)
+	if Studio.outBytes + _b > Studio.MAX_OUT { return }
+	Studio.out += _s
+	Studio.outBytes += _b
+}
+
+// だれがしゃべるか（\0 \1 \p[n]）。同じなら書かない
+Studio.Scope : void
+{
+	_who = _argv[0]
+	if _who < 0 || Studio.scope == _who { return }
+	if _who == 0 { Studio.Emit('\0') }
+	elseif _who == 1 { Studio.Emit('\1') }
+	else { Studio.Emit('\p[' + _who + ']') }
+	Studio.scope = _who
+}
+
+// 文字をさくらスクリプトに置ける形にする（\ と改行）
+Studio.EscapeText
+{
+	REPLACE(REPLACE(REPLACE(_argv[0], '\', '\\'), CHR(13), ''), CHR(10), '\n')
+}
+
+// [ … ] の中に入れる文字を安全にする（] で命令が終わらないように）。_argv[1] が 1 なら , も落とす
+Studio.TagArg
+{
+	_s = REPLACE(REPLACE(REPLACE(REPLACE(_argv[0], '[', ''), ']', ''), CHR(13), ''), CHR(10), '')
+	if _argv[1] { _s = REPLACE(_s, ',', '') }
+	_s
+}
+
+// \![…] の中に置ける 1 語にする（, [ ] 改行を落として、まわりの空白を取る）
+Studio.TagWord
+{
+	Studio.Trim(Studio.TagArg(Studio.S(_argv[0]), 1))
+}
+
+//------------------------------------------------------------------------------
+// ブロック（文）。studio_program.dic から呼ばれます
+//------------------------------------------------------------------------------
+
+// セリフ  (だれ, 文, 改行するか[, 表情])
+Studio.Say : void
+{
+	Studio.Scope(_argv[0])
+	if _argc > 3 { Studio.Emit('\s[' + _argv[3] + ']') }
+	Studio.Emit(Studio.EscapeText(Studio.S(_argv[1])))
+	if _argv[2] { Studio.Emit('\n') }
+}
+
+Studio.Surface : void
+{
+	Studio.Scope(_argv[0])
+	Studio.Emit('\s[' + _argv[1] + ']')
+}
+
+// 3 人目以降のキャラに切りかえる（0 と 1 は \0 \1）
+Studio.Chara : void
+{
+	_id = _argv[0]
+	if _id < 0 { _id = 0 }
+	Studio.Scope(_id)
+}
+
+Studio.Newline : void
+{
+	_n = _argv[0]
+	if _n < 1 { _n = 1 }
+	if _n > 32 { _n = 32 }
+	for _i = 0; _i < _n; _i++ { Studio.Emit('\n') }
+}
+
+Studio.Wait : void
+{
+	_ms = _argv[0]
+	if _ms < 0 { _ms = 0 }
+	if _ms > 60000 { _ms = 60000 }
+	Studio.Emit('\_w[' + _ms + ']')
+}
+
+Studio.ClickWait : void { Studio.Emit('\x') }
+Studio.Clear : void { Studio.Emit('\c') }
+Studio.Raw : void { Studio.Emit(Studio.S(_argv[0])) }
+
+// SERIKO のうごきを再生する（\i[n]）
+Studio.Anim : void
+{
+	_id = _argv[0]
+	if _id < 0 { _id = 0 }
+	Studio.Emit('\i[' + _id + ']')
+}
+
+Studio.Balloon : void { Studio.Emit('\b[' + _argv[0] + ']') }
+
+Studio.Sound : void
+{
+	_f = Studio.TagArg(Studio.S(_argv[0]), 0)
+	if _f != '' { Studio.Emit('\_v[' + _f + ']') }
+}
+
+Studio.Link : void
+{
+	_url = Studio.TagArg(Studio.S(_argv[0]), 0)
+	_label = Studio.S(_argv[1])
+	if _label == '' { _label = _url }
+	if _url != '' { Studio.Emit('\_a[' + _url + ']' + Studio.TagArg(Studio.EscapeText(_label), 0) + '\_a') }
+}
+
+Studio.Choice : void
+{
+	_label = Studio.TagArg(Studio.EscapeText(Studio.S(_argv[0])), 0)
+	_target = Studio.TagArg(Studio.S(_argv[1]), 1)
+	if _label == '' { return }
+	Studio.Emit('\q[' + _label + ',' + _target + ']')
+}
+
+// 他のゴーストに話しかける。届け先は応答の Reference0 で知らせる
+Studio.Communicate : void
+{
+	Studio.Scope(_argv[0])
+	Studio.Emit(Studio.EscapeText(Studio.S(_argv[1])))
+	_to = Studio.Trim(Studio.S(_argv[2]))
+	if _to != '' { Studio.commTo = _to }
+}
+
+// たずねて、答えを変数に入れる（答えは OnUserInput で届く）
+Studio.Ask : void
+{
+	_into = Studio.TagWord(_argv[0])
+	if _into == '' { return }
+	Studio.Emit('\![open,inputbox,ikaga:' + _into + ',-1,' + Studio.TagWord(_argv[1]) + ']')
+}
+
+// ゴーストを交代する。交代したら、あとのブロックは動かない（止めたら 1 を返す）
+Studio.ChangeGhost
+{
+	_name = Studio.TagWord(_argv[0])
+	if _name == '' {
+		0
+		return
+	}
+	Studio.Emit('\![change,ghost,' + _name + ']')
+	Studio.stop = 1
+	1
+}
+
+Studio.OpenBrowser : void
+{
+	_url = Studio.TagWord(_argv[0])
+	if _url != '' { Studio.Emit('\![open,browser,' + _url + ']') }
+}
+
+Studio.Raise : void
+{
+	_ev = Studio.TagWord(_argv[0])
+	if _ev == '' { return }
+	_line = '\![raise,' + _ev
+	_a = Studio.TagWord(_argv[1])
+	if _a != '' { _line += ',' + _a }
+	Studio.Emit(_line + ']')
+}
+
+// N 秒後に、名前を付けたトークをよぶ（ここでは覚えるだけ）
+Studio.Later : void
+{
+	_name = Studio.Trim(Studio.S(_argv[0]))
+	if _name == '' { return }
+	_sec = _argv[1]
+	if _sec < 1 { _sec = 1 }
+	if _sec > 86400 { _sec = 86400 }
+	if ARRAYSIZE(Studio.laterSec) >= 32 { return }
+	Studio.laterSec ,= _sec
+	Studio.laterName ,= _name
+}
+
+Studio.Update : void { Studio.Emit('\![updatebymyself]') }
+
+Studio.End : void
+{
+	Studio.Emit('\e')
+	Studio.stop = 1
+}
+
+Studio.Stop : void { Studio.stop = 1 }
+
+Studio.Close : void
+{
+	Studio.Emit('\-')
+	Studio.stop = 1
+}
+
+Studio.Set : void
+{
+	if _argv[0] == '' { return }
+	_v = _argv[1]
+	if GETTYPE(_v) == 3 { _v = Studio.Cap(_v) }
+	Studio.var[_argv[0]] = _v
+}
+
+Studio.Change : void
+{
+	if _argv[0] == '' { return }
+	Studio.var[_argv[0]] = Studio.N(Studio.Get(_argv[0])) + Studio.N(_argv[1])
+}
+
+Studio.TalkInterval : void
+{
+	_sec = _argv[0]
+	if _sec < 0 { _sec = 0 }
+	Studio.var['@talkInterval'] = TOREAL(_sec)
+}
+
+//------------------------------------------------------------------------------
+// 値（数と文字）
+//------------------------------------------------------------------------------
+
+// 変数を読む（無ければ 0）
+Studio.Get
+{
+	if HASH_EXIST(_argv[0], Studio.var) {
+		Studio.var[_argv[0]]
+		return
+	}
+	0.0
+}
+
+// イベントの情報 N（Reference。文字のまま）
+Studio.Ref
+{
+	_i = TOINT(_argv[0])
+	if _i >= 0 && _i < ARRAYSIZE(Studio.refs) {
+		Studio.refs[_i]
+		return
+	}
+	''
+}
+
+// 数にする（文字なら、頭の数の部分だけ読む）
+Studio.N
+{
+	_t = GETTYPE(_argv[0])
+	if _t == 2 {
+		_argv[0]
+		return
+	}
+	if _t == 1 {
+		TOREAL(_argv[0])
+		return
+	}
+	if _t == 3 {
+		Studio.StrToNum(_argv[0])
+		return
+	}
+	0.0
+}
+
+Studio.StrToNum
+{
+	_s = Studio.Trim(_argv[0])
+	if RE_SEARCH(_s, '^[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?') {
+		TOREAL(RE_GETSTR[0])
+		return
+	}
+	0.0
+}
+
+// 文字の全体が数か
+Studio.IsNumStr
+{
+	RE_SEARCH(Studio.Trim(_argv[0]), '^[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?$')
+}
+
+// 数・文字を、文字にする
+Studio.S
+{
+	_t = GETTYPE(_argv[0])
+	if _t == 1 || _t == 2 {
+		Studio.NumStr(TOREAL(_argv[0]))
+		return
+	}
+	if _t == 3 {
+		_argv[0]
+		return
+	}
+	''
+}
+
+// 数の書きかた（整数なら小数点を出さない。そうでなければ有効数字 10 けた）
+Studio.NumStr
+{
+	_v = _argv[0]
+	if _v == 0 {
+		'0'
+		return
+	}
+	if _v == FLOOR(_v) && _v < 1000000000000000.0 && _v > -1000000000000000.0 {
+		STRFORM('$.0f', _v)
+		return
+	}
+	STRFORM('$.10g', _v)
+}
+
+// 「ほんとう」か（0 と空と "false" 以外）
+Studio.B
+{
+	_t = GETTYPE(_argv[0])
+	if _t == 1 || _t == 2 {
+		(_argv[0] != 0)
+		return
+	}
+	if _t == 3 {
+		(_argv[0] != '' && _argv[0] != '0' && TOLOWER(_argv[0]) != 'false')
+		return
+	}
+	0
+}
+
+// 数を整数にする（四捨五入。マイナスは 0 から遠いほうへ）  (値, 空のときの値)
+Studio.Int
+{
+	_v = Studio.N(_argv[0])
+	if _v < 0 {
+		TOINT(_v - 0.5)
+		return
+	}
+	TOINT(_v + 0.5)
+}
+
+// 頭の整数を読む（C の atoi と同じ）
+Studio.Atoi
+{
+	if RE_SEARCH(Studio.Trim(_argv[0]), '^[+-]?[0-9]+') {
+		TOINT(RE_GETSTR[0])
+		return
+	}
+	0
+}
+
+Studio.Bool
+{
+	if _argv[0] {
+		1.0
+		return
+	}
+	0.0
+}
+
+// くらべる  (a, くらべかた, b)。どちらも数として読めるなら数で、そうでなければ文字で
+Studio.Cmp
+{
+	_a = _argv[0]
+	_op = _argv[1]
+	_b = _argv[2]
+	_an = (GETTYPE(_a) == 1 || GETTYPE(_a) == 2 || (GETTYPE(_a) == 3 && Studio.IsNumStr(_a)))
+	_bn = (GETTYPE(_b) == 1 || GETTYPE(_b) == 2 || (GETTYPE(_b) == 3 && Studio.IsNumStr(_b)))
+	_c = 0
+	if _an && _bn {
+		_x = Studio.N(_a)
+		_y = Studio.N(_b)
+		if _x < _y { _c = -1 }
+		elseif _x > _y { _c = 1 }
+	}
+	else {
+		_x = Studio.S(_a)
+		_y = Studio.S(_b)
+		if _x < _y { _c = -1 }
+		elseif _x > _y { _c = 1 }
+	}
+	_r = 0
+	if _op == '=' || _op == '==' { _r = (_c == 0) }
+	elseif _op == '!=' || _op == '<>' { _r = (_c != 0) }
+	elseif _op == '<' { _r = (_c < 0) }
+	elseif _op == '>' { _r = (_c > 0) }
+	elseif _op == '<=' { _r = (_c <= 0) }
+	elseif _op == '>=' { _r = (_c >= 0) }
+	Studio.Bool(_r)
+}
+
+Studio.And
+{
+	Studio.Bool(Studio.B(_argv[0]) && Studio.B(_argv[1]))
+}
+
+Studio.Or
+{
+	Studio.Bool(Studio.B(_argv[0]) || Studio.B(_argv[1]))
+}
+
+Studio.Not
+{
+	Studio.Bool(!Studio.B(_argv[0]))
+}
+
+// わり算。0 でわったら 0
+Studio.Div
+{
+	_b = Studio.N(_argv[1])
+	if _b == 0 {
+		0.0
+		return
+	}
+	Studio.N(_argv[0]) / _b
+}
+
+// あまり（Scratch と同じく、わる数と同じ向き）。0 でわったら 0
+Studio.Mod
+{
+	_a = Studio.N(_argv[0])
+	_b = Studio.N(_argv[1])
+	if _b == 0 {
+		0.0
+		return
+	}
+	_r = _a - _b * TOREAL(TOINT(_a / _b))
+	if _r != 0 && ((_r < 0) != (_b < 0)) { _r += _b }
+	_r
+}
+
+Studio.Min
+{
+	_a = Studio.N(_argv[0])
+	_b = Studio.N(_argv[1])
+	if _a < _b {
+		_a
+		return
+	}
+	_b
+}
+
+Studio.Max
+{
+	_a = Studio.N(_argv[0])
+	_b = Studio.N(_argv[1])
+	if _a > _b {
+		_a
+		return
+	}
+	_b
+}
+
+Studio.Round
+{
+	FLOOR(Studio.N(_argv[0]) + 0.5)
+}
+
+Studio.Abs
+{
+	_a = Studio.N(_argv[0])
+	if _a < 0 {
+		0.0 - _a
+		return
+	}
+	_a
+}
+
+// lo 以上 hi 以下の整数
+Studio.Random
+{
+	_lo = TOINT(FLOOR(Studio.N(_argv[0])))
+	_hi = TOINT(FLOOR(Studio.N(_argv[1])))
+	if _hi < _lo {
+		_t = _lo
+		_lo = _hi
+		_hi = _t
+	}
+	TOREAL(_lo + RAND(_hi - _lo + 1))
+}
+
+// 0 以上 1 未満
+Studio.RandUnit
+{
+	TOREAL(RAND(16777216)) / 16777216.0
+}
+
+// N% の確率で
+Studio.Chance
+{
+	Studio.Bool(Studio.RandUnit * 100.0 < Studio.N(_argv[0]))
+}
+
+// 文字をつなぐ（長すぎたら切る）
+Studio.Join
+{
+	Studio.Cap(Studio.S(_argv[0]) + Studio.S(_argv[1]))
+}
+
+Studio.Contains
+{
+	_b = Studio.S(_argv[1])
+	if _b == '' {
+		1.0
+		return
+	}
+	Studio.Bool(STRSTR(Studio.S(_argv[0]), _b, 0) >= 0)
+}
+
+// 文字数（絵文字のような 2 単位の文字も 1 文字と数える）
+Studio.Len
+{
+	_s = Studio.S(_argv[0])
+	TOREAL(STRLEN(_s) - Studio.Surrogates(_s))
+}
+
+// 2 単位の文字（サロゲートペア）の数。YAYA の文字は UTF-16 なので、その後ろ半分を数える
+// （YAYA の正規表現はサロゲートの範囲を扱えないので、1 文字ずつ見ます）
+Studio.Surrogates
+{
+	_s = _argv[0]
+	_n = 0
+	_len = STRLEN(_s)
+	for _i = 0; _i < _len; _i++ {
+		_c = CHRCODE(SUBSTR(_s, _i, 1))
+		if _c >= 0xDC00 && _c <= 0xDFFF { _n += 1 }
+	}
+	_n
+}
+
+// UTF-8 にしたときのバイト数
+Studio.Bytes
+{
+	GETSTRBYTES(_argv[0], 'UTF-8')
+}
+
+// 長すぎる文字を切る（UTF-8 で Studio.MAX_VALUE バイトまで。文字の途中では切らない）
+Studio.Cap
+{
+	_s = _argv[0]
+	if STRLEN(_s) * 3 <= Studio.MAX_VALUE || Studio.Bytes(_s) <= Studio.MAX_VALUE {
+		_s
+		return
+	}
+	_lo = 0
+	_hi = STRLEN(_s)
+	while _lo < _hi {
+		_mid = (_lo + _hi + 1) / 2
+		if Studio.Bytes(SUBSTR(_s, 0, _mid)) <= Studio.MAX_VALUE { _lo = _mid }
+		else { _hi = _mid - 1 }
+	}
+	// サロゲートペアの片割れを残さない
+	if _lo > 0 {
+		_c = CHRCODE(SUBSTR(_s, _lo - 1, 1))
+		if _c >= 0xD800 && _c <= 0xDBFF { _lo -= 1 }
+	}
+	SUBSTR(_s, 0, _lo)
+}
+
+// まわりの空白（制御文字もふくむ）を取る
+Studio.Trim
+{
+	_s = TOSTR(_argv[0])
+	_b = 0
+	_e = STRLEN(_s)
+	while _b < _e && CHRCODE(SUBSTR(_s, _b, 1)) <= 32 { _b += 1 }
+	while _e > _b && CHRCODE(SUBSTR(_s, _e - 1, 1)) <= 32 { _e -= 1 }
+	SUBSTR(_s, _b, _e - _b)
+}
+
+// 情報ブロック
+Studio.Sys
+{
+	_key = _argv[0]
+	_t = GETTIME
+	if _key == 'hour' { TOREAL(_t[4]); return }
+	if _key == 'minute' { TOREAL(_t[5]); return }
+	if _key == 'second' { TOREAL(_t[6]); return }
+	if _key == 'year' { TOREAL(_t[0]); return }
+	if _key == 'month' { TOREAL(_t[1]); return }
+	if _key == 'day' { TOREAL(_t[2]); return }
+	if _key == 'weekday' { TOREAL(_t[3]); return }
+	_en = Studio.English
+	// YAYA の _変数 は { } の中で作ると外から見えないので、先に作っておく
+	_r = ''
+	if _key == 'daypart' {
+		_h = _t[4]
+		if _h < 5 { _r = ('夜', 'night')[_en] }
+		elseif _h < 11 { _r = ('朝', 'morning')[_en] }
+		elseif _h < 17 { _r = ('昼', 'afternoon')[_en] }
+		elseif _h < 22 { _r = ('夕方', 'evening')[_en] }
+		else { _r = ('夜', 'night')[_en] }
+		_r
+		return
+	}
+	if _key == 'season' {
+		_m = _t[1]
+		if _m >= 3 && _m <= 5 { _r = ('春', 'spring')[_en] }
+		elseif _m >= 6 && _m <= 8 { _r = ('夏', 'summer')[_en] }
+		elseif _m >= 9 && _m <= 11 { _r = ('秋', 'autumn')[_en] }
+		else { _r = ('冬', 'winter')[_en] }
+		_r
+		return
+	}
+	if _key == 'weekdayname' {
+		if _en { ('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')[_t[3]] }
+		else { ('日', '月', '火', '水', '木', '金', '土')[_t[3]] }
+		return
+	}
+	// ゴースト間通信。Reference0 が相手の名前、Reference1 が言われたこと
+	if _key == 'commfrom' { Studio.Ref(0); return }
+	if _key == 'commtext' { Studio.Ref(1); return }
+	if _key == 'uptime' { TOREAL(Studio.uptime); return }
+	if _key == 'uptimemin' { TOREAL(Studio.uptime / 60); return }
+	if _key == 'boots' { TOREAL(Studio.boots); return }
+	if _key == 'talks' { TOREAL(Studio.talks); return }
+	if _key == 'ghostname' { Studio.ghostName; return }
+	if _key == 'shellname' { Studio.shellName; return }
+	if _key == 'lasttalk' { Studio.lastTalk; return }
+	0.0
+}
+
+//------------------------------------------------------------------------------
+// 配列の小道具
+//------------------------------------------------------------------------------
+
+// 先頭を除いたもの
+Studio.Rest
+{
+	_r = IARRAY
+	_n = ARRAYSIZE(_argv)
+	for _i = 1; _i < _n; _i++ { _r ,= _argv[_i] }
+	_r
+}
+
+// _argv[最後] 番目を除いたもの  (配列…, 位置)
+Studio.Without
+{
+	_n = _argc - 1
+	_skip = _argv[_n]
+	_r = IARRAY
+	for _i = 0; _i < _n; _i++ { if _i != _skip { _r ,= _argv[_i] } }
+	_r
+}

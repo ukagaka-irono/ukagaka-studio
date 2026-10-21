@@ -1,0 +1,17 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "ランダムトークを確かめるためのゴースト。2 秒ごとに 1 つ出す。",
+    "「あ」だけが重み 1、「い」は重み 0 なので、選べるなら必ず「あ」、",
+    "「あ」を避けたときは残りの「い」になる（答えが毎回おなじになるように）。"
+  ],
+  "meta": { "name": "トークテスト", "sakuraName": "さくら", "keroName": "うにゅう" },
+  "settings": { "randomTalkEnabled": true, "randomTalkInterval": 2, "noRepeatCount": 1 },
+  "variables": [],
+  "scripts": [
+    { "id": "t_a", "kind": "talk", "name": "あ", "weight": 1,
+      "blocks": [{ "type": "say", "who": 0, "text": "あ", "nl": 0 }] },
+    { "id": "t_i", "kind": "talk", "name": "い", "weight": 0,
+      "blocks": [{ "type": "say", "who": 0, "text": "い", "nl": 0 }] }
+  ]
+}

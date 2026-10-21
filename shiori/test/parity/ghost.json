@@ -381,6 +381,30 @@
         ] },
         { "type": "say", "who": 0, "text": "しっぽ", "nl": 0 }
       ]
+    },
+    {
+      "id": "p30", "kind": "event", "event": "OnP30",
+      "_": "YAYA に訳すときに気をつける文字と数（#globaldefine の名前・引用符・タブ・数の書きかた）",
+      "blocks": [
+        { "type": "say", "who": 0, "nl": 1,
+          "text": "TALK_INTERVAL と it's と {{CHAIN と \"いんよう\" と %(x) と //" },
+        { "type": "say", "who": 0, "nl": 1, "text": "タブ\tあり" },
+        { "type": "say", "who": 0, "nl": 1, "text": "えもじ😀" },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "length", "a": "a😀b" } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "/", "a": 1, "b": 3 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "*", "a": 100000000000, "b": 1000000000000 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "+", "a": 0.1, "b": 0.2 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "*", "a": 123456789012345, "b": 10 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "+", "a": "12abc", "b": 1 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "arith", "op": "%", "a": 5.5, "b": 2 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "round", "op": "round", "a": -0.5 } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "compare", "op": ">", "a": " 10 ", "b": 9 } },
+        { "type": "say", "who": 0, "nl": 1, "text": 2.5 },
+        { "type": "say", "who": 0, "nl": 1, "text": true },
+        { "type": "set", "name": "改行入り", "value": "a\nb" },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "length", "a": { "type": "var", "name": "改行入り" } } },
+        { "type": "say", "who": 0, "nl": 0, "text": { "type": "var", "name": "改行入り" } }
+      ]
     }
   ]
 }

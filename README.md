@@ -231,7 +231,7 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 | **そろい点検**（`tools\check-blocks.js`） | ブロックが「定義・栞・説明（日本語と英語）・テスト」のすべてにそろっているか。ビルドが要らないので、いちばん先に走ります |
 | **一致テスト**（`shiori\test\parity\parity.js`） | 同じ `interp.cpp` を **32bit（SSP に入る栞）** と **64bit（伺かスタジオの「ためす」）** で組んで、同じ `ghost.json` を流し、出てきたさくらスクリプトが一致するか見くらべます（ビット幅に頼った書きかたを見つけます） |
 | **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | 栞だけが持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応（英語のゴーストなら英語で）、`OnClose` の `\-`、「◯秒ごと」の間引き、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
-| **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | 如何栞と置きかえる予定の YAYA（`third_party\yaya\`）が公式のビルドのままか（SHA-256）と、テストホストから読みこんでイベントに答えるか |
+| **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | 如何栞と置きかえる予定の YAYA（`third_party\yaya\`）が公式のビルドのままで動くか。ブロックを YAYA に訳して、一致テストのゴーストが如何栞と同じ答えになるか（**栞をまたいだ一致テスト**）、ふるまいテストの場面を YAYA でもすべて満たすか、変数が次の起動に残るか |
 | **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
 | **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形と形の版の確かめ（`model.js`）と、チェックタブが出す注意（`lint.js`）、ブロックを字でさがすところが期待どおりか。お手本がどれもチェックに引っかからないか |
 | **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` と、YAYA の `yaya.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
@@ -315,7 +315,7 @@ ukagaka-studio/
 │   │   ├── parity/         32bit と 64bit の栞の出力を見くらべる一致テスト
 │   │   ├── saori/          テスト用の「わざとおそい SAORI」
 │   │   ├── behavior/       栞のふるまい（どれを選ぶか・既定の反応）のテスト
-│   │   └── yaya/           YAYA が動くかのテスト（段階 3）
+│   │   └── yaya/           YAYA で如何栞と同じ答えになるかのテスト（段階 3）
 │   └── dist/               ビルド結果（ikaga.dll / test_host.exe）
 ├── studio/                 伺かスタジオ（C++ / 64bit EXE）
 │   ├── build.ps1
@@ -323,6 +323,7 @@ ukagaka-studio/
 │   │                         export_host  … 書き出したファイルの中身を見る
 │   │                         preview_host … 「ためす」の結果を見る
 │   ├── res/                アイコン・はじめて起動したときに置くサンプル（日本語と英語）
+│   │   └── yaya/           YAYA で動かすときのしくみの辞書 studio_runtime.dic（段階 3）
 │   ├── third_party/        WebView2 SDK（ヘッダ + 静的ローダ）
 │   ├── tools/embed.ps1     ui\ と ikaga.dll・yaya.dll をリソース化
 │   ├── tools/make-icon.mjs ロゴ（ui/img/logo.svg）から exe のアイコンを作る
@@ -368,6 +369,7 @@ ukagaka-studio/
 │       │   ├── lint.js     チェックタブ（空のセリフ・無い変数・行き先のない選択肢）
 │       │   ├── blockindex.js  ブロックを字でさがす（/ キーの「探して置く」）
 │       │   ├── player.js   さくらスクリプトをほどく（動かすのは栞）
+│       │   ├── yaya.js     ブロックを YAYA の辞書に訳す（段階 3）
 │       │   └── sample.js   「新規」のひな形
 │       ├── core/           画面の土台（API・お知らせ・画面の状態・上の層への受け口・できごとの知らせ）
 │       ├── editor/         キャンバスとパレット（描画・ドラッグ・ズーム・右クリック・探して置く・コピー）

@@ -7,7 +7,8 @@
  * ここでは画面を出さずに、ES モジュールとして読みこんで、
  *
  *   1. index.html が入り口（js/main.js）だけを type="module" で読んでいるか
- *   2. ui/js/ のファイルが、すべて main.js から import でたどれるか（消し忘れ・つなぎ忘れ）
+ *   2. ui/js/ のファイルが、すべて main.js から import でたどれるか（消し忘れ・つなぎ忘れ）。
+ *      まだテストだけが使うファイルは、下の TEST_ONLY に理由つきで書きます
  *   3. import の向きが、層の決まりどおりか（下の層から上の層を import していないか）
  *   4. おたがいに import しあうところ（輪）が無いか
  *   5. どのファイルを最初に読みこんでも落ちないか（構文まちがい・無い名前の import）
@@ -146,12 +147,21 @@ for (const f of onDisk) {
 
 const reached = [];
 const missing = [];
-(function walk(f, from) {
+function walk(f, from) {
   if (reached.includes(f)) return;
   if (!sources[f]) { missing.push(`${win(from)} が import している ${win(f)} がありません`); return; }
   reached.push(f);
   for (const imp of imports[f]) walk(imp.from, f);
-})('main.js', 'index.html');
+}
+walk('main.js', 'index.html');
+
+// 画面からはまだ使っていないが、node のテストが使っているファイル。
+// ほかのファイルと同じ点検（層の向き・読みこみ）に乗せるため、ここからもたどります。
+// 画面からつないだら、ここから消してください。
+const TEST_ONLY = {
+  'model/yaya.js': 'ブロックを YAYA に訳す（段階 3。いまは shiori\\test\\yaya\\yaya.js だけが使う）',
+};
+for (const f of Object.keys(TEST_ONLY)) walk(f, 'TEST_ONLY');
 if (missing.length) bad('import している先のファイルがありません', missing);
 
 const orphans = onDisk.filter((f) => !reached.includes(f));

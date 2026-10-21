@@ -4,7 +4,7 @@ English: [en/blocks.md](en/blocks.md)（英語版。こちらの日本語版が�
 
 エディタで組めるブロックと、それが `ghost.json` でどう表現されるかの対応表です。
 
-新しいブロックを足すときは、**この表と英語版（[`en/blocks.md`](en/blocks.md)）もふくめて 5 か所**に書きます。
+新しいブロックを足すときは、**この表と英語版（[`en/blocks.md`](en/blocks.md)）もふくめて 6 か所**に書きます（段階 3 のあいだは、YAYA に訳すところもふくめて）。
 手順は [`maintenance.md`](maintenance.md) の「ブロックを 1 つ足す」にまとめてあります。
 どこか 1 つ忘れると `node tools\check-blocks.js` が名指しで止めるので、
 **足したら、まずそれを走らせてください**（ビルドは要りません）。

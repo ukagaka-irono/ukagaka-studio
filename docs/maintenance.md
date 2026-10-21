@@ -48,7 +48,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 ## ブロックを 1 つ足す
 
-順番に、5 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
+順番に、6 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
 
 1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
    見た目と `ghost.json` の形が決まります。そして `PALETTE` の、置きたいカテゴリに
@@ -59,6 +59,10 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 4. **`docs/en/blocks.md`** — 英語版の表にも同じ 1 行（ブロックの名前は、英語の画面に出る名前で）。
 5. **`shiori/test/parity/ghost.json`** — `OnP**` の帽子で 1 つ。`id` も付けてください。
    **毎回おなじ結果になる形**にしてください（乱数や時計を使うと、毎回ちがう答えになります）。
+6. **`ui/js/model/yaya.js`** — YAYA に訳すところ（段階 3）。値のブロックなら `expr()`、文のブロックなら `stmt()` に
+   `case '…':` を足して、しくみの辞書の `Studio.〜` を呼ぶ 1 行にします。新しい動きが要るなら、
+   **`studio/res/yaya/studio_runtime.dic`** に `Studio.〜` を足します（情報ブロックの key は `Studio.Sys` に `_key == '…'`）。
+   如何栞と同じ答えになるかは、`node shiori\test\yaya\yaya.js` が 5. の場面を両方で動かして見ます。
 
 「空だと困る欄」があるブロックなら、**`ui/js/model/lint.js`**（チェックタブ）にも足します。
 ブロックの文は `t()` を通すので、**`ui/js/i18n/en.js` に英語の文**も足します（無いと `ui\test\i18n.js` が止めます）。
@@ -89,10 +93,10 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 | 走らせかた | 守っているもの |
 |---|---|
-| `node tools\check-blocks.js` | ブロックが 5 か所にそろっているか（書き忘れ探し） |
+| `node tools\check-blocks.js` | ブロックが 6 か所にそろっているか（書き忘れ探し） |
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も |
-| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で、test_host から読みこんで受け口の辞書 `yaya_base` を通して答えるか |
+| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。ブロックを YAYA に訳して、一致テストのゴーストが如何栞と同じ答えになるか（栞をまたいだ一致テスト）、ふるまいテストの場面（`shiori\test\behavior\scenarios.js`）を YAYA でも満たすか、変数が次の起動に残るか |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
@@ -158,7 +162,7 @@ ui/js/
 ├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
-└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya
 ```
 
 **import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**
@@ -262,6 +266,20 @@ ui/js/
   `shiori\test\yaya\yaya.js` が、`yaya.dll` がその SHA-256 と同じかを見ます。
 * YAYA はソースからは組みません。いまの Visual Studio で組むと、Windows 2000 に無い API が入るためです（`docs/roadmap.md` の 3-0）。
 * exe に `yaya.dll` を埋めこんでいるので、配布用の zip には YAYA のライセンスの本文を入れています（`build.ps1` の `-Release`）。
+
+### YAYA の辞書（段階 3）
+
+ブロックは `ui/js/model/yaya.js` が YAYA の辞書（`studio_program.dic`）に訳し、決まった部分は
+`studio/res/yaya/studio_runtime.dic` の `Studio.〜` にあります。YAYA の辞書を書くときの落とし穴:
+
+* **`_変数` は `{ }` の中で作ると、外から見えません。** `if` の中で入れて外で使うなら、先に `_r = ''` のように作っておきます。
+* **関数の中に式だけの行が 2 つあると、YAYA はどちらかをランダムに返します。** 答えを返す関数は、通る道ごとに
+  式の行を 1 つだけにして、すぐ `return` します。何も返さない関数には `: void` を付けます。
+* **数の書きかた `1e20` は読めません**（0 になります）。大きな数は `TOREAL('1e20')` と書きます（`yaya.js` の `yayaNum`）。
+* **`#globaldefine` の名前は、文字列の中でも置きかえられます。** 人の書いた文は `yayaStr` を通して書きます
+  （名前の途中で文字列を分けます。名前の一覧 `YAYA_DEFINES` は、yaya_base とそろっているかをテストが見ます）。
+* **`reference[n]` は、数に見える文字を数に変えてしまいます**（`007` → 7）。文字のまま使うときは `reference.raw[n]`。
+* 小数を `+` で文字につなぐと `3.500000` になります。文字にするときは `Studio.S`（如何栞と同じ書きかた）を通します。
 
 ### 文書（日本語と英語）
 

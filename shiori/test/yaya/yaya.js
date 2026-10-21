@@ -1,14 +1,19 @@
-/* YAYA を動かせるかのテスト（段階 3-1）
+/* YAYA のテスト（段階 3）
  *
  *   node shiori\test\yaya\yaya.js
  *
- * 如何栞と置きかえる YAYA（third_party\yaya\）が、ここで動くかを見ます。
+ * 如何栞と置きかえる YAYA（third_party\yaya\）で、ブロックが如何栞と同じに動くかを見ます。
  *
- *   ・yaya.dll が、third_party\README.md に書いた公式のビルドのまま（SHA-256 が同じ）か
- *   ・test_host から読みこめて、受け口の辞書 yaya_base を通してイベントに答えるか
- *     （ふつうの答え・Reference の受けわたし・答えが無いときの 204）
+ *   1. yaya.dll が、third_party\README.md に書いた公式のビルドのまま（SHA-256 が同じ）か
+ *   2. test_host から読みこめて、受け口の辞書 yaya_base を通してイベントに答えるか（いちばん小さな辞書で）
+ *   3. ブロックを訳すところ（ui\js\model\yaya.js）がよける #globaldefine の名前が、yaya_base とそろっているか
+ *   4. 栞をまたいだ一致テスト: 一致テストのゴースト（shiori\test\parity\ghost.json）を
+ *      如何栞と YAYA の両方で動かして、出てくるさくらスクリプトと話しかけ先がすべて同じか
+ *   5. ふるまいテストの場面（shiori\test\behavior\scenarios.js）を、YAYA でもすべて満たすか
+ *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
+ * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
  */
 'use strict';
 
@@ -16,9 +21,11 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const host = require('../lib/host');
+const { scenarios, checkScenario } = require('../behavior/scenarios');
 
 const { red, green, dim, off } = host.COLOR;
 const SMOKE = path.join(__dirname, 'smoke');
+const PARITY = path.join(host.root, 'shiori', 'test', 'parity');
 
 const fails = [];
 let checks = 0;
@@ -26,32 +33,126 @@ function expect(label, got, want) {
   checks++;
   if (got !== want) fails.push(`${label}\n      期待: ${JSON.stringify(want)}\n      実際: ${JSON.stringify(got)}`);
 }
+function ok(msg, note) {
+  console.log(`${green}  OK  ${off}${msg}${note ? ` ${dim}(${note})${off}` : ''}`);
+}
+const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 
-// ---- 公式のビルドのままか ----------------------------------------------------
-const readme = fs.readFileSync(path.join(host.root, 'third_party', 'README.md'), 'utf8');
-const m = readme.match(/`yaya\.dll` の SHA-256: `([0-9a-f]{64})`/);
-if (!m) {
-  fails.push('third_party\\README.md に yaya.dll の SHA-256 が書いてありません');
-} else {
-  const sha = crypto.createHash('sha256').update(fs.readFileSync(host.yayaDll)).digest('hex');
-  expect('yaya.dll が third_party\\README.md の SHA-256 と同じ', sha, m[1]);
+/** 長い出力は、ちがいはじめたところの前後だけ見せる */
+function around(s, k) {
+  const from = Math.max(0, k - 24);
+  const to = Math.min(s.length, k + 40);
+  return (from > 0 ? '…' : '') + s.slice(from, to) + (to < s.length ? `…（ぜんぶで ${s.length} 文字）` : '');
 }
 
-// ---- 動かす ------------------------------------------------------------------
-const res = host.runYaya(SMOKE, ['OnBoot', 'OnEcho:やっほー', 'OnMinuteChange']);
-expect('応答の数', res.length, 3);
-if (res.length === 3) {
-  expect('OnBoot の状態', res[0].status, '200 OK');
-  expect('OnBoot の Value', res[0].value, '\\0\\s[0]YAYA です。\\e');
-  expect('OnEcho が Reference0 を受けとる', res[1].value, '\\0やっほー\\e');
-  expect('関数が無いイベントは 204', res[2].status, '204 No Content');
+async function main() {
+  // ---- 1. 公式のビルドのままか -------------------------------------------------
+  const readme = fs.readFileSync(path.join(host.root, 'third_party', 'README.md'), 'utf8');
+  const m = readme.match(/`yaya\.dll` の SHA-256: `([0-9a-f]{64})`/);
+  if (!m) {
+    fails.push('third_party\\README.md に yaya.dll の SHA-256 が書いてありません');
+  } else {
+    const sha = crypto.createHash('sha256').update(fs.readFileSync(host.yayaDll)).digest('hex');
+    expect('yaya.dll が third_party\\README.md の SHA-256 と同じ', sha, m[1]);
+  }
+
+  // ---- 2. いちばん小さな辞書で動かす ------------------------------------------
+  const res = host.runYaya(SMOKE, ['OnBoot', 'OnEcho:やっほー', 'OnMinuteChange']);
+  expect('応答の数', res.length, 3);
+  if (res.length === 3) {
+    expect('OnBoot の状態', res[0].status, '200 OK');
+    expect('OnBoot の Value', res[0].value, '\\0\\s[0]YAYA です。\\e');
+    expect('OnEcho が Reference0 を受けとる', res[1].value, '\\0やっほー\\e');
+    expect('関数が無いイベントは 204', res[2].status, '204 No Content');
+  }
+  if (!fails.length) ok('YAYA が動きます', '公式のビルドのまま・受け口の辞書を通して答える');
+
+  // ---- 3. #globaldefine の名前 -------------------------------------------------
+  const { YAYA_DEFINES } = await host.yayaTranslator();
+  const baseDir = path.join(host.root, 'third_party', 'yaya-dic', 'yaya_base');
+  const defined = new Set();
+  for (const f of fs.readdirSync(baseDir).filter((n) => n.endsWith('.dic'))) {
+    for (const line of fs.readFileSync(path.join(baseDir, f), 'utf8').split(/\r?\n/)) {
+      const d = /^#globaldefine\s+(\S+)/.exec(line);
+      if (d) defined.add(d[1]);
+    }
+  }
+  const missingDefs = [...defined].filter((n) => !YAYA_DEFINES.includes(n));
+  const extraDefs = YAYA_DEFINES.filter((n) => !defined.has(n));
+  checks++;
+  if (missingDefs.length || extraDefs.length) {
+    fails.push('ui\\js\\model\\yaya.js の YAYA_DEFINES が yaya_base の #globaldefine とそろっていません'
+      + (missingDefs.length ? `\n      足りない: ${missingDefs.join(' ')}` : '')
+      + (extraDefs.length ? `\n      よけいな: ${extraDefs.join(' ')}` : ''));
+  } else {
+    ok('#globaldefine の名前をよけています', `${defined.size} 個`);
+  }
+
+  // ---- 4. 栞をまたいだ一致テスト ----------------------------------------------
+  const program = readJson(path.join(PARITY, 'ghost.json'));
+  const cases = program.scripts.filter((s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || ''));
+  const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
+  const ikaga = host.run(PARITY, specs);
+  const yaya = await host.runYayaProgram('parity', program, specs);
+  let same = 0;
+  cases.forEach((s, i) => {
+    checks++;
+    const a = ikaga[i] || {};
+    const b = yaya[i] || {};
+    if (a.value === b.value && a.commTo === b.commTo) { same++; return; }
+    let k = 0;
+    while (k < a.value.length && k < b.value.length && a.value[k] === b.value[k]) k++;
+    fails.push(`栞をまたいだ一致テスト ${s.event}（${(s._ || '').trim()}）`
+      + `\n      如何栞: ${around(a.value || '', k)}  話しかけ先 "${a.commTo}"`
+      + `\n      YAYA  : ${around(b.value || '', k)}  話しかけ先 "${b.commTo}"`);
+  });
+  if (same === cases.length) ok('一致テストのゴーストが、如何栞と YAYA で同じ答えです', `${cases.length} 件`);
+
+  // ---- 5. ふるまいテストの場面 -------------------------------------------------
+  let good = 0;
+  for (let i = 0; i < scenarios.length; i++) {
+    const sc = scenarios[i];
+    const got = await host.runYayaProgram(`behavior${i + 1}`, readJson(path.join(sc.dir, 'ghost.json')),
+      sc.steps.map((s) => s[0]));
+    const { problems, counted } = checkScenario(sc, got);
+    checks += counted;
+    if (problems.length) fails.push(`ふるまい「${sc.name}」（work\\behavior${i + 1}）\n      ${problems.join('\n      ')}`);
+    else good++;
+  }
+  if (good === scenarios.length) ok('ふるまいテストの場面を、YAYA でもすべて満たします', `${scenarios.length} 場面`);
+
+  // ---- 6. 保存して、次の起動に残るか -------------------------------------------
+  const counter = {
+    format: 'ikaga/1',
+    meta: { name: '保存テスト' },
+    settings: { randomTalkEnabled: false },
+    variables: [{ name: '回数', value: 0 }],
+    scripts: [{
+      id: 'c', kind: 'event', event: 'OnCount',
+      blocks: [
+        { type: 'change', name: '回数', value: 1 },
+        { type: 'say', who: 0, nl: 0, text: { type: 'join', a: { type: 'var', name: '回数' },
+          b: { type: 'join', a: '/', b: { type: 'sys', key: 'boots' } } } },
+      ],
+    }],
+  };
+  const first = await host.runYayaProgram('save', counter, ['OnBoot', 'OnCount']);
+  const second = await host.runYayaProgram('save', counter, ['OnBoot', 'OnCount'], true);
+  expect('はじめての起動（回数/起動回数）', (first[1] || {}).value, '\\01/1\\e');
+  expect('起動しなおしても、変数と起動回数が残る', (second[1] || {}).value, '\\02/2\\e');
+  if ((second[1] || {}).value === '\\02/2\\e') ok('変数と起動回数が、次の起動に残ります');
+
+  // ---- 表示 --------------------------------------------------------------------
+  console.log('');
+  if (fails.length) {
+    for (const f of fails) console.log(`${red}  NG  ${off}${f}`);
+    console.log(`${red}[yaya] ${fails.length} か所が期待とちがいます。${off}`);
+    process.exit(1);
+  }
+  console.log(`${green}[yaya] ${checks} か所すべて期待どおりです。${off}`);
 }
 
-// ---- 表示 --------------------------------------------------------------------
-if (fails.length) {
-  for (const f of fails) console.log(`${red}  NG  ${off}${f}`);
-  console.log(`${red}[yaya] ${fails.length} か所が期待とちがいます。${off}`);
-  process.exit(1);
-}
-console.log(`${green}  OK  ${off}YAYA が動きます ${dim}(公式のビルドのまま・受け口の辞書を通して答える)${off}`);
-console.log(`${green}[yaya] ${checks} か所すべて期待どおりです。${off}`);
+main().catch((e) => {
+  console.error(`${red}[yaya] ${e.stack || e.message}${off}`);
+  process.exit(2);
+});

@@ -130,7 +130,16 @@ std::string NumToStr(double v) {
     }
     char buf[64];
     sprintf_s(buf, "%.10g", v);
-    return buf;
+    // 指数は 3 けたにそろえる（1e+023）。SSP に入る 32bit の栞は Windows の msvcrt.dll で
+    // 3 けたになりますが、スタジオに積む 64bit は新しい C ランタイムで 2 けた（1e+23）になり、
+    // 「ためす」と SSP で答えがずれるためです。YAYA の公式ビルドも 3 けたです。
+    std::string s = buf;
+    size_t e = s.find('e');
+    if (e != std::string::npos && e + 2 < s.size()) {
+        size_t digits = s.size() - (e + 2);         // e と符号のあとの数字の数
+        if (digits < 3) s.insert(e + 2, 3 - digits, '0');
+    }
+    return s;
 }
 
 double StrToNum(const std::string& s) {

@@ -85,7 +85,7 @@ function run(dir, specs) {
  * dir には yaya.txt と辞書を置いておく。yaya.dll と受け口の辞書 yaya_base はここで置き、
  * 前回の変数の保存（yaya_variable.cfg）は消す。
  */
-function runYaya(dir, specs) {
+function runYaya(dir, specs, keepSave = false) {
   if (!fs.existsSync(testHost)) {
     throw new Error('test_host.exe がありません。先に .\\build.ps1 -Test を実行してください。');
   }
@@ -93,10 +93,38 @@ function runYaya(dir, specs) {
   fs.copyFileSync(yayaDll, path.join(dir, 'yaya.dll'));
   fs.cpSync(yayaBase, path.join(dir, 'yaya_base'), { recursive: true });
   const saved = path.join(dir, 'yaya_variable.cfg');
-  if (fs.existsSync(saved)) fs.unlinkSync(saved);
+  if (!keepSave && fs.existsSync(saved)) fs.unlinkSync(saved);
   noSpaces(specs, 'test_host');
   return parse(execFileSync(testHost, ['--dll', 'yaya.dll', dir, ...specs],
     { encoding: 'utf8', maxBuffer: 1 << 24 }));
+}
+
+const yayaRuntime = path.join(root, 'studio', 'res', 'yaya', 'studio_runtime.dic');
+const yayaWork = path.join(root, 'shiori', 'test', 'yaya', 'work');
+
+/** ブロックを YAYA に訳すところ（ui/js/model/yaya.js。ES モジュールなので import で読む） */
+async function yayaTranslator() {
+  const { pathToFileURL } = require('url');
+  return import(pathToFileURL(path.join(root, 'ui', 'js', 'model', 'yaya.js')).href);
+}
+
+/**
+ * ghost.json（書き出す形）を YAYA に訳して、YAYA でイベントを順に投げる。
+ * 作業用のゴーストは shiori\test\yaya\work\<name>\ に作ります（毎回作りなおし）。
+ * keepSave なら、前回の変数の保存（yaya_variable.cfg）を残したまま起動しなおします。
+ */
+async function runYayaProgram(name, program, specs, keepSave = false) {
+  const { toYaya, yayaTxt } = await yayaTranslator();
+  const dir = path.join(yayaWork, name);
+  if (!keepSave) fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt());
+  fs.copyFileSync(yayaRuntime, path.join(dir, 'studio_runtime.dic'));
+  fs.writeFileSync(path.join(dir, 'studio_program.dic'), toYaya(program));
+  // テスト用のおそい SAORI も、ゴーストのフォルダに置く（あれば）
+  const saori = path.join(root, 'shiori', 'dist', 'slow_saori.dll');
+  if (fs.existsSync(saori)) fs.copyFileSync(saori, path.join(dir, 'slow_saori.dll'));
+  return runYaya(dir, specs, keepSave);
 }
 
 /**
@@ -121,5 +149,6 @@ function repeat(spec, times) {
 }
 
 module.exports = {
-  root, run, runPreview, runYaya, prepare, repeat, COLOR, testHost, previewHost, dllSrc, yayaDll,
+  root, run, runPreview, runYaya, runYayaProgram, yayaTranslator, prepare, repeat, COLOR,
+  testHost, previewHost, dllSrc, yayaDll,
 };

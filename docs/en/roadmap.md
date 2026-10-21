@@ -457,14 +457,14 @@ Done when: test_host sends `OnBoot` to YAYA with a small dictionary and gets an 
 > * `yaya.dll` is embedded in the exe (resource 903, `IDR_YAYA_DLL`). Exports do not use it yet.
 > * The release zip now carries the text of YAYA's license (`third_party/`), and the README's “Bundled components” says so.
 
-### 3-2. Translate blocks into YAYA
+### 3-2. Translate blocks into YAYA (done)
 
 * The translator lives in `ui/js/model/`. It does not touch the DOM, so the node tests can use it directly,
   and the UI can show “this block in YAYA”. The exe only receives the translated dictionaries and writes them out.
 * Escaping is kept in one place, so YAYA does not reinterpret `%` or `"` in text people write.
 * The “completeness” check in `tools/check-blocks.js` looks at the translator instead of `interp.cpp`.
 
-### 3-3. Write the runtime in YAYA
+### 3-3. Write the runtime in YAYA (done)
 
 The decisions ikaga SHIORI made in C++ (`shiori.cpp`) go into a **runtime dictionary** that the studio always adds (for example `studio_runtime.dic`).
 
@@ -479,6 +479,41 @@ The decisions ikaga SHIORI made in C++ (`shiori.cpp`) go into a **runtime dictio
 * The parity test ghost (`shiori/test/parity/ghost.json`, one script per block) runs on both ikaga SHIORI and YAYA,
   and all the Sakura Script that comes out matches (**a parity test across SHIORIs**).
 * The behavior test (currently 18 scenes, 89 checks) passes against YAYA.
+
+> Done (3-2 and 3-3):
+>
+> * **Translator** `ui/js/model/yaya.js` (`toYaya`): makes `studio_program.dic` from the exported ghost.json form.
+>   Each script becomes one YAYA function (`Studio.Script.<id> : void`), a block becomes one line such as
+>   `Studio.Say(0, 'Hello', 1)`, and “if” and “repeat” become YAYA's `if` / `for` / `while`. For an English ghost the
+>   dictionary's comments are in English too. The UI does not use it yet (`TEST_ONLY` in `ui\test\modules.js`).
+> * **Runtime dictionary** `studio/res/yaya/studio_runtime.dic`: the decisions of ikaga's `shiori.cpp` and `interp.cpp`
+>   (choosing among candidates, thinning, random talk, “call after N seconds”, default replies, communication, petting,
+>   the input box, the value rules, length limits) rewritten in YAYA. The entry stays `yaya_base`; it starts from `OnGhostLoad.Studio`.
+>   yaya_base's own random talk (`aitalkinterval`) is turned off; random talk comes from this dictionary.
+> * **Block variables live in one hash, `Studio.var['name']`** (“Decisions”). Together with the boot count and the recent talks,
+>   they survive a restart through YAYA's own saving (`yaya_variable.cfg`).
+> * YAYA replaces `#globaldefine` names even inside strings, so when text people wrote contains `TALK_INTERVAL` and the like,
+>   the string is split (`YAYA_DEFINES`). Other YAYA pitfalls are collected under “YAYA dictionaries” in the maintenance guide.
+> * **Tests** `shiori\test\yaya\yaya.js` (137 checks): the parity ghost run on both ikaga SHIORI and YAYA gives the same answer
+>   in all 30 cases (**a parity test across SHIORIs**), all 19 behavior scenarios hold on YAYA too, variables and the boot
+>   count survive a restart, and `YAYA_DEFINES` matches yaya_base. The behavior scenarios moved to
+>   `shiori/test/behavior/scenarios.js` so both SHIORIs share them.
+>   `tools\check-blocks.js` also checks that the translation knows every block, information key and operation (6 places to add a block).
+> * New cases: OnP30 in the parity ghost (`#globaldefine` names, quotes, tabs, emoji, number formats), and a random-talk scenario
+>   in the behavior test (interval, avoiding the last one, silence when the ghost cannot talk; neither SHIORI had a test for it).
+> * **A mismatch found**: large numbers were written differently by the 32-bit ikaga SHIORI in SSP (`1e+023`) and the 64-bit one
+>   behind “Try” (`1e+23`). They now follow SSP (`NumToStr` in `shiori/src/util.cpp`). The official YAYA build also writes `1e+023`.
+>
+> Where it does not match ikaga SHIORI (on purpose, or not possible in YAYA):
+>
+> * The “call SAORI without waiting” block waits for the answer (as decided in 3-0). How it reports (`OnSaoriDone` on the next second) is the same.
+> * “and” and “or” evaluate both sides first (a difference shows only with SAORI or random values inside a condition).
+> * The cap on work per request (40,000 steps in ikaga) counts loop iterations and talk calls, so it may stop at a slightly different point.
+> * Event names with spaces or symbols cannot be YAYA function names and are not exported (the dictionary says so).
+>   The same goes for names yaya_base uses itself, such as `OnRequest`.
+> * Writing `:chain=` in speech is read as a yaya_base chain talk. Events from external SSTP (`SecurityLevel: external`)
+>   are routed by yaya_base to `ExternalEvent.*`, so blocks do not run for them.
+> * When comparing text, the order of two-unit characters such as emoji very rarely differs.
 
 ### 3-4. Run “Try” on YAYA
 
@@ -555,6 +590,7 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
 | 2026-10-22 | **Use the official `yaya.dll`; do not build it from source** (built with today's Visual Studio, it does not run on Windows 2000; 3-0) |
 | 2026-10-22 | The “call SAORI without waiting” block **stays, and becomes a waiting call under YAYA**. `OnSaoriDone` is still raised on the next `OnSecondChange` (3-0) |
+| 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
 
 ## Not decided yet
 
@@ -562,7 +598,6 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 * Details of stage 3:
   * Whether “Try” runs through a 32-bit helper exe, or YAYA is also built as 64-bit and carried directly in the exe
     (3-4; with 64-bit, a 32-bit/64-bit parity test is needed, as now)
-  * Whether block variables and hand-written dictionary variables share names, or are kept apart by a mark (a prefix)
   * Whether project files stay in `projects\` next to the exe, or go inside the ghost folder
   * Whether variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) carry over to YAYA
   * What to do with the name “如何栞 (ikaga SHIORI)” and the name `ikaga` in the code (including the project format `ikaga/1`)

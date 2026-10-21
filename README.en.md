@@ -238,7 +238,7 @@ With `-Test`, nine tests run.
 | **Block coverage** (`tools\check-blocks.js`) | Whether every block is present in the definitions, the SHIORI, the docs (Japanese and English) and the tests. It needs no build, so it runs first |
 | **Parity test** (`shiori\test\parity\parity.js`) | Builds the same `interp.cpp` as **32-bit (the SHIORI that goes into SSP)** and **64-bit (Ukagaka Studio's “Try”)**, feeds both the same `ghost.json`, and compares the Sakura Script that comes out (catches code that depends on the bit width) |
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions only the SHIORI makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
-| **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`), which is to replace ikaga SHIORI, is still the official build (SHA-256), and whether the test host can load it and get answers to events |
+| **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`), which is to replace ikaga SHIORI, is still the official build and runs; whether, with the blocks translated into YAYA, the parity ghost gives the same answers as ikaga SHIORI (**a parity test across SHIORIs**), all behavior scenarios hold on YAYA too, and variables survive a restart |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, and that every example is clean |
 | **Import check** (`tools\check-imports.js`) | Reads the import tables of the built `ikaga.dll` and of YAYA's `yaya.dll` directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows |
@@ -321,7 +321,7 @@ ukagaka-studio/
 │   │   ├── parity/         parity test comparing the 32-bit and 64-bit output
 │   │   ├── saori/          a “deliberately slow SAORI” for tests
 │   │   ├── behavior/       tests of the SHIORI's behavior (what it picks, default reactions)
-│   │   └── yaya/           test that YAYA runs (stage 3)
+│   │   └── yaya/           tests that YAYA gives the same answers as ikaga SHIORI (stage 3)
 │   └── dist/               build results (ikaga.dll / test_host.exe)
 ├── studio/                 Ukagaka Studio (C++ / 64-bit EXE)
 │   ├── build.ps1
@@ -329,6 +329,7 @@ ukagaka-studio/
 │   │                         export_host  … shows the contents of exported files
 │   │                         preview_host … shows the result of “Try”
 │   ├── res/                the icon and the first-run samples (Japanese and English)
+│   │   └── yaya/           the runtime dictionary studio_runtime.dic for running on YAYA (stage 3)
 │   ├── third_party/        WebView2 SDK (headers + static loader)
 │   ├── tools/embed.ps1     turns ui\, ikaga.dll and yaya.dll into resources
 │   ├── tools/make-icon.mjs makes the exe icon from the logo (ui/img/logo.svg)
@@ -374,6 +375,7 @@ ukagaka-studio/
 │       │   ├── lint.js     the Check tab (empty speech, missing variables, choices that go nowhere)
 │       │   ├── blockindex.js  searching blocks by text (the / “find and place”)
 │       │   ├── player.js   unpacks Sakura Script (the SHIORI does the running)
+│       │   ├── yaya.js     translates blocks into a YAYA dictionary (stage 3)
 │       │   └── sample.js   the template for “New”
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy)

@@ -50,7 +50,7 @@ The preview does not call SAORI, so it passes `NULL` there.
 
 ## Adding one block
 
-Five places, in order. `node tools\check-blocks.js` names any you missed.
+Six places, in order. `node tools\check-blocks.js` names any you missed.
 
 1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`.
    This decides its look and its shape in `ghost.json`. Then add its name to the category of
@@ -61,6 +61,10 @@ Five places, in order. `node tools\check-blocks.js` names any you missed.
 4. **`docs/en/blocks.md`** — the same row in the English table (with the block name as the English UI shows it).
 5. **`shiori/test/parity/ghost.json`** — one under an `OnP**` hat, with an `id`.
    **Make it give the same result every time** (random numbers or the clock give different answers each run).
+6. **`ui/js/model/yaya.js`** — the translation into YAYA (stage 3). Add `case '…':` to `expr()` for a value block or to
+   `stmt()` for a statement block, producing one line that calls a `Studio.*` function of the runtime dictionary.
+   If new behavior is needed, add a `Studio.*` function to **`studio/res/yaya/studio_runtime.dic`** (an information key goes
+   into `Studio.Sys` as `_key == '…'`). `node shiori\test\yaya\yaya.js` runs step 5's scripts on both SHIORIs to check the answers match.
 
 If the block has a field that must not be empty, add it to **`ui/js/model/lint.js`** (the Check tab) too.
 Block text goes through `t()`, so add **its English text to `ui/js/i18n/en.js`** as well (`ui\test\i18n.js` stops otherwise).
@@ -91,10 +95,10 @@ Some types and operators are not shown in the palette and exist for hand-written
 
 | How to run | What it protects |
 |---|---|
-| `node tools\check-blocks.js` | that blocks are present in all 5 places (catches forgotten files) |
+| `node tools\check-blocks.js` | that blocks are present in all 6 places (catches forgotten files) |
 | `node shiori\test\parity\parity.js` | that the same `interp.cpp` built as 32-bit and 64-bit gives the same output (catches code relying on bit width) |
 | `node shiori\test\behavior\behavior.js` | the decisions **only** the SHIORI makes (what it picks, default reactions, thinning, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day” |
-| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`), and that test_host can load it and get answers through the entry dictionary `yaya_base` |
+| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that with the blocks translated into YAYA, the parity ghost gives the same answers as ikaga SHIORI (a parity test across SHIORIs), the behavior scenarios (`shiori\test\behavior\scenarios.js`) also hold on YAYA, and variables survive a restart |
 | `node studio\test\export.js` | the contents of exported files (compared byte by byte), including English ghosts' readme.txt, fallback names and `meta.lang` |
 | `node ui\test\editor.js` | normalizing loaded projects and format versions (`model.js`), the Check tab (`lint.js`), searching blocks by text (`blockindex.js`), and that the examples (Japanese and English) pass the Check tab |
 | `node ui\test\modules.js` | that `ui\js\` is reachable from `main.js`, imports follow the layer rules with no cycles, any file loads first without failing, and every `Xxx.yyy()` has a target. That colors in `style.css` go through tokens |
@@ -160,7 +164,7 @@ ui/js/
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
-└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample
+└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya
 ```
 
 **Imports point downward only.** Files in the same layer may import each other, but **never in a cycle**
@@ -271,6 +275,20 @@ ui/js/
   `shiori\test\yaya\yaya.js` checks that `yaya.dll` matches that SHA-256.
 * YAYA is not built from source: built with today's Visual Studio, it pulls in APIs Windows 2000 does not have (step 3-0 in `docs/roadmap.md`).
 * `yaya.dll` is embedded in the exe, so the release zip carries the text of YAYA's license (`-Release` in `build.ps1`).
+
+### YAYA dictionaries (stage 3)
+
+Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/model/yaya.js`; the fixed part is the
+`Studio.*` functions in `studio/res/yaya/studio_runtime.dic`. Pitfalls when writing YAYA dictionaries:
+
+* **A `_variable` created inside `{ }` is not visible outside it.** If you set it inside an `if` and use it after, create it first (`_r = ''`).
+* **With two expression-only lines in a function, YAYA returns one of them at random.** In a function that returns an answer,
+  keep one expression line per path and `return` right after it. Mark functions that return nothing with `: void`.
+* **YAYA cannot read number literals such as `1e20`** (they become 0). Write `TOREAL('1e20')` for large numbers (`yayaNum` in `yaya.js`).
+* **`#globaldefine` names are replaced even inside strings.** Write text people wrote through `yayaStr`
+  (it splits the string in the middle of such a name; the test checks that the list `YAYA_DEFINES` matches yaya_base).
+* **`reference[n]` turns text that looks like a number into a number** (`007` → 7). Use `reference.raw[n]` to keep the text.
+* Joining a real number to text with `+` gives `3.500000`. Go through `Studio.S` (the same number format as ikaga SHIORI) to make text.
 
 ### Documents (Japanese and English)
 

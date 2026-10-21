@@ -8,7 +8,7 @@
 The blocks you can build with in the editor, and how each is written in `ghost.json`.
 Block names are given as they appear in the English UI.
 
-When you add a new block, you write it in **5 places, including this table and its Japanese original**.
+When you add a new block, you write it in **6 places, including this table and its Japanese original** (during stage 3, that includes the translation into YAYA).
 The steps are in “Adding one block” in [`maintenance.md`](maintenance.md).
 If you forget one, `node tools\check-blocks.js` stops and names it,
 so **run that first after adding a block** (no build needed).
