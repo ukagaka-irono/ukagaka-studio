@@ -12,6 +12,57 @@ const ANIM_METHODS = ['overlay', 'overlayfast', 'base', 'replace',
   'start', 'stop', 'import'];
 const ANIM_SHAPES = ['rect', 'ellipse', 'circle', 'polygon'];
 
+// ---------------------------------------------------------- プロジェクトの形の版
+// "format": "ikaga/1" の 1 が版です。形を変えるときは FORMAT_VERSION を 1 つ上げ、
+// MIGRATIONS に「ひとつ前の版から直す関数」を足します（docs/ghost-json.md）。
+// 読みこむときは、そのプロジェクトの版から順に、いまの版まで直していきます。
+const FORMAT_NAME = 'ikaga';
+const FORMAT_VERSION = 1;
+const FORMAT = FORMAT_NAME + '/' + FORMAT_VERSION;
+// 読める名前。nashi は元の「なしスタジオ」のプロジェクトで、形は ikaga と同じです。
+const FORMAT_NAMES = [FORMAT_NAME, 'nashi'];
+// MIGRATIONS[n] は「版 n のプロジェクトを、版 n+1 に直す」関数です（まだありません）。
+//   例: 1: (p) => { p.settings.newThing = p.settings.oldThing; delete p.settings.oldThing; return p; },
+const MIGRATIONS = {};
+
+/**
+ * プロジェクトの版を読む。{ ok, version, message } を返します。
+ * "format" が無いものは、手で書いた ghost.json や古いもののために版 1 とみなします。
+ */
+function readFormat(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) {
+    return { ok: false, message: 'プロジェクトの形をしていません（中身が JSON のオブジェクトではありません）' };
+  }
+  if (p.format == null || p.format === '') return { ok: true, version: 1 };
+  const m = /^([a-z]+)\/(\d+)$/.exec(String(p.format));
+  if (!m || FORMAT_NAMES.indexOf(m[1]) < 0) {
+    return { ok: false, message: `知らない形のファイルです（"format": "${p.format}"）` };
+  }
+  const version = Number(m[2]);
+  if (version < 1) return { ok: false, message: `知らない形のファイルです（"format": "${p.format}"）` };
+  if (version > FORMAT_VERSION) {
+    return {
+      ok: false,
+      message: `この伺かスタジオより新しい版で作られたプロジェクトです（"format": "${p.format}"、`
+        + `読めるのは ${FORMAT} まで）。伺かスタジオを新しくしてから開いてください`,
+    };
+  }
+  return { ok: true, version };
+}
+
+/** いまの版まで直したコピーを返す。読めない形なら Error を投げます（元のものは書きかえません） */
+function upgrade(p) {
+  const f = readFormat(p);
+  if (!f.ok) throw new Error(f.message);
+  let out = clone(p);
+  for (let v = f.version; v < FORMAT_VERSION; v++) {
+    if (!MIGRATIONS[v]) throw new Error(`版 ${v} から ${v + 1} への直しかたがありません`);
+    out = MIGRATIONS[v](out);
+  }
+  out.format = FORMAT;
+  return out;
+}
+
 let seq = 0;
 function uid(prefix) {
   seq++;
@@ -27,11 +78,13 @@ const Model = {
 
   uid,
   clone,
+  FORMAT,
+  readFormat,
 
   // ------------------------------------------------------------ lifecycle
   newProject() {
     return {
-      format: 'ikaga/1',
+      format: FORMAT,
       meta: {
         name: 'なしゴースト',
         sakuraName: 'さくら',
@@ -60,12 +113,17 @@ const Model = {
     };
   },
 
-  normalize(p) {
+  /**
+   * 読みこんだプロジェクトを、いまの版の・欠けのない形にする。
+   * 読めない形（新しすぎる版・知らない形・オブジェクトでないもの）なら Error を投げます。
+   */
+  normalize(src) {
+    const p = upgrade(src);
     const base = Model.newProject();
-    const out = Object.assign(base, p || {});
-    out.meta = Object.assign(base.meta, (p && p.meta) || {});
-    out.settings = Object.assign(base.settings, (p && p.settings) || {});
-    out.shell = Object.assign(base.shell, (p && p.shell) || {});
+    const out = Object.assign(base, p);
+    out.meta = Object.assign(base.meta, p.meta || {});
+    out.settings = Object.assign(base.settings, p.settings || {});
+    out.shell = Object.assign(base.shell, p.shell || {});
     out.shell.images = (Array.isArray(out.shell.images) ? out.shell.images : [])
       .filter((x) => x && x.path && Number.isFinite(Number(x.id)))
       .map((x) => ({
@@ -143,8 +201,9 @@ const Model = {
     return out;
   },
 
+  /** プロジェクトを開く。読めない形なら Error を投げ、いま開いているものはそのまま残します */
   init(project) {
-    Model.project = Model.normalize(project);
+    Model.project = Model.normalize(project);   // 投げるならここ（まだ何も書きかえていない）
     Model.undoStack = [];
     Model.redoStack = [];
     Model.dirty = false;

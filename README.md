@@ -212,7 +212,7 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 | **一致テスト**（`shiori\test\parity\parity.js`） | 同じ `interp.cpp` を **32bit（SSP に入る栞）** と **64bit（伺かスタジオの「ためす」）** で組んで、同じ `ghost.json` を流し、出てきたさくらスクリプトが一致するか見くらべます（ビット幅に頼った書きかたを見つけます） |
 | **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | 栞だけが持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応、`OnClose` の `\-`、「◯秒ごと」の間引き、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
 | **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
-| **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形（`model.js`）と、チェックタブが出す注意（`lint.js`）が期待どおりか |
+| **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形と形の版の確かめ（`model.js`）と、チェックタブが出す注意（`lint.js`）が期待どおりか |
 | **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
 | **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js`（ES モジュール）が入り口の `main.js` からたどれるか、どれを最初に読みこんでも落ちないか、`Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます |
 
@@ -323,7 +323,7 @@ ukagaka-studio/
 │   ├── index.html
 │   ├── style.css
 │   ├── test/               画面を出さずに動かすテスト
-│   │                         editor.js  … 整形とチェックタブ
+│   │                         editor.js  … 整形・形の版・チェックタブ
 │   │                         modules.js … 読みこみ・層の向き・呼び先のそろい
 │   └── js/                 ES モジュール（index.html は main.js だけを読む）
 │       ├── main.js         入り口と組み立て（各部品の init と、まとめて描きなおす）

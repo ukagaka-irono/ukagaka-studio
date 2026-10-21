@@ -114,7 +114,13 @@ async function boot() {
   if (state && state.lastProject) {
     try { loaded = await api('/api/project?name=' + encodeURIComponent(state.lastProject)); } catch { /* 新規 */ }
   }
-  Model.init(loaded || sampleProject());
+  try {
+    Model.init(loaded || sampleProject());
+  } catch (e) {
+    // 前に開いていたものが読めない形（新しい版で保存した、など）。ファイルはそのまま残し、ひな形で始める
+    Model.init(sampleProject());
+    toast(`「${state.lastProject}」を開けませんでした: ${e.message}`, true);
+  }
   Zoom.setZoom(1);
   Tabs.switchTab('run');
   Shell.resetStage();

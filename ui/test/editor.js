@@ -116,6 +116,53 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
   check('置き場所が決まる', typeof p.scripts[0].x, 'number');
 }
 
+// ===================================================== プロジェクトの形の版
+section('プロジェクトの形の版 (format)');
+
+/** normalize して、読めたら format を、読めなければ投げたメッセージを返す */
+function formatOf(project) {
+  try {
+    return { format: Model.normalize(project).format };
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+check('いまの版はそのまま読める', formatOf({ format: 'ikaga/1' }), { format: 'ikaga/1' });
+check('元のなしスタジオのプロジェクト（nashi/1）も読めて、ikaga/1 になる',
+  formatOf({ format: 'nashi/1' }), { format: 'ikaga/1' });
+check('format が無いもの（手書きの ghost.json など）は版 1 として読む',
+  formatOf({ meta: { name: 'てがき' } }), { format: 'ikaga/1' });
+{
+  const r = formatOf({ format: 'ikaga/2' });
+  check('新しすぎる版は読まない（伺かスタジオを新しくするよう言う）',
+    !!r.error && r.error.includes('ikaga/2') && r.error.includes('新しく'), true);
+}
+check('知らない名前の形は読まない', !!formatOf({ format: 'foo/1' }).error, true);
+check('版の書きかたがおかしいものは読まない', !!formatOf({ format: 'ikaga/one' }).error, true);
+check('版 0 は読まない', !!formatOf({ format: 'ikaga/0' }).error, true);
+check('オブジェクトでないもの（配列）は読まない', !!formatOf([{ format: 'ikaga/1' }]).error, true);
+check('オブジェクトでないもの（null）は読まない', !!formatOf(null).error, true);
+{
+  const src = { format: 'nashi/1', meta: { name: 'もと' }, scripts: [] };
+  Model.normalize(src);
+  check('読みこんだ元のものは書きかえない', src.format, 'nashi/1');
+}
+{
+  // 読めない形を開こうとしても、いま開いているプロジェクトは残る
+  Model.init({ format: 'ikaga/1', meta: { name: 'ひらいているもの' } });
+  let threw = false;
+  try { Model.init({ format: 'ikaga/99' }); } catch (e) { threw = true; }
+  check('読めない形を開こうとしても、いまのプロジェクトは残る',
+    [threw, Model.project.meta.name], [true, 'ひらいているもの']);
+}
+check('ひな形（newProject）はいまの版', Model.newProject().format, Model.FORMAT);
+// 栞が読む形の ghost.json（栞のテスト用ゴースト）も、そのまま読みこめる
+for (const rel of ['parity', 'fixture', 'behavior/main', 'behavior/empty']) {
+  const raw = fs.readFileSync(path.join(root, 'shiori', 'test', ...rel.split('/'), 'ghost.json'), 'utf8');
+  check(`栞の ghost.json も読みこめる（shiori/test/${rel}）`, formatOf(JSON.parse(raw)), { format: Model.FORMAT });
+}
+
 section('かたまりの名前 (scriptTitle)');
 {
   Model.project = Model.normalize({

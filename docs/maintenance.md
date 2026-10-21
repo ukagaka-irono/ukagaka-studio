@@ -86,7 +86,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
 | `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ） |
-| `node ui\test\editor.js` | 読みこみの整形（`model.js`）とチェックタブ（`lint.js`） |
+| `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`） |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
 
