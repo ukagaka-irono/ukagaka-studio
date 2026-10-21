@@ -1,5 +1,7 @@
 # 手入れの手引き
 
+English: [en/maintenance.md](en/maintenance.md)（英語版。こちらの日本語版が正です）
+
 しばらく触っていないこのリポジトリに戻ってきたとき用の覚え書きです。
 「どこに何があるか」は README の**フォルダ構成**にあります。
 ここに書くのは、**書いてある場所が離れていて、片方だけ直すと静かに壊れる決まり**のほうです。
@@ -46,7 +48,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 ## ブロックを 1 つ足す
 
-順番に、4 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
+順番に、5 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
 
 1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
    見た目と `ghost.json` の形が決まります。そして `PALETTE` の、置きたいカテゴリに
@@ -54,10 +56,12 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 2. **`shiori/src/interp.cpp`** — `RunBlock` に `if (type == "…")`。**ここだけが動かす側です。**
    文字を出すときは直に足さず、**`Emit(ctx, …)`** を通してください（長さの上限がかかります）。
 3. **`docs/blocks.md`** — 表に 1 行。`{"type":"…"}` の形と、出るさくらスクリプトを書きます。
-4. **`shiori/test/parity/ghost.json`** — `OnP**` の帽子で 1 つ。`id` も付けてください。
+4. **`docs/en/blocks.md`** — 英語版の表にも同じ 1 行（ブロックの名前は、英語の画面に出る名前で）。
+5. **`shiori/test/parity/ghost.json`** — `OnP**` の帽子で 1 つ。`id` も付けてください。
    **毎回おなじ結果になる形**にしてください（乱数や時計を使うと、毎回ちがう答えになります）。
 
 「空だと困る欄」があるブロックなら、**`ui/js/model/lint.js`**（チェックタブ）にも足します。
+ブロックの文は `t()` を通すので、**`ui/js/i18n/en.js` に英語の文**も足します（無いと `ui\test\i18n.js` が止めます）。
 
 `PALETTE` に足したブロックは、`/` の「ブロックを探して置く」にも自動で出ます（`model/blockindex.js` が
 `PALETTE` から一覧を作ります）。`ui\test\editor.js` が、パレットのブロックが全部さがせることを確かめます。
@@ -85,14 +89,14 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 | 走らせかた | 守っているもの |
 |---|---|
-| `node tools\check-blocks.js` | ブロックが 4 か所にそろっているか（書き忘れ探し） |
+| `node tools\check-blocks.js` | ブロックが 5 か所にそろっているか（書き忘れ探し） |
 | `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
-| `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語で書き出したゴーストの既定の反応も |
-| `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。画面が英語のときの readme.txt・既定の名前・`meta.lang` も |
-| `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`） |
+| `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も |
+| `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
+| `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む） |
-| `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通っているか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか。exe が返すエラーのコードが、すべて画面の文になるか |
+| `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通り、英語の訳があるか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか。exe が返すエラーのコードが、すべて画面の文になるか。文書の英語版がそろっているか |
 
 `parity` と `behavior` は `shiori\dist\test_host.exe` を、`parity` はさらに
 `studio\test\preview_host.exe` を使うので、**先にビルドが要ります**（`.\build.ps1 -Test`）。
@@ -120,7 +124,7 @@ Actions の実行ページをいちばん下まで送ると **Artifacts** があ
 
 | 名前 | 中身 |
 |---|---|
-| `ukagaka-studio-<版>-<sha>` | 配る zip とまったく同じ（`ukagaka-studio.exe` / `README.md` / `CHANGELOG.md` / `LICENSE` / `docs`） |
+| `ukagaka-studio-<版>-<sha>` | 配る zip とまったく同じ（`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`（英語版の `docs/en` も）） |
 | `ikaga-dll-<版>-<sha>` | `ikaga.dll` だけ。自分でゴーストに入れる人むけ（エディタの exe にも同じものが入っています） |
 
 `LICENSE` を必ず添えるのは、同梱している WebView2 SDK が配るときに著作権表示を
@@ -150,9 +154,9 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
-├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide
+├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
-├── core/          画面の土台   dom / api / toast / session / title / commands / events
+├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
 └── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample
 ```
 
@@ -248,6 +252,17 @@ ui/js/
 * JS から色を付けるときも `var(--danger)` のようにトークンを使います。ブロックのカテゴリの色は `--cat-<id>` です。
 * どちらの表示にするかは `core/theme.js` が `html` の `data-theme` で決めます（無ければ Windows の設定に合わせる）。
   exe にも `theme:dark` / `theme:light` を送って、タイトルバーの色をそろえています（`studio/src/main.cpp`）。
+
+### 文書（日本語と英語）
+
+* `README.md` と `docs/` の文書には、英語版があります（`README.en.md`、`docs/en/`）。**日本語版が正**で、
+  英語版の先頭には「日本語版が正です」と書いてあります。ライセンス（`LICENSE`）は元の作者のものなので訳しません
+  （英語の参考訳は `LICENSE` の中に元からあります）。`CHANGELOG.md` は日本語だけです。
+* **日本語の文書を直したら、英語版も直してください。** 文書を足したら英語版も足します
+  （`docs/` の文書に英語版が無い・先頭の一文が無いと、`ui\test\i18n.js` が止めます）。
+* ブロック一覧は、英語版（`docs/en/blocks.md`）にもすべてのブロックがあるかを `tools\check-blocks.js` が見ます。
+* 英語版の中のリンクは、1 つ深いところ（`docs/en/`）からのものです。日本語版へのリンクは `../`、
+  README は `../../README.en.md` です。
 
 ### キーボードと右クリック
 
@@ -352,18 +367,18 @@ node studio\tools\make-icon.mjs     # Windows の Edge で 16〜256px に描い�
 
 ビルドのたびには走らせません（できあがった .ico をリポジトリに入れておきます）。
 
-**マスコット**（本体「いかがちゃん」・相方「しおり」）の名前は、お手本の中身にそのまま書いてあります。
+**マスコット**（本体「いかがちゃん」・相方「しおり」。英語では Ikaga・Shiori）の名前は、お手本の中身にそのまま書いてあります。
 名前を変えるときに書きかえるのは、次のファイルです。
 
 | ファイル | 書いてあるところ |
 |---|---|
-| `ui/samples/*.json`（5 つ） | `meta.sakuraName` / `meta.keroName`、`aisatsu.json` はセリフにも |
-| `studio/res/sample-project.json` | はじめて起動したときのサンプル。`meta` とセリフ |
-| `studio/src/api.cpp` | はじめて起動したときに置くファイル名（`いかがちゃん.json`） |
-| `docs/ghost-json.md`・`README.md` | 例として |
+| `ui/samples/*.json`（5 つ）・`ui/samples/en/*.json`（英語の 5 つ） | `meta.sakuraName` / `meta.keroName`、あいさつのお手本はセリフにも |
+| `studio/res/sample-project.json`・`sample-project.en.json` | はじめて起動したときのサンプル。`meta` とセリフ |
+| `studio/src/api.cpp` | はじめて起動したときに置くファイル名（`いかがちゃん.json`・`Ikaga.json`） |
+| `docs/ghost-json.md`・`README.md`（と英語版） | 例として |
 
-「新規」の既定の名前（**あたらしいゴースト**）は、画面（`model.js`・`sample.js`・`title.js`・`index.html`）と、
-書き出しの `GhostName()`（`studio/src/exporter.cpp`）にあります。栞のテスト用ゴースト・書き出しテストの材料に
+「新規」の既定の名前（**あたらしいゴースト**、英語では **New Ghost**）は、画面（`model.js`・`sample.js`・`title.js`・`index.html`。
+英語は `en.js`）と、書き出しの `GhostName()`（`studio/src/exporter.cpp`）にあります。栞のテスト用ゴースト・書き出しテストの材料に
 出てくる「なしこ」「つぶ」は、テストの材料なので変えていません。
 
 ---
@@ -435,4 +450,6 @@ Defender のほうを疑うなら `Get-MpThreatDetection`（何も出なけれ�
 * ブロックの意味 → `docs/blocks.md`
 * `ghost.json` の形 → `docs/ghost-json.md`
 * つかいかた・フォルダ構成・栞のしくみ → `README.md`
+* 改修の計画と、これまでに決めたこと → `docs/roadmap.md`
+* 英語版 → `README.en.md`・`docs/en/`（日本語版が正）
 * さくらスクリプトや SHIORI の仕様そのもの → UKADOC（伺か関連ドキュメント）

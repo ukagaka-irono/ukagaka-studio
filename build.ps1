@@ -93,13 +93,17 @@ if ($Release) {
     # LICENSE は「あれば入れる」ではなく、無かったら止めます。
     # 同梱している WebView2 SDK が、配るときに著作権表示を求めているためです
     # （その本文は LICENSE の後ろに入れてあります）。
-    foreach ($f in @('README.md', 'CHANGELOG.md', 'LICENSE')) {
+    foreach ($f in @('README.md', 'README.en.md', 'CHANGELOG.md', 'LICENSE')) {
         $p = Join-Path $root $f
         if (-not (Test-Path $p)) { throw "$f がありません。配布物に入れるものです。" }
         Copy-Item $p $stage
     }
     Get-ChildItem (Join-Path $root 'docs') -Filter '*.md' -ErrorAction SilentlyContinue |
         ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'docs') }
+    # 文書の英語版（日本語版が正）は docs\en\ のまま入れます（中のリンクがそのまま通るように）
+    New-Item -ItemType Directory -Force (Join-Path $stage 'docs\en') | Out-Null
+    Get-ChildItem (Join-Path $root 'docs\en') -Filter '*.md' -ErrorAction SilentlyContinue |
+        ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'docs\en') }
 
     $dist = Join-Path $root 'dist'
     New-Item -ItemType Directory -Force $dist | Out-Null
@@ -108,7 +112,7 @@ if ($Release) {
     Compress-Archive -Path $stage -DestinationPath $zip
     $kb = [math]::Round((Get-Item $zip).Length / 1KB, 1)
     Write-Host "  できました -> $zip ($kb KB)" -ForegroundColor Green
-    Write-Host '  中身: ukagaka-studio.exe / README.md / CHANGELOG.md / LICENSE / docs' -ForegroundColor DarkGray
+    Write-Host '  中身: ukagaka-studio.exe / README.md / README.en.md / CHANGELOG.md / LICENSE / docs（英語版の docs\en も）' -ForegroundColor DarkGray
 }
 
 Write-Host ''

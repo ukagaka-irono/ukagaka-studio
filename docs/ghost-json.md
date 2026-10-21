@@ -1,5 +1,7 @@
 # ghost.json の仕様
 
+English: [en/ghost-json.md](en/ghost-json.md)（英語版。こちらの日本語版が正です）
+
 如何栞（`ikaga.dll`）は、自分と同じフォルダにある **`ghost.json`** を読んで動きます
 （`ikaga.json` でも可）。エディタを使わず手で書いても構いません。
 

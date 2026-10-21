@@ -12,6 +12,7 @@
  *      逆に、訳の無い文が無いか（英語の画面で、そこだけ日本語になるため）
  *   4. 訳に、元の文と同じ {差しこみ} と %欄 がそろっているか
  *   5. exe（studio/src）が返すエラーのコードが、すべて画面の表（ui/js/core/api.js）にあるか
+ *   6. README.md と docs/*.md に英語版（README.en.md・docs/en/）があり、先頭の一文とリンクがそろっているか
  *
  * を見ます。文を足したら、en.js に訳も足してください。訳の無い文は、
  *
@@ -203,6 +204,27 @@ let errorCodes = 0;
   errorCodes = used.size;
 }
 
+// ---------------------------------------------------------------- 6. 文書の英語版
+// README.md と docs/*.md には英語版（README.en.md・docs/en/*.md）を置き、英語版の先頭に「日本語版が正です」と、
+// 日本語版の先頭に英語版へのリンクを書きます（docs/maintenance.md の「文書（日本語と英語）」）。
+let docPairs = 0;
+{
+  const NOTE = 'The Japanese version is authoritative';
+  const pairs = [['README.md', 'README.en.md', 'README.en.md']];
+  for (const name of fs.readdirSync(path.join(root, 'docs')).filter((n) => n.endsWith('.md')).sort()) {
+    pairs.push([`docs/${name}`, `docs/en/${name}`, `en/${name}`]);
+  }
+  const lines = [];
+  const head = (rel, n) => fs.readFileSync(path.join(root, rel), 'utf8').split('\n').slice(0, n).join('\n');
+  for (const [ja, eng, link] of pairs) {
+    if (!fs.existsSync(path.join(root, eng))) { lines.push(`${eng} がありません（${ja} の英語版）`); continue; }
+    if (!head(eng, 10).includes(NOTE)) lines.push(`${eng} の先頭に「${NOTE}」の一文がありません`);
+    if (!head(ja, 6).includes(`(${link})`)) lines.push(`${ja} の先頭に、英語版（${link}）へのリンクがありません`);
+  }
+  bad('文書の英語版がそろっていません', lines);
+  docPairs = pairs.length;
+}
+
 // ---------------------------------------------------------------------- 表示
 console.log('');
 for (const p of problems) {
@@ -218,4 +240,5 @@ console.log(`${C.green}  OK  ${C.off}画面の日本語はすべて t() を通�
 console.log(`${C.green}  OK  ${C.off}英語の辞書に、古い訳や欄のずれはありません`);
 console.log(`${C.green}  OK  ${C.off}exe が返すエラーのコードは、すべて画面の文になります ${C.dim}(${errorCodes} 個)${C.off}`);
 console.log(`${C.green}  OK  ${C.off}画面の文には、すべて英語の訳があります`);
+console.log(`${C.green}  OK  ${C.off}文書には、すべて英語版があります ${C.dim}(${docPairs} 組)${C.off}`);
 console.log(`${C.green}[i18n] 画面の言葉は、点検のかぎり問題ありません。${C.off}`);

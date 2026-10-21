@@ -24,6 +24,7 @@ const C = { red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m', dim: '\x1b[2
 
 const CPP = 'shiori\\src\\interp.cpp';
 const DOC = 'docs\\blocks.md';
+const DOC_EN = 'docs\\en\\blocks.md';   // 英語版（日本語版と同じく、すべてのブロックの行が要ります）
 const DEFS = 'ui\\js\\model\\blocks.js';
 
 // ------------------------------------------------------------------ 承知ずみ
@@ -61,7 +62,7 @@ function read(rel) {
   return fs.readFileSync(path.join(root, rel.replace(/\\/g, path.sep)), 'utf8');
 }
 
-const src = { cpp: read(CPP), doc: read(DOC) };
+const src = { cpp: read(CPP), doc: read(DOC), docEn: read(DOC_EN) };
 
 globalThis.IKAGA_LANG = 'ja';   // ブロックの文は日本語のものを見ます（ui/js/i18n/i18n.js）
 const N = require(path.join(root, DEFS.replace(/\\/g, path.sep)));
@@ -78,6 +79,7 @@ const has = {
   cppKey: (name) => src.cpp.includes(`key == "${name}"`),
   cppOp: (name) => src.cpp.includes(`op == "${name}"`),
   doc: (name) => src.doc.includes(`"type":"${name}"`) || src.doc.includes(`"type": "${name}"`),
+  docEn: (name) => src.docEn.includes(`"type":"${name}"`) || src.docEn.includes(`"type": "${name}"`),
 };
 
 // ------------------------------------------------- テストのゴーストが使っている型
@@ -134,6 +136,7 @@ for (const t of blockTypes) {
   const miss = [];
   if (!has.cppType(t)) miss.push(`${CPP} に  type == "${t}"  がありません（動きません）`);
   if (!has.doc(t)) miss.push(`${DOC} に  "type":"${t}"  の行がありません`);
+  if (!has.docEn(t)) miss.push(`${DOC_EN} に  "type":"${t}"  の行がありません（英語版）`);
   if (!tested.types.has(t)) {
     miss.push(`どのテストのゴーストにも出てきません`
       + `（shiori\\test\\parity\\ghost.json に「毎回おなじ結果になる形」で足してください）`);

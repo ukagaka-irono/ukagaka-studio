@@ -76,7 +76,7 @@ jobs:
           .\build.ps1 -Release
 
       # 手元でビルドしなくても、ここから落として試せるように。
-      # 中身は配る zip とまったく同じです（exe / README / CHANGELOG / LICENSE / docs）。
+      # 中身は配る zip とまったく同じです（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs）。
       # LICENSE を必ず添えるのは、同梱している WebView2 SDK が
       # 配るときに著作権表示を求めているためです。
       # 署名はしていないので、Windows に止められることがあります（README 参照）。
