@@ -3,6 +3,7 @@
 import { MOUSE_EVENTS } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { Player } from '../model/player.js';
+import { programOf, toYaya } from '../model/yaya.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -56,15 +57,15 @@ function refsFor(script) {
 
 /**
  * ブロックを動かして、さくらスクリプトをもらう。
- * 動かすのは栞そのもの（studio/src/preview.cpp → shiori/src/interp.cpp）です。
- * 画面側で同じ規則をもう一度書くと、片方だけ直したときに静かにズレるためです。
+ * ブロックを YAYA の辞書に訳して（model/yaya.js）exe に渡し、SSP に入るのと同じ yaya.dll で
+ * 動かしてもらいます（studio/src/yaya_preview.cpp）。動きの決まりを画面側に書かないためです。
  */
 async function runPreview(script) {
   const meta = Model.project.meta || {};
   return api('/api/preview', {
     method: 'POST',
     body: {
-      project: Model.project,
+      dic: toYaya(programOf(Model.project)),
       scriptId: script.id,
       refs: refsFor(script),
       vars: Session.vars,

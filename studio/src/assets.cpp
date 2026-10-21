@@ -32,4 +32,8 @@ bool FindWebAsset(const std::string& path, std::string& out, std::string& mime) 
     return false;
 }
 
+int YayaKitCount() { return kYayaKitCount; }
+int YayaKitId(int i) { return (i >= 0 && i < kYayaKitCount) ? kYayaKit[i].id : 0; }
+std::wstring YayaKitName(int i) { return (i >= 0 && i < kYayaKitCount) ? kYayaKit[i].name : L""; }
+
 } // namespace ikaga

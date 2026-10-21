@@ -22,27 +22,35 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 ## ブロックを動かすのは、いつも栞です
 
-**規則は `shiori/src/interp.cpp` の 1 か所にしかありません。**
+**段階 3（如何栞を YAYA に置きかえる）のあいだは、動かすものが 2 つあります。**
 
 | どこで動くか | 誰が動かすか |
 |---|---|
-| SSP に入れたゴースト | `ikaga.dll`（32bit）の `interp.cpp` |
-| エディタの「ためす」 | `ukagaka-studio.exe`（64bit）に積んだ **同じ** `interp.cpp` |
+| SSP に入れたゴースト | いまはまだ `ikaga.dll`（32bit）の `interp.cpp`（3-6 で YAYA に置きかえます） |
+| エディタの「ためす」 | **YAYA**（SSP に入るのと同じ 32bit の `yaya.dll`。exe に埋めこんだ `yaya_host.exe` が動かします） |
 
-画面（`ui/js/`）はブロックを解釈しません。`POST /api/preview` に頼んで、
-返ってきたさくらスクリプトを `ui/js/model/player.js` がほどき、`ui/js/panels/stage.js` が再生するだけです。
+画面（`ui/js/`）はブロックを解釈しません。ブロックを YAYA の辞書に訳して（`ui/js/model/yaya.js`）
+`POST /api/preview` に頼み（`studio/src/yaya_preview.cpp`）、返ってきたさくらスクリプトを
+`ui/js/model/player.js` がほどき、`ui/js/panels/stage.js` が再生するだけです。
+2 つが同じ答えになることは、`shiori\test\yaya\yaya.js` が見ます（如何栞と YAYA、YAYA の「ためす」と SSP の動かしかた）。
+
+「ためす」は、作業用のフォルダ（`%TEMP%\ukagaka-studio-preview-<プロセス番号>\`）に YAYA 一式
+（`yaya.dll`・`yaya_host.exe`・`yaya_base`・`studio_runtime.dic`・「ためす」の入り口 `studio_preview.dic`）を書き出し、
+かたまりを 1 つ動かすたびに `yaya_host.exe` を 1 回動かします（1 回 0.1 秒ほど。起動して最初の 1 回だけ、
+Windows の検査で 1〜2 秒かかることがあります）。フォルダは exe を閉じるときに消します。
+`studio_preview.dic` は書き出すゴーストには入れません（外から変数を書きかえられてしまうため）。
 
 > むかしは `ui/js/sim.js` に同じ規則を JavaScript でもう一度書いていました。
 > 片方だけ直すと、エディタでは思ったとおりなのに SSP では違う、という形で
 > あとから分かる、いちばん厄介なズレかたをしました。474 行を消してあります。
 
-そのかわり **32bit と 64bit で同じものを組む**ことになったので、一致テストは
-その 2 つを見くらべます。`int` と `size_t` の大きさに頼った書きかたをすると、
-そこで止まります。
+如何栞の一致テストは、同じ `interp.cpp` を 32bit と 64bit で組んで見くらべます（64bit のほうは、
+もとは「ためす」が使っていたものです。いまはテスト用の `preview_host.exe` だけが使います）。
+`int` と `size_t` の大きさに頼った書きかたをすると、そこで止まります。
 
 `interp.cpp` は SAORI の DLL の読みかたを知りません（`saori.h` の `SaoriHost` で
-一枚はさんであります）。おかげでスタジオは `saori.cpp` を持たずに解釈部だけを使えます。
-プレビューは SAORI を呼ばないので、そこに `NULL` を渡しています。
+一枚はさんであります）。プレビューは SAORI を呼ばないので、そこに `NULL` を渡しています。
+YAYA の「ためす」も SAORI は呼びません（`Studio.noSaori`）。
 
 ---
 

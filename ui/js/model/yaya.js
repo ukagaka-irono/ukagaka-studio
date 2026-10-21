@@ -378,6 +378,88 @@ function stmt(b, ind, ctx) {
   }
 }
 
+// ------------------------------------------------------------- 書き出す形
+
+/**
+ * エディタのプロジェクトから、書き出す ghost.json の形（栞が読むもの）を作る。
+ * exe の RuntimeProgramJson（studio/src/export_program.cpp）と同じ中身です
+ * （同じになることは shiori\test\yaya\yaya.js が、書き出しテストの期待値と見くらべます）。
+ */
+export function programOf(project) {
+  const p = isObj(project) ? project : {};
+  const meta = isObj(p.meta) ? p.meta : {};
+  const settings = isObj(p.settings) ? p.settings : {};
+  const en = asStr(meta.lang) === 'en';
+  const name = asStr(meta.name);
+
+  const m = {
+    name: trimC(name) ? name : (en ? 'New Ghost' : 'あたらしいゴースト'), // i18n-ignore
+    sakuraName: asStr(meta.sakuraName, en ? 'Sakura' : 'さくら'), // i18n-ignore
+    keroName: asStr(meta.keroName, en ? 'Kero' : 'うにゅう'), // i18n-ignore
+    craftman: asStr(meta.craftman, ''),
+    craftmanUrl: asStr(meta.craftmanUrl, ''),
+    version: asStr(meta.version, '1.0.0'),
+  };
+  if (en) m.lang = 'en';
+
+  const variables = [];
+  for (const v of Array.isArray(p.variables) ? p.variables : []) {
+    if (!isObj(v) || !asStr(v.name)) continue;
+    variables.push({ name: asStr(v.name), value: v.value === undefined ? null : v.value });
+  }
+
+  const scripts = [];
+  for (const src of Array.isArray(p.scripts) ? p.scripts : []) {
+    if (!isObj(src)) continue;
+    const kind = asStr(src.kind);
+    if (kind !== 'event' && kind !== 'talk' && kind !== 'function') continue;
+    const one = { id: asStr(src.id), kind };
+    if (kind === 'event') {
+      const ev = asStr(src.event);
+      one.event = ev;
+      // くりかえしの間隔（毎秒でよければ書かない）
+      const every = asInt(src.everySec, 1);
+      if (every > 1) one.everySec = every;
+      // イベントの絞り込み。今のイベントに関係するものだけ書く
+      const isMouse = ev.startsWith('OnMouse') || ev === 'OnNadeNade';
+      const isComm = ev === 'OnCommunicate';
+      const area = isMouse ? asStr(src.area) : '';
+      const who = isMouse ? asInt(src.who, -1) : -1;
+      const from = isComm ? asStr(src.from) : '';
+      const contains = isComm ? asStr(src.contains) : '';
+      if (area || who >= 0 || from || contains) {
+        const f = {};
+        if (area) f.area = area;
+        if (who >= 0) f.who = who;
+        if (from) f.from = from;
+        if (contains) f.contains = contains;
+        one.filter = f;
+      }
+    }
+    if (kind === 'talk' || kind === 'function') one.name = asStr(src.name);
+    if (kind === 'talk') {
+      one.weight = asNum(src.weight, 1);
+      const group = trimC(asStr(src.group));
+      if (group) one.group = group;
+    }
+    if (asBool(src.disabled, false)) one.disabled = true;
+    one.blocks = Array.isArray(src.blocks) ? src.blocks : [];
+    scripts.push(one);
+  }
+
+  return {
+    format: 'ikaga/1',
+    meta: m,
+    settings: {
+      randomTalkInterval: asNum(settings.randomTalkInterval, 180),
+      randomTalkEnabled: asBool(settings.randomTalkEnabled, true),
+      noRepeatCount: asNum(settings.noRepeatCount, 0),
+    },
+    variables,
+    scripts,
+  };
+}
+
 // ------------------------------------------------------------- 全体
 
 const TEXT = {

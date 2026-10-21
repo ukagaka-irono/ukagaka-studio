@@ -127,6 +127,37 @@ async function runYayaProgram(name, program, specs, keepSave = false) {
   return runYaya(dir, specs, keepSave);
 }
 
+const yayaHost = path.join(root, 'shiori', 'dist', 'yaya_host.exe');
+const yayaPreviewDic = path.join(root, 'studio', 'res', 'yaya', 'studio_preview.dic');
+
+/**
+ * 「ためす」と同じやりかたで、YAYA でかたまりを 1 つ動かす（yaya_host.exe と studio_preview.dic）。
+ * input は { vars, sys, refs }。答えは { script, commTo, vars } か { error }。
+ */
+async function runYayaPreview(name, program, scriptId, input) {
+  const { toYaya, yayaTxt } = await yayaTranslator();
+  if (!fs.existsSync(yayaHost)) {
+    throw new Error('yaya_host.exe がありません。先に .\\build.ps1 を実行してください。');
+  }
+  const dir = path.join(yayaWork, name);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.copyFileSync(yayaDll, path.join(dir, 'yaya.dll'));
+  fs.cpSync(yayaBase, path.join(dir, 'yaya_base'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt() + 'dic, studio_preview.dic\r\n');
+  fs.copyFileSync(yayaRuntime, path.join(dir, 'studio_runtime.dic'));
+  fs.copyFileSync(yayaPreviewDic, path.join(dir, 'studio_preview.dic'));
+  fs.writeFileSync(path.join(dir, 'studio_program.dic'), toYaya(program));
+  const saved = path.join(dir, 'yaya_variable.cfg');
+  if (fs.existsSync(saved)) fs.unlinkSync(saved);
+
+  const req = ['GET SHIORI/3.0', 'Charset: UTF-8', 'Sender: UkagakaStudio', 'SecurityLevel: local',
+    'ID: OnStudioPreview', `Reference0: ${scriptId}`, `Reference1: ${JSON.stringify(input || {})}`, '', ''].join('\r\n');
+  const out = execFileSync(yayaHost, [dir], { input: Buffer.from(req, 'utf8'), maxBuffer: 1 << 24 }).toString('utf8');
+  const line = out.split('\r\n').find((l) => l.startsWith('Value: '));
+  if (!line) throw new Error(`YAYA が答えませんでした:\n${out}`);
+  return JSON.parse(line.slice(7));
+}
+
 /**
  * 伺かスタジオに積んだ栞（64bit）で、同じかたまりを動かす。
  * specs は "p01" か "p27:参照0,参照1" の形（イベント名ではなく、かたまりの id）。
@@ -149,6 +180,6 @@ function repeat(spec, times) {
 }
 
 module.exports = {
-  root, run, runPreview, runYaya, runYayaProgram, yayaTranslator, prepare, repeat, COLOR,
-  testHost, previewHost, dllSrc, yayaDll,
+  root, run, runPreview, runYaya, runYayaProgram, runYayaPreview, yayaTranslator, prepare, repeat,
+  COLOR, testHost, previewHost, dllSrc, yayaDll, yayaHost,
 };

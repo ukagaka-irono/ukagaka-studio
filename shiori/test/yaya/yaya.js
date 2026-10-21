@@ -108,6 +108,53 @@ async function main() {
   });
   if (same === cases.length) ok('一致テストのゴーストが、如何栞と YAYA で同じ答えです', `${cases.length} 件`);
 
+  // ---- 4b. 「ためす」と SSP で同じ答えか -----------------------------------------
+  // 「ためす」は、かたまりを 1 つずつ、まっさらな状態から yaya_host.exe で動かします（studio_preview.dic）。
+  // 一致テストのかたまりは、どれも自分の中で変数を作ってから使うので、SSP でイベントとして順に動かした答えと同じになるはず
+  let sameTry = 0;
+  for (let i = 0; i < cases.length; i++) {
+    const s = cases[i];
+    checks++;
+    const tr = await host.runYayaPreview('preview', program, s.id, { refs: s.refs || [], sys: {} });
+    const b = yaya[i] || {};
+    // SSP への応答は、改行を \n にして 1 行にしています
+    const script = (tr.script || '').replace(/\r/g, '').replace(/\n/g, '\\n');
+    if (!tr.error && script === b.value && tr.commTo === b.commTo) { sameTry++; continue; }
+    let k = 0;
+    while (k < script.length && k < (b.value || '').length && script[k] === b.value[k]) k++;
+    fails.push(`「ためす」と SSP ${s.event}（${(s._ || '').trim()}）${tr.error ? `  エラー: ${tr.error}` : ''}`
+      + `\n      ためす: ${around(script, k)}  話しかけ先 "${tr.commTo}"`
+      + `\n      SSP   : ${around(b.value || '', k)}  話しかけ先 "${b.commTo}"`);
+  }
+  if (sameTry === cases.length) ok('「ためす」（yaya_host.exe）と SSP で同じ答えです', `${cases.length} 件`);
+  {
+    checks++;
+    const tr = await host.runYayaPreview('preview', program, 'p06', { vars: { 'あたい': 100 } });
+    const missing = await host.runYayaPreview('preview', program, 'ないid', {});
+    if (tr.vars['初期値つき'] !== 7 || tr.vars['あたい'] !== 7 || missing.error !== 'script_not_found') {
+      fails.push(`「ためす」の変数とエラー\n      初期値つき=${tr.vars['初期値つき']} あたい=${tr.vars['あたい']} 無い id → ${missing.error}`);
+    } else {
+      ok('「ためす」は初期値の上に続きの変数をかさね、無い id にはエラーを返します');
+    }
+  }
+
+  // ---- 4c. 書き出す形（ghost.json）を、画面と exe で同じに作るか -----------------
+  {
+    const { programOf } = await host.yayaTranslator();
+    const fx = path.join(host.root, 'studio', 'test');
+    let sameForm = 0;
+    const forms = [['ghost.json', 'program.json'], ['en.json', 'en-program.json']];
+    for (const [fixture, expected] of forms) {
+      checks++;
+      const raw = fs.readFileSync(path.join(fx, 'expected', expected), 'utf8');
+      const want = JSON.stringify(JSON.parse(raw.slice(raw.indexOf('{'))));
+      const got = JSON.stringify(programOf(readJson(path.join(fx, 'fixture', fixture))));
+      if (got === want) sameForm++;
+      else fails.push(`programOf(${fixture}) が、exe の書き出し（studio\\test\\expected\\${expected}）とちがいます`);
+    }
+    if (sameForm === forms.length) ok('画面で作る書き出しの形が、exe の書き出しと同じです', `${forms.length} 件`);
+  }
+
   // ---- 5. ふるまいテストの場面 -------------------------------------------------
   let good = 0;
   for (let i = 0; i < scenarios.length; i++) {

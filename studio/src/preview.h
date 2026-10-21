@@ -1,8 +1,8 @@
-// 伺かスタジオ - 「ためす」（プレビュー）
+// 伺かスタジオ - 64bit の如何栞でかたまりを動かす
 //
-// エディタのプレビューは、**栞そのもの**（shiori/src/interp.cpp）でブロックを動かします。
-// 同じ規則をもう一度 JavaScript で書くと、片方だけ直したときに静かにズレるためです。
-// くわしくは docs/maintenance.md を見てください。
+// もとは「ためす」がこれを使っていました。段階 3-4 から「ためす」は YAYA で動かすので
+// （yaya_preview.h）、いまは一致テストの preview_host.exe だけが使います（32bit と 64bit の見くらべ）。
+// 結果の形（PreviewResult）は、YAYA の「ためす」も同じものを使います。
 #pragma once
 
 #include "json.h"

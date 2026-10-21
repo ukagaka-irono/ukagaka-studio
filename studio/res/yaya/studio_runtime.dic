@@ -91,6 +91,8 @@ OnGhostLoad.Studio : void
 	Studio.refs = IARRAY
 	Studio.reqCommTo = ''
 	Studio.found = 0
+	// 「ためす」（studio_preview.dic）は 1 にして、SAORI を呼ばない
+	Studio.noSaori = 0
 }
 
 OnGhostUnload.Studio : void
@@ -101,7 +103,7 @@ OnGhostUnload.Studio : void
 		'Studio.saoriDoneValue', 'Studio.lastPick', 'Studio.commChain', 'Studio.strokeKey', 'Studio.strokeCount', /
 		'Studio.strokeTick', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
 		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
-		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', /
+		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', 'Studio.noSaori', /
 		'Studio.meta.name', 'Studio.meta.sakuraName', 'Studio.meta.lang', 'Studio.set.interval', /
 		'Studio.set.enabled', 'Studio.set.noRepeat', 'Studio.s.id', 'Studio.s.fn', 'Studio.s.kind', /
 		'Studio.s.event', 'Studio.s.name', 'Studio.s.group', 'Studio.s.weight', 'Studio.s.every', /
@@ -722,7 +724,7 @@ Studio.Saori
 {
 	_want = TOINT(_argv[0])
 	_file = Studio.Trim(Studio.S(_argv[1]))
-	if _file == '' {
+	if _file == '' || Studio.noSaori {
 		''
 		return
 	}
@@ -768,7 +770,7 @@ Studio.Saori
 Studio.SaoriCall : void
 {
 	_file = Studio.Trim(Studio.S(_argv[2]))
-	if _file == '' { return }
+	if _file == '' || Studio.noSaori { return }
 	_into = Studio.Trim(_argv[0])
 	_args = (IARRAY, _argv[1], _file)
 	for _i = 3; _i < _argc; _i++ { _args ,= _argv[_i] }

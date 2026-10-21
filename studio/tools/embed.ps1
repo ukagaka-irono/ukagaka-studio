@@ -9,6 +9,9 @@ param(
     [Parameter(Mandatory = $true)][string]$StageDir,
     [string]$DllPath,
     [string]$YayaDllPath,
+    [string]$YayaHostPath,
+    [string]$YayaResDir,
+    [string]$YayaBaseDir,
     [string]$SamplePath,
     [string]$SampleEnPath,
     [string]$IconPath,
@@ -66,12 +69,32 @@ if ($DllPath -and (Test-Path $DllPath)) {
 } else {
     Write-Warning '[embed] ikaga.dll が見つかりません。栞なしの exe になります。'
 }
-# YAYA の公式ビルド（third_party\yaya\。段階 3 で如何栞と置きかえます）
-if ($YayaDllPath -and (Test-Path $YayaDllPath)) {
-    Copy-Item $YayaDllPath (Join-Path $assetsDir 'yaya.dll') -Force
-    [void]$rc.AppendLine('903 RCDATA "assets\\yaya.dll"')
-} else {
-    Write-Warning '[embed] yaya.dll が見つかりません。YAYA なしの exe になります。'
+# YAYA 一式（段階 3 で如何栞と置きかえます）。「ためす」が作業用のフォルダに書き出して使います。
+#   yaya.dll（公式ビルド）・yaya_host.exe（32bit の手伝い）・しくみの辞書・「ためす」の入り口・yaya_base
+# 書き出すときのフォルダでの名前と、リソースの番号の対応を assets_gen.h の kYayaKit に書きます。
+$kit = @()
+function Add-KitFile([string]$from, [string]$name, [int]$kitId) {
+    if (-not ($from -and (Test-Path $from))) {
+        Write-Warning "[embed] $name が見つかりません。YAYA の「ためす」が動かない exe になります。"
+        return
+    }
+    $stageName = 'y{0}.bin' -f $kitId
+    Copy-Item $from (Join-Path $assetsDir $stageName) -Force
+    [void]$rc.AppendLine(('{0} RCDATA "assets\\{1}"' -f $kitId, $stageName))
+    $script:kit += [pscustomobject]@{ Name = $name; Id = $kitId }
+}
+Add-KitFile $YayaDllPath 'yaya.dll' 903
+Add-KitFile $YayaHostPath 'yaya_host.exe' 904
+if ($YayaResDir) {
+    Add-KitFile (Join-Path $YayaResDir 'studio_runtime.dic') 'studio_runtime.dic' 905
+    Add-KitFile (Join-Path $YayaResDir 'studio_preview.dic') 'studio_preview.dic' 906
+}
+$kitId = 910
+if ($YayaBaseDir -and (Test-Path $YayaBaseDir)) {
+    foreach ($f in (Get-ChildItem $YayaBaseDir -File | Sort-Object Name)) {
+        Add-KitFile $f.FullName ('yaya_base\' + $f.Name) $kitId
+        $kitId++
+    }
 }
 if ($SamplePath -and (Test-Path $SamplePath)) {
     Copy-Item $SamplePath (Join-Path $assetsDir 'sample.json') -Force
@@ -130,6 +153,16 @@ foreach ($e in $entries) {
 }
 [void]$h.AppendLine('};')
 [void]$h.AppendLine(('static const int kWebAssetCount = {0};' -f $entries.Count))
+[void]$h.AppendLine('')
+[void]$h.AppendLine('// YAYA 一式（作業用のフォルダでの名前とリソースの番号）')
+[void]$h.AppendLine('struct YayaKitFile { const wchar_t* name; int id; };')
+[void]$h.AppendLine('static const YayaKitFile kYayaKit[] = {')
+foreach ($k in $kit) {
+    [void]$h.AppendLine(('    {{ L"{0}", {1} }},' -f ($k.Name -replace '\\', '\\'), $k.Id))
+}
+if (-not $kit.Count) { [void]$h.AppendLine('    { L"", 0 },') }
+[void]$h.AppendLine('};')
+[void]$h.AppendLine(('static const int kYayaKitCount = {0};' -f $kit.Count))
 
 $hPath = Join-Path $StageDir 'assets_gen.h'
 [System.IO.File]::WriteAllText($hPath, $h.ToString(), (New-Object System.Text.UTF8Encoding($false)))

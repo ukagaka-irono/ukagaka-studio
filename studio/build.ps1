@@ -108,6 +108,7 @@ $libsCommon = @('kernel32.lib', 'user32.lib', 'shell32.lib', 'shlwapi.lib',
 # ---- 埋め込みリソースを作る ------------------------------------------------
 $dll = Join-Path $repo 'shiori\dist\ikaga.dll'
 $yayaDll = Join-Path $repo 'third_party\yaya\yaya.dll'
+$yayaHost = Join-Path $repo 'shiori\dist\yaya_host.exe'   # 32bit の手伝い（shiori\build.ps1 が作る）
 $sample = Join-Path $root 'res\sample-project.json'
 $sampleEn = Join-Path $root 'res\sample-project.en.json'
 
@@ -121,6 +122,9 @@ Write-Host "[studio] リソースを準備中... (v$version)" -ForegroundColor C
     -StageDir $obj `
     -DllPath $dll `
     -YayaDllPath $yayaDll `
+    -YayaHostPath $yayaHost `
+    -YayaResDir (Join-Path $root 'res\yaya') `
+    -YayaBaseDir (Join-Path $repo 'third_party\yaya-dic\yaya_base') `
     -SamplePath $sample `
     -SampleEnPath $sampleEn `
     -IconPath (Join-Path $root 'res\ukagaka-studio.ico')
@@ -152,7 +156,8 @@ $sources = @(
     (Join-Path $src 'webview.cpp'),
     (Join-Path $src 'webreq.cpp'),
     (Join-Path $src 'sstp.cpp'),
-    (Join-Path $src 'preview.cpp')
+    (Join-Path $src 'preview.cpp'),
+    (Join-Path $src 'yaya_preview.cpp')
 ) + $apiSources + $exportSources + @(
     # 「ためす」は栞そのものでブロックを動かします（同じ規則を二重に書かないため）
     (Join-Path $repo 'shiori\src\interp.cpp'),

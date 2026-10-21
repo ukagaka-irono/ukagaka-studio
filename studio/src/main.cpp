@@ -16,6 +16,7 @@
 #include "fsutil.h"
 #include "lang.h"
 #include "util.h"
+#include "yaya_preview.h"
 #include "webview.h"
 
 #pragma comment(lib, "shell32.lib")
@@ -267,6 +268,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     }
 
     g_web.Shutdown();
+    CleanupYayaPreview();     // 「ためす」が使った作業用のフォルダ
     CoUninitialize();
     if (mutex) CloseHandle(mutex);
     return 0;

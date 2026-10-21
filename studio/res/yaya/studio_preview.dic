@@ -1,0 +1,91 @@
+//==============================================================================
+// 伺かスタジオ — 「ためす」の入り口（studio_preview.dic）
+//
+// 伺かスタジオが「ためす」のときだけ使う辞書です。書き出すゴーストには入れません
+// （ゴーストに入っていると、外から変数を書きかえられてしまうため）。
+//
+// 頼みかた（GET SHIORI/3.0、ID: OnStudioPreview）
+//   Reference0 … 動かすかたまりの id
+//   Reference1 … {"vars":{…}, "sys":{…}, "refs":[…]} の JSON（1 行）
+//     vars … 続きから動かすときの変数（プロジェクトの初期値の上にかさねる）
+//     sys  … 情報ブロックが返す値（uptime / boots / talks / ghostName / shellName / lastTalk）
+//     refs … イベントの情報（Reference0〜）
+// 答え（Value に 1 行の JSON）
+//   {"script":"…", "commTo":"…", "vars":{…}}  か  {"error":"script_not_found"}
+//
+// SAORI は呼びません（本物の DLL が要るので、SSP に入れてから確かめてもらいます）。
+//==============================================================================
+
+OnStudioPreview
+{
+	_id = TOSTR(reference.raw[0])
+	_in = PARSEJSON(TOSTR(reference.raw[1]))
+	if GETTYPE(_in) != 5 { _in = IHASH }
+	_res = IHASH
+
+	_k = -1
+	_n = ARRAYSIZE(Studio.s.id)
+	for _i = 0; _i < _n; _i++ {
+		if Studio.s.id[_i] == _id {
+			_k = _i
+			break
+		}
+	}
+	if _k < 0 {
+		_res['error'] = 'script_not_found'
+		Studio.PreviewAnswer(_res)
+		return
+	}
+
+	// 変数は「プロジェクトの初期値」（読みこみで入っています）の上に、続きの変数をかさねる
+	_vars = IHASH
+	if HASH_EXIST('vars', _in) { _vars = _in['vars'] }
+	if GETTYPE(_vars) == 5 {
+		_names = HASH_KEYS(_vars)
+		foreach _names; _name {
+			_v = _vars[_name]
+			if GETTYPE(_v) != 3 { _v = Studio.N(_v) }
+			Studio.var[_name] = _v
+		}
+	}
+
+	// 情報ブロックが返す値（無ければ、起動したばかりの値）
+	Studio.uptime = 0
+	Studio.boots = 1
+	Studio.talks = 0
+	Studio.ghostName = ''
+	Studio.shellName = ''
+	Studio.lastTalk = ''
+	_sys = IHASH
+	if HASH_EXIST('sys', _in) { _sys = _in['sys'] }
+	if GETTYPE(_sys) == 5 {
+		if HASH_EXIST('uptime', _sys) { Studio.uptime = TOINT(Studio.N(_sys['uptime'])) }
+		if HASH_EXIST('boots', _sys) { Studio.boots = TOINT(Studio.N(_sys['boots'])) }
+		if HASH_EXIST('talks', _sys) { Studio.talks = TOINT(Studio.N(_sys['talks'])) }
+		if HASH_EXIST('ghostName', _sys) { Studio.ghostName = Studio.S(_sys['ghostName']) }
+		if HASH_EXIST('shellName', _sys) { Studio.shellName = Studio.S(_sys['shellName']) }
+		if HASH_EXIST('lastTalk', _sys) { Studio.lastTalk = Studio.S(_sys['lastTalk']) }
+	}
+
+	Studio.refs = IARRAY
+	if HASH_EXIST('refs', _in) {
+		_refs = _in['refs']
+		_m = ARRAYSIZE(_refs)
+		for _i = 0; _i < _m; _i++ { Studio.refs ,= Studio.S(_refs[_i]) }
+	}
+
+	Studio.noSaori = 1
+	_out = Studio.RunOne(_k)
+	_ev = Studio.s.event[_k]
+	_close = (Studio.s.kind[_k] == 'event' && (_ev == 'OnClose' || _ev == 'OnCloseAll'))
+	_res['script'] = Studio.CloseScript(_out, _close)
+	_res['commTo'] = Studio.commTo
+	_res['vars'] = Studio.var
+	Studio.PreviewAnswer(_res)
+}
+
+// 答えの JSON を 1 行で返す。yaya_base は「:chain=」をチェイントークとして読むので、= を = にしておく
+Studio.PreviewAnswer
+{
+	REPLACE(REPLACE(REPLACE(DUMPJSON(_argv[0]), CHR(13), ''), CHR(10), ''), ':chain=', ':chain=')
+}

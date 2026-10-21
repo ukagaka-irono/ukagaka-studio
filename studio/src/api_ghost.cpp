@@ -3,38 +3,40 @@
 #include "api_util.h"
 #include "exporter.h"
 #include "fsutil.h"
-#include "preview.h"
+#include "yaya_preview.h"
 #include "util.h"
 
 namespace ikaga {
 
 // POST /api/preview … ブロックを動かして、さくらスクリプトを返す
-// ブロックを動かすのは、栞そのもの（shiori/src/interp.cpp）です。
-// 同じ規則を画面側にもう一度書くと、片方だけ直したときに静かにズレます。
+// ブロックを動かすのは、SSP に入るのと同じ YAYA（yaya_preview.cpp）です。
+// 画面は、ブロックを YAYA に訳した辞書（dic）を送ってきます（ui/js/model/yaya.js）。
 void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     JValue body;
     if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
 
-    PreviewRequest pr;
-    pr.project = body["project"];
-    if (!pr.project.isObj()) { JsonError(res, 400, "no_project"); return; }
-    pr.scriptId = body["scriptId"].asStr();
-    pr.vars = body["vars"];
+    std::string dic = body["dic"].asStr();
+    if (dic.empty()) { JsonError(res, 400, "no_dic"); return; }
+    std::string scriptId = body["scriptId"].asStr();
 
-    const JValue& refs = body["refs"];
-    for (size_t i = 0; i < refs.size(); i++) pr.refs.push_back(refs.at(i).asStr());
+    // YAYA に渡す材料（{"vars":…, "sys":…, "refs":…}）
+    JValue input = JValue::makeObj();
+    input.set("vars", body["vars"].isObj() ? body["vars"] : JValue::makeObj());
+    const JValue& from = body["sys"];
+    JValue sys = JValue::makeObj();
+    sys.set("uptime", JValue::makeNum(from["uptime"].asInt(0)));
+    sys.set("boots", JValue::makeNum(from["boots"].asInt(1)));
+    sys.set("talks", JValue::makeNum(from["talks"].asInt(0)));
+    sys.set("lastTalk", JValue::makeStr(from["lastTalk"].asStr()));
+    sys.set("ghostName", JValue::makeStr(from["ghostName"].asStr()));
+    sys.set("shellName", JValue::makeStr(from.has("shellName") ? from["shellName"].asStr() : "master"));
+    input.set("sys", sys);
+    JValue refs = JValue::makeArr();
+    const JValue& rin = body["refs"];
+    for (size_t i = 0; i < rin.size(); i++) refs.arr.push_back(JValue::makeStr(rin.at(i).asStr()));
+    input.set("refs", refs);
 
-    const JValue& sys = body["sys"];
-    pr.uptime = sys["uptime"].asInt(0);
-    pr.boots = sys["boots"].asInt(1);
-    pr.talks = sys["talks"].asInt(0);
-    pr.lastTalk = sys["lastTalk"].asStr();
-    // 名前は画面から来たものを使い、無ければゴーストの設定から取る
-    pr.ghostName = sys.has("ghostName") ? sys["ghostName"].asStr()
-                                        : pr.project["meta"]["name"].asStr();
-    pr.shellName = sys.has("shellName") ? sys["shellName"].asStr() : "master";
-
-    PreviewResult r = RunPreview(pr);
+    PreviewResult r = RunYayaPreview(dic, scriptId, input.dump());
     if (!r.ok) { JsonError(res, 400, r.error, r.detail); return; }
 
     JValue o = JValue::makeObj();

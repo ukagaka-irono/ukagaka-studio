@@ -515,13 +515,35 @@ The decisions ikaga SHIORI made in C++ (`shiori.cpp`) go into a **runtime dictio
 >   are routed by yaya_base to `ExternalEvent.*`, so blocks do not run for them.
 > * When comparing text, the order of two-unit characters such as emoji very rarely differs.
 
-### 3-4. Run “Try” on YAYA
+### 3-4. Run “Try” on YAYA (done)
 
 * “Try” also runs on the same 32-bit `yaya.dll` that goes into SSP. The 64-bit exe cannot load it directly,
   so a small 32-bit helper exe (shaped like test_host) is embedded in the exe and does the work.
 * The Variables tab reads values through a “return the variables” entry in the runtime dictionary.
 
 Done when: the same block gives the same answer in “Try” and in SSP.
+
+> Done:
+>
+> * The UI turns the project into the export form (`programOf`; the test checks it matches the exe's `RuntimeProgramJson`),
+>   translates it into YAYA, and sends that dictionary to `POST /api/preview` (the project itself is no longer sent).
+> * The exe (`studio/src/yaya_preview.cpp`) writes the YAYA kit to a work folder `%TEMP%\ukagaka-studio-preview-<process id>\`
+>   and has the 32-bit helper **`yaya_host.exe`** (`studio/yaya_host/`, built as 32-bit by `shiori\build.ps1`) ask once.
+>   The kit is in the exe as resources 903 and up (`kYayaKit` in `assets_gen.h`). The folder is deleted when the exe closes;
+>   a run with no answer after 20 seconds is stopped.
+> * The Try entry is **`studio/res/yaya/studio_preview.dic`** (`OnStudioPreview`). It takes the carried-over variables,
+>   the values for information blocks and the event references as JSON, runs one script, and returns the Sakura Script,
+>   the communication target and the variables as JSON. It never goes into an exported ghost (it would let outsiders
+>   rewrite variables). It does not call SAORI.
+> * **No 64-bit YAYA; a 32-bit helper instead** (“Decisions”). “Try” and SSP run the same `yaya.dll`, so there is no
+>   32-bit/64-bit parity to check.
+> * The test (`shiori\test\yaya\yaya.js`, 170 checks) now also runs the 30 parity cases the way “Try” does
+>   (`yaya_host.exe`) and checks they match how SSP runs them, checks initial and carried-over variables and the error for
+>   a missing id, and checks that the export form built in the UI matches the exe's.
+> * In a scratch copy of the exe: the five scripts of the first-run sample run in “Try”, variables carry over, each run
+>   returns in about 0.1 s (0.5–2 s for the first few after startup while Windows scans the files), and the work folder is
+>   gone after the exe closes.
+> * New error codes `no_dic` (no dictionary) and `yaya_failed` (could not run on YAYA), with UI text in both languages.
 
 ### 3-5. Shape as a helper tool
 
@@ -590,14 +612,13 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
 | 2026-10-22 | **Use the official `yaya.dll`; do not build it from source** (built with today's Visual Studio, it does not run on Windows 2000; 3-0) |
 | 2026-10-22 | The “call SAORI without waiting” block **stays, and becomes a waiting call under YAYA**. `OnSaoriDone` is still raised on the next `OnSecondChange` (3-0) |
+| 2026-10-22 | “Try” runs **the same `yaya.dll` as SSP through a 32-bit helper (`yaya_host.exe`)**; no 64-bit YAYA is built (we use the official build; 3-4) |
 | 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
 
 ## Not decided yet
 
 * How to count version numbers (stage 0-2)
 * Details of stage 3:
-  * Whether “Try” runs through a 32-bit helper exe, or YAYA is also built as 64-bit and carried directly in the exe
-    (3-4; with 64-bit, a 32-bit/64-bit parity test is needed, as now)
   * Whether project files stay in `projects\` next to the exe, or go inside the ghost folder
   * Whether variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) carry over to YAYA
   * What to do with the name “如何栞 (ikaga SHIORI)” and the name `ikaga` in the code (including the project format `ikaga/1`)

@@ -158,9 +158,7 @@ walk('main.js', 'index.html');
 // 画面からはまだ使っていないが、node のテストが使っているファイル。
 // ほかのファイルと同じ点検（層の向き・読みこみ）に乗せるため、ここからもたどります。
 // 画面からつないだら、ここから消してください。
-const TEST_ONLY = {
-  'model/yaya.js': 'ブロックを YAYA に訳す（段階 3。いまは shiori\\test\\yaya\\yaya.js だけが使う）',
-};
+const TEST_ONLY = {};
 for (const f of Object.keys(TEST_ONLY)) walk(f, 'TEST_ONLY');
 if (missing.length) bad('import している先のファイルがありません', missing);
 

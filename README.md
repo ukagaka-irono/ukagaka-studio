@@ -321,9 +321,10 @@ ukagaka-studio/
 │   ├── build.ps1
 │   ├── test/               答え合わせテスト（-Test でコンソールも作る）
 │   │                         export_host  … 書き出したファイルの中身を見る
-│   │                         preview_host … 「ためす」の結果を見る
+│   │                         preview_host … 64bit の如何栞で動かした結果を見る（一致テスト用）
 │   ├── res/                アイコン・はじめて起動したときに置くサンプル（日本語と英語）
-│   │   └── yaya/           YAYA で動かすときのしくみの辞書 studio_runtime.dic（段階 3）
+│   │   └── yaya/           YAYA で動かすときのしくみの辞書 studio_runtime.dic と「ためす」の入り口 studio_preview.dic（段階 3）
+│   ├── yaya_host/          「ためす」が YAYA を動かす 32bit の手伝い（shiori\build.ps1 が組む）
 │   ├── third_party/        WebView2 SDK（ヘッダ + 静的ローダ）
 │   ├── tools/embed.ps1     ui\ と ikaga.dll・yaya.dll をリソース化
 │   ├── tools/make-icon.mjs ロゴ（ui/img/logo.svg）から exe のアイコンを作る
@@ -340,7 +341,8 @@ ukagaka-studio/
 │       ├── api_ghost.cpp     ためす・書き出したゴーストの記憶と記録
 │       ├── api_export.cpp    書き出し・エクスプローラで開く
 │       ├── api_ssp.cpp       動いている SSP との連携
-│       ├── preview.cpp     「ためす」を栞そのものに実行させる
+│       ├── preview.cpp     64bit の如何栞でかたまりを動かす（一致テストの preview_host が使う）
+│       ├── yaya_preview.cpp 「ためす」を YAYA で動かす（yaya_host.exe に頼む）
 │       ├── exporter.cpp    ゴースト一式の組み立てと、フォルダ / .nar への書きこみ
 │       ├── export_program.cpp  ghost.json（栞が読むもの）
 │       ├── export_shell.cpp    仮の立ち絵・shell の descript.txt・surfaces.txt
@@ -403,11 +405,11 @@ ukagaka-studio/
 
 ## 栞のしくみ
 
-エディタの「ためす」も、**この栞そのもの**が動かしています。伺かスタジオは
-`shiori/src/interp.cpp` を 64bit で組んだものを積んでいて、画面は `POST /api/preview`
-で頼むだけです（画面側にブロックの解釈はありません）。
+エディタの「ためす」は、段階 3 で如何栞の代わりに入る **YAYA**（SSP に入るのと同じ 32bit の `yaya.dll`）が
+動かしています。画面はブロックを YAYA の辞書に訳して `POST /api/preview` で頼み、伺かスタジオは exe に埋めこんだ
+32bit の手伝い `yaya_host.exe` で、それを動かします（画面側にブロックの解釈はありません）。
 違うのは 2 つだけで、**SAORI は呼びません**（本物の 32bit DLL が要るため）、
-**時計や起動回数は画面から渡します**。それ以外は SSP に入れたときと同じ答えになります。
+**時計や起動回数は画面から渡します**。如何栞と同じ答えになることは、YAYA のテストが確かめています。
 
 * SHIORI/3.0 の DLL として `load` / `unload` / `request` を公開しています（`src/ikaga.def`）。
 * 起動時に、DLL と同じフォルダの **`ghost.json`** を読み込みます。

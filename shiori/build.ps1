@@ -119,6 +119,20 @@ Write-Host "[ikaga] OK -> $dllOut ($size KB)" -ForegroundColor Green
 
 # この dll は studio\build.ps1 が exe に埋め込みます。
 
+# ---- YAYA を動かす手伝い（yaya_host.exe）------------------------------------
+# 伺かスタジオの「ためす」が、SSP と同じ 32bit の yaya.dll を動かすために使います。
+# 32bit で組む必要があるので、ここ（栞と同じ 32bit のビルド）で作ります。
+# これも studio\build.ps1 が exe に埋め込みます。
+$hostObj = Join-Path $obj 'yayahost'
+New-Item -ItemType Directory -Force -Path $hostObj | Out-Null
+$hostOut = Join-Path $dist 'yaya_host.exe'
+Write-Host "[ikaga] YAYA の手伝い (yaya_host.exe) をビルド中..." -ForegroundColor Cyan
+& cl /nologo /O2 /MT /EHsc /W3 /utf-8 /D_CRT_SECURE_NO_WARNINGS /DUNICODE /D_UNICODE `
+    (Join-Path (Split-Path -Parent $root) 'studio\yaya_host\yaya_host.cpp') `
+    "/Fo:$hostObj\" "/Fe:$hostOut" /link /SUBSYSTEM:CONSOLE
+if ($LASTEXITCODE -ne 0) { throw 'yaya_host.exe のビルドに失敗しました。' }
+Write-Host "[ikaga] OK -> $hostOut" -ForegroundColor Green
+
 # ---- test host -------------------------------------------------------------
 if ($Test) {
     # 中間ファイルは別のフォルダへ。栞のリンクが拾ってしまわないように。

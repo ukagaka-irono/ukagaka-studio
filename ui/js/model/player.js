@@ -1,7 +1,7 @@
 /* 伺かスタジオ - さくらスクリプトの再生（「ためす」タブの動きと吹き出し）
  *
- * ここはブロックを実行しません。**実行するのは栞そのもの**です。
- * 画面は POST /api/preview（studio/src/preview.cpp → shiori/src/interp.cpp）に頼み、
+ * ここはブロックを実行しません。**実行するのは栞そのもの**（SSP に入るのと同じ yaya.dll）です。
+ * 画面はブロックを YAYA に訳して（model/yaya.js）POST /api/preview（studio/src/yaya_preview.cpp）に頼み、
  * 返ってきたさくらスクリプトを、ここで「操作の列」にほどいて再生します。
  *
  * 以前はブロックを動かす規則を JavaScript でもう一度書いていましたが、

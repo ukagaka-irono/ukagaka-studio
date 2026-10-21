@@ -25,26 +25,34 @@ Inside `build.ps1 -Test` it also runs before the build (you learn about a forgot
 
 ## Blocks are always run by the SHIORI
 
-**The rules live in one place only: `shiori/src/interp.cpp`.**
+**During stage 3 (replacing ikaga SHIORI with YAYA), two things run blocks.**
 
 | Where it runs | Who runs it |
 |---|---|
-| A ghost installed in SSP | `interp.cpp` in `ikaga.dll` (32-bit) |
-| The editor's “Try” | **the same** `interp.cpp`, carried by `ukagaka-studio.exe` (64-bit) |
+| A ghost installed in SSP | for now still `interp.cpp` in `ikaga.dll` (32-bit); replaced by YAYA in 3-6 |
+| The editor's “Try” | **YAYA** (the same 32-bit `yaya.dll` that goes into SSP, run by `yaya_host.exe` embedded in the exe) |
 
-The UI (`ui/js/`) does not interpret blocks. It asks `POST /api/preview`,
-`ui/js/model/player.js` unpacks the Sakura Script that comes back, and `ui/js/panels/stage.js` plays it.
+The UI (`ui/js/`) does not interpret blocks. It translates them into a YAYA dictionary (`ui/js/model/yaya.js`),
+asks `POST /api/preview` (`studio/src/yaya_preview.cpp`), `ui/js/model/player.js` unpacks the Sakura Script that
+comes back, and `ui/js/panels/stage.js` plays it.
+`shiori\test\yaya\yaya.js` checks that the two give the same answers (ikaga SHIORI vs YAYA, and YAYA's “Try” vs how SSP runs it).
+
+“Try” writes the YAYA kit (`yaya.dll`, `yaya_host.exe`, `yaya_base`, `studio_runtime.dic`, and the Try entry
+`studio_preview.dic`) to a work folder (`%TEMP%\ukagaka-studio-preview-<process id>\`) and runs `yaya_host.exe` once
+per script it tries (about 0.1 s each; the very first run after startup can take 1–2 s while Windows scans the files).
+The folder is deleted when the exe closes. `studio_preview.dic` never goes into an exported ghost
+(it would let outsiders rewrite variables).
 
 > `ui/js/sim.js` used to write the same rules again in JavaScript.
 > Fixing only one side showed up later as “it works in the editor but not in SSP”,
 > the most troublesome kind of drift. Those 474 lines are gone.
 
-In exchange, **the same code is built as 32-bit and 64-bit**, so the parity test compares
-the two. Code that relies on the size of `int` or `size_t` stops there.
+ikaga SHIORI's parity test builds the same `interp.cpp` as 32-bit and 64-bit and compares them (the 64-bit one
+used to run “Try”; now only the test's `preview_host.exe` uses it). Code that relies on the size of `int` or
+`size_t` stops there.
 
 `interp.cpp` does not know how to load SAORI DLLs (`SaoriHost` in `saori.h` sits in between).
-That lets the studio use only the interpreter without carrying `saori.cpp`.
-The preview does not call SAORI, so it passes `NULL` there.
+The preview does not call SAORI, so it passes `NULL` there. YAYA's “Try” does not call SAORI either (`Studio.noSaori`).
 
 ---
 

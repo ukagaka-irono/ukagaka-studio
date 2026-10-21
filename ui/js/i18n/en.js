@@ -34,6 +34,8 @@ export const en = {
   '画像が読めません': 'Could not read the image',
   'プロジェクトを読めませんでした: {detail}': 'Could not read the project: {detail}',
   'そのかたまりが見つかりません: {detail}': 'Script not found: {detail}',
+  'YAYA の辞書がありません': 'No YAYA dictionary was sent',
+  'YAYA で動かせませんでした: {detail}': 'Could not run it on YAYA: {detail}',
   'ssp.exe が見つかりません。SSP の場所を指定してください。': 'ssp.exe was not found. Set the SSP location.',
   'SSP が見つかりません。SSP の場所を指定してください。': 'SSP was not found. Set the SSP location.',
   'スクリプトがありません': 'No script given',

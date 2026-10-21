@@ -327,9 +327,10 @@ ukagaka-studio/
 │   ├── build.ps1
 │   ├── test/               checks against expected results (-Test also builds the consoles)
 │   │                         export_host  … shows the contents of exported files
-│   │                         preview_host … shows the result of “Try”
+│   │                         preview_host … shows the result of the 64-bit ikaga SHIORI (for the parity test)
 │   ├── res/                the icon and the first-run samples (Japanese and English)
-│   │   └── yaya/           the runtime dictionary studio_runtime.dic for running on YAYA (stage 3)
+│   │   └── yaya/           the runtime dictionary studio_runtime.dic and the Try entry studio_preview.dic for YAYA (stage 3)
+│   ├── yaya_host/          the 32-bit helper that runs YAYA for “Try” (built by shiori\build.ps1)
 │   ├── third_party/        WebView2 SDK (headers + static loader)
 │   ├── tools/embed.ps1     turns ui\, ikaga.dll and yaya.dll into resources
 │   ├── tools/make-icon.mjs makes the exe icon from the logo (ui/img/logo.svg)
@@ -346,7 +347,8 @@ ukagaka-studio/
 │       ├── api_ghost.cpp     Try, and the exported ghost's memory and log
 │       ├── api_export.cpp    export, open in Explorer
 │       ├── api_ssp.cpp       working with a running SSP
-│       ├── preview.cpp     has the SHIORI itself run “Try”
+│       ├── preview.cpp     runs a script on the 64-bit ikaga SHIORI (used by the parity test's preview_host)
+│       ├── yaya_preview.cpp runs “Try” on YAYA (through yaya_host.exe)
 │       ├── exporter.cpp    assembles a whole ghost and writes it to a folder / .nar
 │       ├── export_program.cpp  ghost.json (what the SHIORI reads)
 │       ├── export_shell.cpp    placeholder surfaces, the shell's descript.txt, surfaces.txt
@@ -409,11 +411,11 @@ ukagaka-studio/
 
 ## How the SHIORI works
 
-The editor's “Try” is also run by **this very SHIORI**. Ukagaka Studio carries
-`shiori/src/interp.cpp` built as 64-bit, and the UI just asks through `POST /api/preview`
-(the UI has no block interpreter of its own).
+The editor's “Try” is run by **YAYA**, which replaces ikaga SHIORI in stage 3 (the same 32-bit `yaya.dll` that goes
+into SSP). The UI translates the blocks into a YAYA dictionary and asks through `POST /api/preview`; Ukagaka Studio runs it
+with `yaya_host.exe`, a small 32-bit helper embedded in the exe (the UI has no block interpreter of its own).
 Only two things differ: **it does not call SAORI** (that needs the real 32-bit DLL), and
-**the clock and boot count come from the UI**. Otherwise the answers are the same as in SSP.
+**the clock and boot count come from the UI**. The YAYA test checks that the answers match ikaga SHIORI.
 
 * It exports `load` / `unload` / `request` as a SHIORI/3.0 DLL (`src/ikaga.def`).
 * At startup it reads **`ghost.json`** from the DLL's folder.
