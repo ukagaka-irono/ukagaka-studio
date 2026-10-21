@@ -302,9 +302,19 @@ ukagaka-studio/
 │       ├── webreq.cpp      要求の解析（URL デコードなど）
 │       ├── assets.cpp      exe に埋め込んだ ui\ と ikaga.dll を取り出す
 │       ├── sstp.cpp        SSP との連携（SSTP と ssp.exe の検出）
-│       ├── api.cpp         保存・読み込み・書き出し・ためす の処理
+│       ├── api.cpp         /api/* の受け口（パスと関数の対応表 kRoutes）
+│       ├── api_project.cpp   状態・プロジェクトの保存と読み込み
+│       ├── api_shell.cpp     立ち絵（仮シェルの描画・用意した画像）
+│       ├── api_ghost.cpp     ためす・書き出したゴーストの記憶と記録
+│       ├── api_export.cpp    書き出し・エクスプローラで開く
+│       ├── api_ssp.cpp       動いている SSP との連携
 │       ├── preview.cpp     「ためす」を栞そのものに実行させる
-│       ├── exporter.cpp    ゴースト一式の組み立て（仮シェル込み）
+│       ├── exporter.cpp    ゴースト一式の組み立てと、フォルダ / .nar への書きこみ
+│       ├── export_program.cpp  ghost.json（栞が読むもの）
+│       ├── export_shell.cpp    仮の立ち絵・shell の descript.txt・surfaces.txt
+│       ├── export_seriko.cpp   surfaces.txt の SERIKO のうごき
+│       ├── export_balloon.cpp  同梱するバルーン
+│       ├── export_dau.cpp      ネットワーク更新の照合表（updates2.dau）
 │       ├── image.cpp       PNG 出力と簡易ラスタライザ
 │       ├── zip.cpp         .nar (ZIP) 出力
 │       ├── deflate.cpp     deflate 圧縮（固定ハフマン + LZ77）

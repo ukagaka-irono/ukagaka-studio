@@ -131,19 +131,25 @@ try {
 }
 
 # ---- コンパイル ------------------------------------------------------------
+# 書き出しまわり。exe と書き出しテスト用コンソールの両方に入れます。
+$exportSources = @('exporter.cpp', 'export_program.cpp', 'export_shell.cpp', 'export_seriko.cpp',
+                   'export_balloon.cpp', 'export_dau.cpp',
+                   'image.cpp', 'zip.cpp', 'deflate.cpp', 'fsutil.cpp') |
+    ForEach-Object { Join-Path $src $_ }
+
+# /api/* の受け口（api.cpp の kRoutes）と、用事ごとの中身
+$apiSources = @('api.cpp', 'api_project.cpp', 'api_shell.cpp', 'api_ghost.cpp',
+                'api_export.cpp', 'api_ssp.cpp') |
+    ForEach-Object { Join-Path $src $_ }
+
 $sources = @(
     (Join-Path $src 'main.cpp'),
-    (Join-Path $src 'api.cpp'),
     (Join-Path $src 'assets.cpp'),
     (Join-Path $src 'webview.cpp'),
     (Join-Path $src 'webreq.cpp'),
     (Join-Path $src 'sstp.cpp'),
-    (Join-Path $src 'exporter.cpp'),
-    (Join-Path $src 'image.cpp'),
-    (Join-Path $src 'zip.cpp'),
-    (Join-Path $src 'deflate.cpp'),
-    (Join-Path $src 'fsutil.cpp'),
-    (Join-Path $src 'preview.cpp'),
+    (Join-Path $src 'preview.cpp')
+) + $apiSources + $exportSources + @(
     # 「ためす」は栞そのものでブロックを動かします（同じ規則を二重に書かないため）
     (Join-Path $repo 'shiori\src\interp.cpp'),
     (Join-Path $repo 'shiori\src\program.cpp'),
@@ -169,16 +175,10 @@ Build-Exe -Label "伺かスタジオ ($Arch)" -Out $exeOut -ObjDir $obj -Sources
 if ($Test) {
     Build-Exe -Label '書き出しテスト用コンソール' `
         -Out (Join-Path $root 'test\export_host.exe') -ObjDir (Join-Path $obj 'test') `
-        -Sources @(
-            (Join-Path $root 'test\export_host.cpp'),
-            (Join-Path $src 'exporter.cpp'),
-            (Join-Path $src 'image.cpp'),
-            (Join-Path $src 'zip.cpp'),
-            (Join-Path $src 'deflate.cpp'),
-            (Join-Path $src 'fsutil.cpp'),
+        -Sources (@((Join-Path $root 'test\export_host.cpp')) + $exportSources + @(
             (Join-Path $repo 'shiori\src\json.cpp'),
             (Join-Path $repo 'shiori\src\util.cpp')
-        ) `
+        )) `
         -Include @($src, "$repo\shiori\src") `
         -Lib ($libsCommon + @('gdi32.lib', 'comdlg32.lib', 'oleaut32.lib'))
 

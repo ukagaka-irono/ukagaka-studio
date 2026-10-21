@@ -100,13 +100,25 @@ ui/js/
 > 残った宿題: 再描画はまだ `renderAll`（全部描きなおす）のままです。
 > 段階 2 で画面を組みかえるときに、変わったところだけ描く形に寄せます。
 
-### 1-3. スタジオ側（C++）の整理
+### 1-3. スタジオ側（C++）の整理（済）
 
 * `api.cpp`（655 行）は、`/api/...` の分岐が 1 つの関数に並んでいます。
   道すじごとの表（パス → 関数）にして、`project` / `ssp` / `export` / `shell` に分けます。
 * `exporter.cpp`（771 行）は、descript・surfaces・バルーン・updates2.dau・nar を、
   それぞれのファイルに分けます。書き出しテスト（`studio/test/export.js`）がバイトで見張っているので、
   **中身を変えずに分ける**ことができます。
+
+> 済ませたこと:
+>
+> * `api.cpp` は受け口の表（`kRoutes`）と共通の確かめ（よそのページからの要求を断る）だけにして、
+>   中身を `api_project` / `api_shell` / `api_ghost`（ためす・記憶・記録）/ `api_export` / `api_ssp` に
+>   分けました。計画の 4 つに、「ためす」と書き出したゴーストの記憶・記録をまとめた `api_ghost` を足しています。
+> * `exporter.cpp` は、ファイル一覧の組み立てと書きこみだけにして、`export_program`（ghost.json）/
+>   `export_shell`（仮の立ち絵・surfaces.txt）/ `export_seriko`（うごき）/ `export_balloon` /
+>   `export_dau` に分けました。`exporter.h` の中身（ほかから使う関数）は変えていません。
+> * 3 か所に同じ形で書いてあった「書き出すフォルダ名」を `GhostFolderName()` に、
+>   2 か所にあった「パスのまわりの "…" を外す」を `Unquote()` にまとめました。
+> * 書き出しテストはバイトのまま一致し、実際の exe で `/api/*` をひと通り呼んで答えを確かめました。
 
 ### 1-4. プロジェクトの形に版を持たせる
 

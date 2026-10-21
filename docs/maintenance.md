@@ -195,6 +195,30 @@ node のテストは ES モジュールを `require()` で読むので、**Node.
 
 ---
 
+## スタジオ側（`studio/src/`）の決まりごと
+
+**`/api/…` を 1 つ足すとき**は 3 か所です。
+
+1. `api.h` の `Api` に、`void Xxx(const HttpRequest& req, HttpResponse& res);` を書く
+   （用事ごとにまとめてあるので、近いもののところへ）。
+2. 中身を、近い用事の `api_*.cpp` に書く。返すのは `Json(res, 200, o)`、
+   失敗は `JsonError(res, 400, "…")`（どちらも `api_util.h`）。
+3. `api.cpp` の **`kRoutes`** に `{ "POST", "/api/…", &Api::Xxx }` を 1 行足す。
+
+よそのページからの要求を断る確かめは、`kRoutes` を引く前に `Api::HandleApi` が 1 か所でしています。
+`api_*.cpp` の中でもう一度する必要はありません。
+
+**書き出すファイルを足す・変えるとき**は、`exporter.cpp` の `BuildGhostFiles` が一覧の組み立て役で、
+中身はファイルの種類ごとに `export_*.cpp` にあります（`exporter.cpp` の先頭に一覧があります）。
+`export_*.cpp` どうしで使うものは `export_parts.h` に、ほかからも使うものは `exporter.h` に書きます。
+書き出しテスト（`studio\test\export.js`）がバイトで見くらべているので、中身を変えたときは
+目で確かめてから `--update` で期待値を作りなおしてください。
+
+**`.cpp` を足したら、`studio\build.ps1` の一覧にも足します**（`$apiSources` / `$exportSources`。
+書き出しまわりは、書き出しテスト用コンソールにも同じ一覧が入ります）。
+
+---
+
 ## 栞は、C ランタイムを使わずに組んでいます
 
 SSP は **Windows 2000 以降**で動きます。栞は SSP に読みこまれる DLL なので、そこに合わせます。
