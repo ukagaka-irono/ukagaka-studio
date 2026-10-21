@@ -55,7 +55,21 @@ function promptNewFunction() {
   return trimmed;
 }
 
+/**
+ * かたまりを、イベント・トーク・よばれるトークの順に、上から下・左から右へならべなおす。
+ * 大きさは、キャンバスに描いてあるものを測ります（長いセリフのかたまりが、となりの列に
+ * はみ出さないように）。描いていないとき（ほかの画面にいるとき）は、だいたいの大きさで並べます。
+ * 列は、いま見えているキャンバスの高さ（せまくても 900px）で折りかえします。
+ */
 function tidy() {
+  const sizes = new Map();
+  for (const el of document.querySelectorAll('#canvas > .script')) {
+    if (el._script && el.offsetWidth) sizes.set(el._script, { w: el.offsetWidth, h: el.offsetHeight });
+  }
+  const ws = $('#workspace');
+  const limit = Math.max(900, ws && ws.clientHeight ? ws.clientHeight / Session.zoom - 40 : 0);
+  const GAP_Y = 40, GAP_X = 60;
+
   Model.act(() => {
     let x = 60, y = 40, colW = 0;
     const order = { event: 0, talk: 1, function: 2, loose: 3 };
@@ -63,10 +77,12 @@ function tidy() {
       (a, b) => (order[a.kind] || 0) - (order[b.kind] || 0)
     );
     for (const s of sorted) {
+      const size = sizes.get(s) || { w: 420, h: estimateHeight(s) };
+      // この列に入りきらなければ、となりの列へ（列のはじめのかたまりは、大きくてもそのまま置く）
+      if (y > 40 && y + size.h > limit) { y = 40; x += colW + GAP_X; colW = 0; }
       s.x = x; s.y = y;
-      y += estimateHeight(s) + 40;
-      colW = Math.max(colW, 420);
-      if (y > 2400) { y = 40; x += colW + 60; colW = 0; }
+      y += size.h + GAP_Y;
+      colW = Math.max(colW, size.w);
     }
     Model.project.scripts = sorted;
   });

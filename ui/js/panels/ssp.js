@@ -11,6 +11,7 @@ import { toast } from '../core/toast.js';
 import { Session } from '../core/session.js';
 import { Render } from '../editor/render.js';
 import { Run } from './run.js';
+import { Pages } from './pages.js';
 import { t } from '../i18n/i18n.js';
 
 // -------------------------------------------------------------- SSP 連携
@@ -162,10 +163,10 @@ function init() {
       toast(t('SSP の場所を覚えました'));
     } catch (e) { toast(e.message, true); }
   });
-  // SSP のようすが要るタブを開いたら、たしかめなおす
-  for (const tab of document.querySelectorAll('.side-tab')) {
-    if (tab.dataset.tab === 'export' || tab.dataset.tab === 'run') tab.addEventListener('click', refreshSsp);
-  }
+  // SSP のようすが要るところ（書き出しの画面・ためすのタブ）を開いたら、たしかめなおす
+  Pages.onShow((name) => { if (name === 'export') refreshSsp(); });
+  const runTab = document.querySelector('.side-tab[data-tab="run"]');
+  if (runTab) runTab.addEventListener('click', refreshSsp);
   refreshSsp();
   setInterval(refreshSsp, 30000);
 }

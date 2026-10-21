@@ -9,6 +9,7 @@ import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
+import { Pages } from './pages.js';
 import { t } from '../i18n/i18n.js';
 
 // ------------------------------------------------------------- チェック
@@ -169,6 +170,7 @@ function init() {
 
 /** さがすタブを開いて、入力欄にすぐ打てるようにする（Ctrl+F） */
 function focus() {
+  Pages.show('talk');
   Tabs.switchTab('search');
   const searchInput = $('#search-input');
   if (searchInput) { searchInput.focus(); searchInput.select(); }

@@ -26,11 +26,21 @@
       <button id="btn-redo" class="btn icon-btn" title="やりなおす (Ctrl+Y)">↷</button>
       <span class="sep"></span>
       <button id="btn-theme" class="btn icon-btn ghost-btn" title="表示: Windows の設定に合わせる">◐</button>
+      <button id="btn-help" class="btn icon-btn ghost-btn" title="つかいかた・キーボード">？</button>
       <button id="btn-export" class="btn primary" title="ゴーストとして書き出す">▶ 書き出し</button>
     </div>
   </header>
 
-  <div id="main">
+  <!-- いちばん大きな切りかえ。中身は下の .page（panels/pages.js） -->
+  <nav id="mode-bar">
+    <button class="mode-tab is-active" data-page="talk">トーク</button>
+    <button class="mode-tab" data-page="chara">キャラと絵</button>
+    <button class="mode-tab" data-page="ghost">ゴースト情報</button>
+    <button class="mode-tab" data-page="export">書き出し</button>
+  </nav>
+
+  <!-- ============================================================ トーク -->
+  <div id="main" class="page is-active" data-page="talk">
     <!-- ---------------------------------------------------- palette -->
     <aside id="palette">
       <div id="cat-list"></div>
@@ -49,9 +59,9 @@
         <ol class="steps">
           <li>左の「イベント」から <i>起動したとき</i> をここにドラッグ</li>
           <li>「セリフ」の <i>◯が □ と話す</i> を、その下につなげる</li>
-          <li>右の <i>ためす</i> の ▶ で確かめて、<i>書き出し</i> で SSP に入れる</li>
+          <li>右の <i>ためす</i> の ▶ で確かめて、上の <i>書き出し</i> で SSP に入れる</li>
         </ol>
-        こまったら右の <i>ヘルプ</i> タブを見てください
+        こまったら右上の <i>？</i> を押してください
       </div>
       <div id="zoom-controls">
         <button class="btn icon-btn" id="btn-zoom-out" title="縮小">−</button>
@@ -66,12 +76,9 @@
     <aside id="side">
       <nav id="side-tabs">
         <button class="side-tab is-active" data-tab="run">ためす</button>
-        <button class="side-tab" data-tab="ghost">ゴースト</button>
         <button class="side-tab" data-tab="vars">変数</button>
-        <button class="side-tab" data-tab="search">さがす</button>
         <button class="side-tab" data-tab="check">チェック<span id="check-badge" class="tab-badge"></span></button>
-        <button class="side-tab" data-tab="export">書き出し</button>
-        <button class="side-tab" data-tab="help">ヘルプ</button>
+        <button class="side-tab" data-tab="search">さがす</button>
       </nav>
 
       <div id="side-body">
@@ -120,60 +127,6 @@
           <pre id="ghost-log" class="ghost-log">（まだ読んでいません）</pre>
         </section>
 
-        <!-- ---- ghost ---- -->
-        <section class="side-panel" data-panel="ghost">
-          <div class="panel-head"><h2>ゴーストの設定</h2></div>
-          <label class="field"><span>ゴースト名</span><input id="meta-name" type="text"></label>
-          <label class="field"><span>本体（さくら）の名前</span><input id="meta-sakura" type="text"></label>
-          <label class="field"><span>相方（うにゅう）の名前</span><input id="meta-kero" type="text"></label>
-          <label class="field"><span>作者名</span><input id="meta-craftman" type="text"></label>
-          <label class="field"><span>作者URL</span><input id="meta-url" type="text" placeholder="https://"></label>
-          <label class="field"><span>更新のありか</span><input id="meta-homeurl" type="text" placeholder="https://example.com/ghost/"></label>
-          <p class="hint">ネットワーク更新に使う URL です。書き出したフォルダを丸ごと置く場所を、
-            うしろに / を付けて入れます。空ならネットワーク更新はしません。</p>
-          <label class="field"><span>バージョン</span><input id="meta-version" type="text" value="1.0.0"></label>
-          <label class="field"><span>説明</span><textarea id="meta-desc" rows="3"></textarea></label>
-
-          <div class="panel-head"><h2>ランダムトーク</h2></div>
-          <label class="field row">
-            <span>自動でしゃべる</span>
-            <input id="set-talk-enabled" type="checkbox" checked>
-          </label>
-          <label class="field"><span>しゃべる間隔（秒）</span><input id="set-talk-interval" type="number" min="0" value="180"></label>
-          <label class="field"><span>同じトークを避ける数（0＝おまかせ）</span><input id="set-no-repeat" type="number" min="0" max="16" value="0"></label>
-          <p class="hint">直近に出したトークを、この数だけ次の抽選からはずします。おまかせのときはトーク数の半分（最大8）です。</p>
-
-          <div class="panel-head"><h2>立ち絵の画像</h2>
-            <p class="hint">用意した PNG を割り当てられます。えらばなかった番号は、下の色で自動生成します。</p>
-          </div>
-          <div id="shell-slots" class="shell-slots"></div>
-          <button id="btn-shell-add" class="btn small">＋ 番号を指定して追加</button>
-
-          <div class="panel-head"><h2>うごき（アニメーション）</h2>
-            <p class="hint">立ち絵をパラパラ切りかえて動かします。「うごき N を再生する」ブロックで呼べます。</p>
-          </div>
-          <div id="anim-list" class="anim-list"></div>
-          <button id="btn-anim-add" class="btn small">＋ うごきを作る</button>
-
-          <div class="panel-head"><h2>見た目（仮シェル）</h2>
-            <p class="hint">絵を用意していないときは、この色でかんたんな立ち絵を自動生成します。</p>
-          </div>
-          <label class="field row"><span>さくらの髪の色</span><input id="shell-sakura-color" type="color" value="#f08cae"></label>
-          <label class="field row"><span>さくらの服の色</span><input id="shell-sakura-cloth" type="color" value="#6e82c8"></label>
-          <label class="field row"><span>うにゅうの髪の色</span><input id="shell-kero-color" type="color" value="#8fd18a"></label>
-          <label class="field row"><span>うにゅうの服の色</span><input id="shell-kero-cloth" type="color" value="#e8b45c"></label>
-          <label class="field row"><span>バルーンも作る</span><input id="shell-balloon-on" type="checkbox"></label>
-          <label class="field row"><span>バルーンの色</span><input id="shell-balloon-color" type="color" value="#fffdf5"></label>
-          <p class="hint">「バルーンも作る」を入れると、この色のかんたんな吹き出しを同梱します。
-            入れないと、使う人が持っているバルーンで表示されます。</p>
-          <div class="shell-preview">
-            <figure><img id="shell-prev-0" alt="さくら 通常"><figcaption>通常</figcaption></figure>
-            <figure><img id="shell-prev-1" alt="さくら 笑顔"><figcaption>笑顔</figcaption></figure>
-            <figure><img id="shell-prev-2" alt="さくら 驚き"><figcaption>驚き</figcaption></figure>
-            <figure><img id="shell-prev-10" alt="うにゅう 通常"><figcaption>相方</figcaption></figure>
-          </div>
-        </section>
-
         <!-- ---- vars ---- -->
         <section class="side-panel" data-panel="vars">
           <div class="panel-head">
@@ -185,6 +138,14 @@
         </section>
 
         <!-- ---- check ---- -->
+        <section class="side-panel" data-panel="check">
+          <div class="panel-head">
+            <h2>チェック</h2>
+            <p class="hint">おかしなところを探します。クリックすると、そのブロックまで移動します。</p>
+          </div>
+          <div id="check-list" class="check-list"></div>
+        </section>
+
         <!-- ---- search ---- -->
         <section class="side-panel" data-panel="search">
           <div class="panel-head">
@@ -197,35 +158,127 @@
           </div>
           <div id="search-list" class="check-list"></div>
         </section>
+      </div>
+    </aside>
+  </div>
 
-        <section class="side-panel" data-panel="check">
-          <div class="panel-head">
-            <h2>チェック</h2>
-            <p class="hint">おかしなところを探します。クリックすると、そのブロックまで移動します。</p>
+  <!-- ======================================================= キャラと絵 -->
+  <div class="page page-scroll" data-page="chara">
+    <div class="page-inner">
+      <section class="card">
+        <div class="card-head">
+          <h2>立ち絵</h2>
+          <p class="hint">用意した PNG を番号ごとに割り当てられます。えらばなかった番号は、下の「見た目（仮シェル）」の色で自動生成します。</p>
+        </div>
+        <div id="shell-slots" class="shell-slots"></div>
+        <button id="btn-shell-add" class="btn small">＋ 番号を指定して追加</button>
+      </section>
+
+      <div class="card-grid">
+        <section class="card">
+          <div class="card-head">
+            <h2>見た目（仮シェル）</h2>
+            <p class="hint">絵を用意していないときは、この色でかんたんな立ち絵を自動生成します。</p>
           </div>
-          <div id="check-list" class="check-list"></div>
+          <div class="shell-colors">
+            <div class="shell-color-fields">
+              <label class="field row"><span>さくらの髪の色</span><input id="shell-sakura-color" type="color" value="#f08cae"></label>
+              <label class="field row"><span>さくらの服の色</span><input id="shell-sakura-cloth" type="color" value="#6e82c8"></label>
+              <label class="field row"><span>うにゅうの髪の色</span><input id="shell-kero-color" type="color" value="#8fd18a"></label>
+              <label class="field row"><span>うにゅうの服の色</span><input id="shell-kero-cloth" type="color" value="#e8b45c"></label>
+            </div>
+            <div class="shell-preview">
+              <figure><img id="shell-prev-0" alt="さくら 通常"><figcaption>通常</figcaption></figure>
+              <figure><img id="shell-prev-1" alt="さくら 笑顔"><figcaption>笑顔</figcaption></figure>
+              <figure><img id="shell-prev-2" alt="さくら 驚き"><figcaption>驚き</figcaption></figure>
+              <figure><img id="shell-prev-10" alt="うにゅう 通常"><figcaption>相方</figcaption></figure>
+            </div>
+          </div>
         </section>
 
-        <!-- ---- export ---- -->
-        <section class="side-panel" data-panel="export">
-          <div class="panel-head">
-            <h2>SSP に入れる</h2>
-            <p class="hint">SSP の ghost フォルダへ直接書き出して、そのまま切り替えます。</p>
+        <section class="card">
+          <div class="card-head">
+            <h2>バルーン（吹き出し）</h2>
+            <p class="hint">「バルーンも作る」を入れると、この色のかんたんな吹き出しを同梱します。
+              入れないと、使う人が持っているバルーンで表示されます。</p>
           </div>
-          <div id="ssp-info" class="status-line"></div>
-          <div class="btn-row">
-            <button id="btn-ssp-install" class="btn primary">SSP に入れて動かす</button>
-            <button id="btn-ssp-launch" class="btn">SSP を起動</button>
-            <button id="btn-ssp-refresh" class="btn small" title="SSP の状態を確認しなおす">再確認</button>
-          </div>
-          <div id="ssp-result" class="export-result"></div>
-          <label class="field" style="margin-top:10px">
-            <span>SSP の場所（自動で見つからないとき）</span>
-            <input id="ssp-path" type="text" spellcheck="false" placeholder="C:\ssp\ssp.exe">
-          </label>
-          <button id="btn-ssp-path" class="btn small">この場所を使う</button>
+          <label class="field row"><span>バルーンも作る</span><input id="shell-balloon-on" type="checkbox"></label>
+          <label class="field row"><span>バルーンの色</span><input id="shell-balloon-color" type="color" value="#fffdf5"></label>
+        </section>
+      </div>
 
-          <div class="panel-head"><h2>フォルダ／.nar に書き出す</h2></div>
+      <section class="card">
+        <div class="card-head">
+          <h2>うごき（アニメーション）</h2>
+          <p class="hint">立ち絵をパラパラ切りかえて動かします。こまは左から順に出ます。「うごき N を再生する」ブロックで呼べます。</p>
+        </div>
+        <div id="anim-list" class="anim-list"></div>
+        <button id="btn-anim-add" class="btn small">＋ うごきを作る</button>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===================================================== ゴースト情報 -->
+  <div class="page page-scroll" data-page="ghost">
+    <div class="page-inner card-grid">
+      <section class="card">
+        <div class="card-head"><h2>名前と作者</h2></div>
+        <label class="field"><span>ゴースト名</span><input id="meta-name" type="text"></label>
+        <label class="field"><span>本体（さくら）の名前</span><input id="meta-sakura" type="text"></label>
+        <label class="field"><span>相方（うにゅう）の名前</span><input id="meta-kero" type="text"></label>
+        <label class="field"><span>作者名</span><input id="meta-craftman" type="text"></label>
+        <label class="field"><span>作者URL</span><input id="meta-url" type="text" placeholder="https://"></label>
+        <label class="field"><span>バージョン</span><input id="meta-version" type="text" value="1.0.0"></label>
+        <label class="field"><span>説明</span><textarea id="meta-desc" rows="3"></textarea></label>
+      </section>
+
+      <div class="card-stack">
+        <section class="card">
+          <div class="card-head"><h2>ランダムトーク</h2></div>
+          <label class="field row">
+            <span>自動でしゃべる</span>
+            <input id="set-talk-enabled" type="checkbox" checked>
+          </label>
+          <label class="field"><span>しゃべる間隔（秒）</span><input id="set-talk-interval" type="number" min="0" value="180"></label>
+          <label class="field"><span>同じトークを避ける数（0＝おまかせ）</span><input id="set-no-repeat" type="number" min="0" max="16" value="0"></label>
+          <p class="hint">直近に出したトークを、この数だけ次の抽選からはずします。おまかせのときはトーク数の半分（最大8）です。</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>ネットワーク更新</h2></div>
+          <label class="field"><span>更新のありか</span><input id="meta-homeurl" type="text" placeholder="https://example.com/ghost/"></label>
+          <p class="hint">ネットワーク更新に使う URL です。書き出したフォルダを丸ごと置く場所を、
+            うしろに / を付けて入れます。空ならネットワーク更新はしません。</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== 書き出し -->
+  <div class="page page-scroll" data-page="export">
+    <div class="page-inner card-grid">
+      <section class="card">
+        <div class="card-head">
+          <h2>SSP に入れる</h2>
+          <p class="hint">SSP の ghost フォルダへ直接書き出して、そのまま切り替えます。</p>
+        </div>
+        <div id="ssp-info" class="status-line"></div>
+        <div class="btn-row">
+          <button id="btn-ssp-install" class="btn primary">SSP に入れて動かす</button>
+          <button id="btn-ssp-launch" class="btn">SSP を起動</button>
+          <button id="btn-ssp-refresh" class="btn small" title="SSP の状態を確認しなおす">再確認</button>
+        </div>
+        <div id="ssp-result" class="export-result"></div>
+        <label class="field field-gap">
+          <span>SSP の場所（自動で見つからないとき）</span>
+          <input id="ssp-path" type="text" spellcheck="false" placeholder="C:\ssp\ssp.exe">
+        </label>
+        <button id="btn-ssp-path" class="btn small">この場所を使う</button>
+      </section>
+
+      <div class="card-stack">
+        <section class="card">
+          <div class="card-head"><h2>フォルダ／.nar に書き出す</h2></div>
           <div id="dll-status" class="status-line"></div>
           <label class="field"><span>書き出し先フォルダ</span><input id="export-dir" type="text" spellcheck="false"></label>
           <p class="hint" id="ssp-hint"></p>
@@ -236,48 +289,60 @@
             <button id="btn-export-nar" class="btn">.nar を作る</button>
           </div>
           <div id="export-result" class="export-result"></div>
+        </section>
 
-          <div class="panel-head"><h2>読み込み</h2>
+        <section class="card">
+          <div class="card-head">
+            <h2>読み込み</h2>
             <p class="hint">書き出し済みのゴースト（ghost.json）を読み込んで編集できます。</p>
           </div>
           <label class="field"><span>ghost.json またはゴーストフォルダのパス</span><input id="import-path" type="text" spellcheck="false"></label>
           <button id="btn-import" class="btn small">読み込む</button>
         </section>
+      </div>
+    </div>
+  </div>
 
-        <!-- ---- help ---- -->
-        <section class="side-panel" data-panel="help">
-          <div class="panel-head"><h2>つかいかた</h2></div>
-          <ol class="help-list">
-            <li><b>イベント</b>から「起動したとき」などをキャンバスにドラッグします。</li>
-            <li>その下に<b>セリフ</b>の「…と話す」ブロックをつなげます。</li>
-            <li><b>ためす</b>タブの ▶ で動きを確認します。</li>
-            <li>「<b>なでられたとき</b>」などのマウス操作は、<b>あたま・かお・むね</b>といった場所ごとに
-              分けて反応させられます（仮シェルにも当たり判定が入っています）。</li>
-            <li><b>チェック</b>タブに気になるところが出ます。クリックするとその場所へ移動します。</li>
-            <li>用意した絵を使うときは、<b>ゴースト</b>タブの「立ち絵の画像」で PNG をえらびます。</li>
-            <li><b>書き出し</b>でフォルダか .nar を作り、SSP にドラッグ＆ドロップで入れます。</li>
-          </ol>
-          <div class="panel-head"><h2>ショートカット</h2></div>
+  <!-- ========================================================== ヘルプ -->
+  <div class="page page-scroll" data-page="help">
+    <div class="page-inner card-grid">
+      <section class="card">
+        <div class="card-head"><h2>つかいかた</h2></div>
+        <ol class="help-list">
+          <li><b>トーク</b>の左の<b>イベント</b>から「起動したとき」などをキャンバスにドラッグします。</li>
+          <li>その下に<b>セリフ</b>の「…と話す」ブロックをつなげます。</li>
+          <li>右の<b>ためす</b>の ▶ で動きを確認します。</li>
+          <li>「<b>なでられたとき</b>」などのマウス操作は、<b>あたま・かお・むね</b>といった場所ごとに
+            分けて反応させられます（仮シェルにも当たり判定が入っています）。</li>
+          <li>右の<b>チェック</b>に気になるところが出ます。クリックするとその場所へ移動します。</li>
+          <li>用意した絵を使うときは、<b>キャラと絵</b>の「立ち絵」で PNG をえらびます。</li>
+          <li><b>書き出し</b>でフォルダか .nar を作り、SSP にドラッグ＆ドロップで入れます。</li>
+        </ol>
+      </section>
+
+      <div class="card-stack">
+        <section class="card">
+          <div class="card-head"><h2>キーボードとマウス</h2></div>
           <table class="key-table">
             <tr><td>Ctrl+S</td><td>保存</td></tr>
             <tr><td>Ctrl+Z / Ctrl+Y</td><td>元にもどす / やりなおす</td></tr>
-            <tr><td>Delete</td><td>えらんだブロックを削除</td></tr>
+            <tr><td>Ctrl+F</td><td>さがす</td></tr>
+            <tr><td>Ctrl+C / Ctrl+X / Ctrl+V</td><td>ブロックのコピー / 切り取り / はりつけ</td></tr>
+            <tr><td>Ctrl+D</td><td>えらんだブロックを複製</td></tr>
+            <tr><td>Delete</td><td>えらんだブロックを消す</td></tr>
             <tr><td>右クリック</td><td>複製・削除メニュー</td></tr>
             <tr><td>ホイール / 中ドラッグ</td><td>キャンバス移動</td></tr>
+            <tr><td>Ctrl+ホイール</td><td>拡大・縮小</td></tr>
           </table>
-          <div class="panel-head"><h2>ブロックの色</h2></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>ブロックの色</h2></div>
           <div id="help-cats" class="help-cats"></div>
-          <div class="panel-head"><h2>キーボード</h2></div>
-          <ul class="help-keys">
-            <li><b>Ctrl+S</b> 保存</li>
-            <li><b>Ctrl+Z</b> / <b>Ctrl+Y</b> もどす / やりなおす</li>
-            <li><b>Ctrl+F</b> さがす</li>
-            <li><b>Ctrl+C</b> / <b>Ctrl+X</b> / <b>Ctrl+V</b> ブロックのコピー / 切り取り / はりつけ</li>
-            <li><b>Ctrl+D</b> えらんだブロックを複製</li>
-            <li><b>Delete</b> えらんだブロックを消す</li>
-            <li><b>Ctrl+ホイール</b> 拡大・縮小</li>
-          </ul>
-          <div class="panel-head"><h2>栞について</h2></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>栞について</h2></div>
           <p class="hint">
             書き出したゴーストは <b>ikaga.dll</b>（如何栞）で動きます。会話データは
             <b>ghost/master/ghost.json</b> に入っていて、SSP を動かしたまま書き出し直すと
@@ -285,7 +350,7 @@
           </p>
         </section>
       </div>
-    </aside>
+    </div>
   </div>
 </div>
 

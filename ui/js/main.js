@@ -6,7 +6,7 @@
  *   model/   データと規則（DOM を触らない）
  *   core/    画面の土台（API・お知らせ・画面の状態・上の層への受け口）
  *   editor/  キャンバスとパレット
- *   panels/  右の列のタブ
+ *   panels/  画面（トークの右の列・キャラと絵・ゴースト情報・書き出し・ヘルプ）
  *
  * import は上から下へだけ向けます（docs/maintenance.md）。
  */
@@ -25,9 +25,11 @@ import { Palette } from './editor/palette.js';
 import { Scripts } from './editor/scripts.js';
 import { Zoom } from './editor/zoom.js';
 import { ContextMenu } from './editor/contextmenu.js';
+import { Pages } from './panels/pages.js';
 import { Tabs } from './panels/tabs.js';
 import { Run } from './panels/run.js';
-import { Shell } from './panels/shell.js';
+import { Stage } from './panels/stage.js';
+import { Chara } from './panels/chara.js';
 import { Vars } from './panels/vars.js';
 import { Ghost } from './panels/ghost.js';
 import { Search } from './panels/search.js';
@@ -48,16 +50,28 @@ function scheduleRender() {
   });
 }
 
+// 描きなおすのは、いつも見えているもの（上のバー・チェックの数）と、いま見えている画面だけです。
+// 画面を切りかえたら、その画面を描きなおします（Pages.onShow）。
 function renderAll() {
   const project = Model.project;
-  Render.renderWorkspace($('#canvas'), project);
-  Palette.render();
-  $('#canvas-hint').style.display = project.scripts.length ? 'none' : '';
-  Vars.render();
-  Run.render();
-  Search.renderCheck();
-  Search.renderSearch();
-  Ghost.render();
+  Ghost.render();            // 上のバーの名前と、ゴースト情報の欄（軽いので、いつも）
+  Search.renderCheck();      // トークの右の列の「チェック」の数
+  switch (Pages.current) {
+    case 'talk':
+      Render.renderWorkspace($('#canvas'), project);
+      Palette.render();
+      $('#canvas-hint').style.display = project.scripts.length ? 'none' : '';
+      Vars.render();
+      Run.render();
+      Search.renderSearch();
+      Stage.refresh();
+      break;
+    case 'chara':
+      Chara.render();
+      break;
+    default:
+      break;
+  }
   $('#btn-undo').disabled = !Model.undoStack.length;
   $('#btn-redo').disabled = !Model.redoStack.length;
   updateTitle();
@@ -75,10 +89,10 @@ function initTopbar() {
   $('#btn-save').addEventListener('click', () => Dialog.saveProject(false));
   $('#btn-undo').addEventListener('click', () => Model.undo());
   $('#btn-redo').addEventListener('click', () => Model.redo());
-  $('#btn-export').addEventListener('click', () => { Tabs.switchTab('export'); Dialog.doExport('dir'); });
+  $('#btn-export').addEventListener('click', () => { Pages.show('export'); Dialog.doExport('dir'); });
 }
 
-/** 起動時に exe からもらった状態を、書き出しタブに出す */
+/** 起動時に exe からもらった状態を、書き出しの画面に出す */
 function showState(state) {
   if (!state) return;
   $('#export-dir').value = state.defaultOutDir || '';
@@ -96,6 +110,8 @@ function showState(state) {
 async function boot() {
   translateDom(document.body);   // index.html に直に書いた文（日本語のときは何もしない）
   Theme.init();
+  Pages.init();
+  Pages.onShow(scheduleRender);  // 切りかえた画面を描く
   Palette.init();
   Ghost.init();
   ContextMenu.init();
@@ -127,13 +143,13 @@ async function boot() {
   }
   Zoom.setZoom(1);
   Tabs.switchTab('run');
-  Shell.resetStage();
+  Stage.reset();
 
   initTopbar();
   Tabs.init();
   Run.init();
   Vars.init();
-  Shell.init();
+  Chara.init();
   Scripts.init();
   Zoom.init();
   Dialog.init();

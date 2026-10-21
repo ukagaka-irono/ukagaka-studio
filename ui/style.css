@@ -78,7 +78,13 @@
   --toast-error:  #b8432a;
   --flash-glow:   rgba(226,102,74,.95);   /* 「さがす」で飛んだ先のブロックを光らせる色 */
 
-  /* ---- ブロックの色（カテゴリごと） */
+  /* ---- ブロックの色（カテゴリごと）と、その上の文字
+   * 色は Scratch と同じ。文字は白ではなく黒にしています（白だと、黄色やオレンジのブロックで
+   * 読みやすさの比が 1.7〜2.3 しかなく読みにくいため。黒ならどの色でも 4.3 以上）。
+   * ブロックの上の選択欄・± ボタンは、白をうすく重ねて、くぼみに見せています。 */
+  --on-block:       #1f2328;
+  --on-block-field: rgba(255,255,255,.45);
+  --on-block-hover: rgba(255,255,255,.7);
   --cat-events: #ffbf00;
   --cat-talk: #ff6680;
   --cat-looks: #9966ff;
@@ -130,7 +136,7 @@ button, input, select, textarea { font-family: inherit; }
 
 .btn {
   border: 1px solid var(--line); background: var(--surface); color: var(--text-2);
-  border-radius: 7px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+  border-radius: 7px; padding: 6px 12px; font-size: 13px; cursor: pointer; white-space: nowrap;
   transition: background .12s, border-color .12s, transform .05s;
 }
 .btn:hover { background: var(--surface-hover); border-color: var(--line-strong); }
@@ -142,8 +148,42 @@ button, input, select, textarea { font-family: inherit; }
 .btn.icon-btn { padding: 5px 9px; min-width: 32px; }
 .btn.ghost-btn { background: transparent; }
 .btn[disabled] { opacity: .5; cursor: default; }
+.btn.is-active { background: var(--surface-active); border-color: var(--line-strong); }
 
+/* ------------------------------------------------------- 画面の切りかえ */
+#mode-bar {
+  flex: 0 0 auto; display: flex; align-items: stretch; gap: 2px;
+  height: 38px; padding: 0 12px;
+  background: var(--surface); border-bottom: 1px solid var(--line); z-index: 29;
+}
+.mode-tab {
+  border: 0; border-bottom: 3px solid transparent; background: transparent; cursor: pointer;
+  padding: 3px 16px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap;
+}
+.mode-tab:hover { color: var(--text); background: var(--surface-hover); }
+.mode-tab.is-active { color: var(--text-strong); border-bottom-color: var(--accent); }
+
+/* 画面は 1 つだけ見せる（#main はトークの画面。左・まんなか・右の 3 列） */
+#app > .page { flex: 1 1 auto; min-height: 0; }
+#app > .page:not(.is-active) { display: none; }
 #main { flex: 1 1 auto; display: flex; min-height: 0; }
+
+/* トーク以外の画面（上から下へ読む、カードの並び） */
+.page-scroll { overflow-y: auto; padding: 20px 24px 60px; }
+.page-inner { max-width: 1120px; margin: 0 auto; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-l);
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.card-head { margin-bottom: 12px; }
+.card-head h2 { font-size: 14px; margin: 0 0 4px; color: var(--text-strong); }
+.card-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px; align-items: start; margin-bottom: 16px;
+}
+.card-grid > .card, .card-stack > .card { margin-bottom: 0; }
+.card-stack { display: flex; flex-direction: column; gap: 16px; }
+.field-gap { margin-top: 10px; }
 
 /* ------------------------------------------------------------ palette */
 #palette {
@@ -228,7 +268,7 @@ button, input, select, textarea { font-family: inherit; }
 .blk .row {
   position: relative;
   background: var(--blk);
-  color: var(--on-accent);
+  color: var(--on-block);
   font-size: 13px;
   font-weight: 600;
   line-height: 20px;
@@ -337,18 +377,19 @@ button, input, select, textarea { font-family: inherit; }
 }
 .slot input.long { text-align: left; }
 .field-drop {
-  appearance: none; border: 0; border-radius: 999px; background: rgba(0,0,0,.16);
-  color: var(--on-accent); font-size: 12.5px; font-weight: 600; padding: 4px 20px 4px 10px; cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7'><path d='M0 0h10L5 7z' fill='white'/></svg>");
+  appearance: none; border: 0; border-radius: 999px; background-color: var(--on-block-field);
+  color: var(--on-block); font-size: 12.5px; font-weight: 600; padding: 4px 20px 4px 10px; cursor: pointer;
+  /* 三角の色は --on-block と同じ（%23 は #） */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7'><path d='M0 0h10L5 7z' fill='%231f2328'/></svg>");
   background-repeat: no-repeat; background-position: right 7px center;
 }
-.field-drop:focus { outline: 2px solid rgba(255,255,255,.8); }
+.field-drop:focus { outline: 2px solid var(--on-block); outline-offset: 1px; }
 .field-drop option { color: var(--text); background: var(--surface); }
 .blk-btn {
-  border: 0; background: rgba(0,0,0,.16); color: var(--on-accent); border-radius: 50%;
+  border: 0; background: var(--on-block-field); color: var(--on-block); border-radius: 50%;
   width: 20px; height: 20px; font-size: 13px; line-height: 1; cursor: pointer; padding: 0;
 }
-.blk-btn:hover { background: rgba(0,0,0,.3); }
+.blk-btn:hover { background: var(--on-block-hover); }
 .branch-label { font-size: 11px; opacity: .85; font-weight: 700; }
 
 /* drag layer */
@@ -382,7 +423,7 @@ button, input, select, textarea { font-family: inherit; }
 
 .field { display: block; margin-bottom: 9px; }
 .field > span { display: block; font-size: 11.5px; color: var(--text-muted); margin-bottom: 3px; }
-.field input[type=text], .field input[type=number], .field textarea, .field select, .run-picker select {
+.field input[type=text], .field input[type=number], .field textarea, .field select, .run-picker select, .run-picker input[type=text] {
   width: 100%; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
   font-size: 13px; background: var(--surface); color: var(--text-strong);
 }
@@ -441,7 +482,8 @@ button, input, select, textarea { font-family: inherit; }
 .var-item .del:hover { color: var(--danger); }
 
 .run-picker { display: flex; gap: 6px; margin-bottom: 8px; }
-.run-picker select { flex: 1 1 auto; }
+.run-picker select, .run-picker input[type=text] { flex: 1 1 auto; min-width: 0; }
+.run-picker .btn { flex: 0 0 auto; }
 .ssp-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 .ssp-badge {
   font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 700;
@@ -459,30 +501,34 @@ button, input, select, textarea { font-family: inherit; }
   filter: drop-shadow(0 2px 3px var(--shadow-color));
 }
 #stage .chara.small { left: auto; right: 10px; height: 96px; }
-.shell-slots { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+/* 「キャラと絵」の立ち絵（番号ごとのカード） */
+.shell-slots {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px; margin-bottom: 12px;
+}
 .shell-slot {
-  display: flex; align-items: center; gap: 8px;
-  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--surface);
+  display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--surface-2);
 }
 .shell-slot .thumb {
-  width: 38px; height: 46px; flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: center;
-  background: linear-gradient(var(--stage-top), var(--stage-bottom)); border-radius: 5px; overflow: hidden;
+  height: 150px; display: flex; align-items: flex-end; justify-content: center;
+  background: linear-gradient(var(--stage-top), var(--stage-bottom)); border-radius: 6px; overflow: hidden;
+  font-size: 24px; color: var(--text-faint);
 }
 .shell-slot .thumb img { max-width: 100%; max-height: 100%; display: block; }
-.shell-slot .info { flex: 1 1 auto; min-width: 0; }
-.shell-slot .slot-name { font-size: 12px; font-weight: 600; }
+.shell-slot .slot-name { font-size: 12px; font-weight: 600; text-align: center; }
 .shell-slot .slot-file {
-  display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 1px;
+  display: block; font-size: 10.5px; color: var(--text-muted); text-align: center;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .shell-slot .slot-file.is-auto { color: var(--text-faint); }
-.shell-slot .btn { flex: 0 0 auto; }
-.shell-slot input.slot-id {
-  width: 46px; border: 1px solid var(--line); border-radius: 5px; padding: 3px 5px; font-size: 12px;
-}
+.slot-btns { display: flex; justify-content: center; gap: 4px; margin-top: 2px; }
 
+/* 仮シェルの色と見本 */
+.shell-colors { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.shell-color-fields { flex: 1 1 200px; }
 .shell-preview {
-  display: flex; gap: 8px; margin-top: 10px; padding: 10px 8px;
+  flex: 1 1 260px; display: flex; gap: 8px; padding: 10px 8px;
   border: 1px solid var(--line); border-radius: 10px;
   background: linear-gradient(var(--stage-top), var(--stage-bottom));
 }
@@ -521,7 +567,7 @@ button, input, select, textarea { font-family: inherit; }
 .run-vars-title { font-size: 12px; opacity: .75; margin-right: auto; }
 .run-var.is-empty { opacity: .55; }
 .run-var {
-  font-size: 11.5px; background: var(--cat-variables); color: var(--on-accent); border-radius: 999px;
+  font-size: 11.5px; background: var(--cat-variables); color: var(--on-block); border-radius: 999px;
   padding: 2px 9px; font-weight: 600;
 }
 .status-line { font-size: 12px; padding: 7px 10px; border-radius: 7px; margin-bottom: 10px; }
@@ -582,27 +628,49 @@ button, input, select, textarea { font-family: inherit; }
 .proj-row .x { border: 0; background: transparent; color: var(--text-faint); cursor: pointer; font-size: 14px; }
 .proj-row .x:hover { color: var(--danger); }
 
-/* うごき（SERIKO のアニメーション）の編集 */
-.anim-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-.anim-row { border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
-.anim-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.anim-id { font-weight: 600; margin-right: 4px; }
+/* うごき（SERIKO のアニメーション）の編集。こまは左から順に横へならべる */
+.anim-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.anim-row { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2); }
+.anim-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.anim-id { font-weight: 700; margin-right: 4px; color: var(--text-strong); }
 .anim-head .field.row { margin: 0; }
 .anim-head .field.row input, .anim-head .field.row select { width: 8em; }
-.anim-pats { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-left: 10px; }
-.anim-pat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.anim-pat .field.row { margin: 0; }
-.anim-pat .field.row input { width: 6em; }
-.help-keys { margin: 0 10px 12px; padding-left: 20px; line-height: 1.9; font-size: 12px; }
-.help-keys b {
-  display: inline-block; min-width: 92px; font-weight: 600;
-  font-family: Consolas, monospace;
+
+.frame-strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px 2px 8px; margin-top: 4px; }
+.frame-card {
+  flex: 0 0 168px; display: flex; flex-direction: column; gap: 6px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--surface);
 }
+.frame-top { display: flex; align-items: center; justify-content: space-between; }
+.frame-no { font-weight: 700; color: var(--text-muted); font-size: 12px; }
+.frame-thumb {
+  height: 110px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden;
+  background: linear-gradient(var(--stage-top), var(--stage-bottom)); border-radius: 6px;
+}
+.frame-thumb img { max-width: 100%; max-height: 100%; display: block; }
+.frame-thumb.is-text {
+  flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px;
+  font-size: 11.5px; color: var(--text-2); text-align: center; word-break: break-all;
+}
+.frame-icon { font-size: 22px; line-height: 1; }
+.frame-card .field { margin-bottom: 0; }
+.frame-card .field.row input { width: 64px; }
+.frame-card .field select { width: 100%; }
+.frame-add {
+  flex: 0 0 110px; border: 2px dashed var(--line); border-radius: 8px; background: transparent;
+  color: var(--text-muted); font-size: 12px; cursor: pointer;
+}
+.frame-add:hover { border-color: var(--line-strong); color: var(--text); }
+
+.anim-cols { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 6px; }
+.anim-col { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.anim-col .field.row { margin: 0; }
+.anim-col .field.row input { width: 6em; }
+.anim-col .field.row select { width: 7em; }
+.anim-step { opacity: .6; min-width: 1.5em; }
+
 .ghost-log {
   margin: 0 10px 10px; padding: 8px 10px; max-height: 180px; overflow: auto;
   background: var(--surface-2); border-radius: 8px;
   font: 12px/1.6 Consolas, monospace; white-space: pre-wrap; word-break: break-all;
 }
-.anim-pat .field.row select { width: 9em; }
-.anim-cols { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-left: 10px; }
-.anim-step { opacity: .6; min-width: 1.5em; }

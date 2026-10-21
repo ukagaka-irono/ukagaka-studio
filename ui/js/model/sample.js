@@ -37,7 +37,7 @@ export function sampleProject() {
     },
     {
       id: 'sample_nade', kind: 'event', event: 'OnNadeNade', area: 'Head', who: 0,
-      x: 60, y: 620,
+      x: 60, y: 720,
       blocks: [
         { type: 'change', name: t('好感度'), value: 3 },
         { type: 'surface', who: 0, id: 1 },

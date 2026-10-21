@@ -10,7 +10,8 @@ import { Session } from '../core/session.js';
 import { provide } from '../core/commands.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
-import { Shell } from './shell.js';
+import { Pages } from './pages.js';
+import { Stage } from './stage.js';
 import { t } from '../i18n/i18n.js';
 
 function renderTargets() {
@@ -74,6 +75,7 @@ async function runPreview(script) {
 async function runScript(script) {
   if (!script) return;
   $('#run-target').value = script.id;
+  Pages.show('talk');
   Tabs.switchTab('run');
   let res;
   try {
@@ -89,7 +91,7 @@ async function runScript(script) {
   if (res.commTo) preview += t('\n\n（「{commTo}」に届きます）', { commTo: res.commTo });
   $('#script-preview').textContent = preview;
   renderVars();
-  Shell.playSakura(res.script);
+  Stage.playSakura(res.script);
 }
 
 function renderVars() {

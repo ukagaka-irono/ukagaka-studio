@@ -28,7 +28,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 | エディタの「ためす」 | `ukagaka-studio.exe`（64bit）に積んだ **同じ** `interp.cpp` |
 
 画面（`ui/js/`）はブロックを解釈しません。`POST /api/preview` に頼んで、
-返ってきたさくらスクリプトを `ui/js/model/player.js` がほどき、`ui/js/panels/shell.js` が再生するだけです。
+返ってきたさくらスクリプトを `ui/js/model/player.js` がほどき、`ui/js/panels/stage.js` が再生するだけです。
 
 > むかしは `ui/js/sim.js` に同じ規則を JavaScript でもう一度書いていました。
 > 片方だけ直すと、エディタでは思ったとおりなのに SSP では違う、という形で
@@ -147,7 +147,7 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
-├── panels/        右の列のタブ   tabs / run / shell / vars / ghost / search / dialog / ssp
+├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu
 ├── core/          画面の土台   dom / api / toast / session / title / commands
 └── model/         データと規則（DOM を触らない）   blocks / model / lint / player / sample
@@ -177,6 +177,12 @@ ui/js/
 * 部品は `{ init, render, … }` の形の 1 つのものを export します。ボタンをつなぐのは
   その部品自身の `init()` で、`main.js` は順に呼ぶだけです。描きなおしは、`Model` が
   変わるたびに `main.js` の `renderAll()` が各部品の `render()` を呼びます。
+* **画面（`.page`）は 1 つだけ見せます**（`panels/pages.js`。トーク・キャラと絵・ゴースト情報・書き出し・ヘルプ）。
+  `renderAll()` が描きなおすのは、いつも見えているもの（上のバーとチェックの数）と、**いま見えている画面だけ**です。
+  画面を切りかえたら `Pages.onShow` でその画面を描きます。新しい画面を足すときは、`index.html` に
+  `<div class="page" data-page="…">` を、`#mode-bar` にボタンを、`renderAll()` の `switch` に描く部品を足します。
+* 画面の部品は、プロジェクトを `Model.act` / `Model.pushUndo` で変えるだけにして、自分で描きなおさないでください
+  （見えていれば `renderAll()` が描きなおします。2 回描くと、打ちかけの欄がとぶことがあります）。
 * `model/` は DOM を触らないので、node のテスト（`ui\test\editor.js`）からそのまま使えます。
 
 ### 画面の言葉（日本語・英語）

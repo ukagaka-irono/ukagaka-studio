@@ -11,6 +11,7 @@ import { Drag } from './editor/drag.js';
 import { ContextMenu } from './editor/contextmenu.js';
 import { Search } from './panels/search.js';
 import { Dialog } from './panels/dialog.js';
+import { Pages } from './panels/pages.js';
 import { t } from './i18n/i18n.js';
 
 function onKeyDown(e) {
@@ -26,6 +27,9 @@ function onKeyDown(e) {
     e.preventDefault(); Model.redo(); return;
   }
   if (typing) return;
+  // ここから下はキャンバスのブロックの操作。キャンバスが見えていないときは何もしない
+  // （ほかの画面で Delete を押して、見えないブロックが消えないように）
+  if (Pages.current !== 'talk') return;
 
   // ---- ブロックのコピー＆はりつけ
   //   コピーしたものは Model.clone で切り離して持つので、あとから元を消しても平気です。
