@@ -24,6 +24,16 @@ Whatever the rework does, these stay. Each is a core strength of the original pr
   (you can build with just `.\build.ps1`, without installing Node or npm).
 * **Nothing goes in unless the tests pass.** Each stage turns `.\build.ps1 -Test` green before moving on.
 
+> **Stage 3 changes the first and second premises above** (decided on 2026-10-22; see “Decisions” below).
+> ikaga SHIORI is dropped and replaced with **YAYA**, and Ukagaka Studio becomes **a helper tool for YAYA ghosts**.
+> Once stage 3 is done, the premises read:
+>
+> * **Exported ghosts run from Windows 2000.** YAYA also targets Windows 2000 and later.
+>   Step 3-0 confirms this by reading the import table of `yaya.dll` (if it falls short, this premise is decided again).
+> * **Only YAYA runs blocks.** “Try” also runs on the same `yaya.dll` that goes into SSP.
+>   The rules that translate blocks into YAYA live in one place only.
+> * The other three (a single exe, no new tools to build the UI, nothing goes in unless the tests pass) stay.
+
 ---
 
 ## Order of work
@@ -34,8 +44,12 @@ The three goals (internal cleanup, UI redesign, new features) are done **in this
 Stage 0  Groundwork          getting ready as a fork
 Stage 1  Internal cleanup    reorganize the UI code (to make the UI easier to rework)
 Stage 2  UI redesign         rework the look and the layout of pages
-Stage 3  New features        new blocks, shell features, the rest of SERIKO
+Stage 3  On to YAYA          replace ikaga SHIORI with YAYA; become a helper tool for YAYA ghosts
+Stage 4  New features        new blocks, shell features, the rest of SERIKO
 ```
+
+Stage 3 (the move to YAYA) was decided after stage 2 was done and placed before the new features,
+so that new blocks and shell features are built on YAYA from the start rather than on ikaga SHIORI.
 
 **Cleanup comes first** because the UI code centered on `app.js` (864 lines),
 with everything connected through a single container, `window.IKAGA`.
@@ -368,9 +382,111 @@ Done **together with** the page rework, because gathering text in one place whil
 
 ---
 
-## Stage 3 — New features
+## Stage 3 — Replace ikaga SHIORI with YAYA
 
-Candidates. Which comes first is decided along the way through stage 2.
+Drop ikaga SHIORI (`ikaga.dll`) and replace it with **YAYA**, a SHIORI widely used for Ukagaka ghosts.
+Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into **a tool that helps make YAYA ghosts**.
+
+* What is built from blocks, the studio **translates into YAYA dictionaries (`.dic`)** on export.
+* People who write YAYA by hand can **add their own dictionaries** to the same ghost. The studio only touches files it wrote.
+* People who have built with blocks alone can keep doing so. What they export is an ordinary YAYA ghost.
+
+### Why replace it
+
+* Anyone who reads YAYA can work on an exported ghost (no need to learn a SHIORI of our own).
+* People who start with blocks can read the exported YAYA and move on to writing it by hand.
+* The upkeep of the SHIORI itself (SHIORI/3.0 requests, saving variables, calling SAORI) can be left to YAYA.
+
+### Things to watch
+
+* **Blocks must behave the same.** What ikaga SHIORI does in C++ (3-3) is rewritten identically as YAYA dictionaries.
+  ikaga SHIORI is removed only after the same project gives matching answers on both (3-6).
+* **Hand-written YAYA cannot be turned back into blocks.** The direction is one way, “blocks → YAYA”,
+  so the files the studio writes and the files people write are kept clearly apart (3-5).
+* **SAORI calls that do not wait** (whose answer arrives through `OnSaoriDone`) may have no equivalent in YAYA.
+  3-0 looks into this; if there is none, decide between a waiting call and dropping that block.
+* **YAYA's license**: used for Ukagaka ghosts and related tools, the AYA Ver.5 license applies; otherwise BSD 3-Clause.
+  The notice goes with exported ghosts and with the distributed zip.
+
+### 3-0. Groundwork research
+
+| To do | Done when |
+|---|---|
+| Read the text of YAYA's license (AYA Ver.5) and decide how to include it | the files and wording to include are decided |
+| Check the import tables of the official `yaya.dll` and one built from source with `check-imports` | it is known whether the Windows 2000 premise holds |
+| Find out whether YAYA can call SAORI without waiting | it is decided what happens to the “SAORI” block |
+| Decide which template's SHIORI/3.0 entry dictionary to use (or write our own) | the base for 3-3 is decided |
+
+### 3-1. Bring YAYA in
+
+* Put YAYA's source in `third_party/yaya/` and build a 32-bit `yaya.dll` with `.\build.ps1`
+  (nothing is downloaded at build time; the version used is fixed by the source in the repository).
+* Embed `yaya.dll` in the exe the same way `ikaga.dll` is embedded now.
+* Let `shiori/test/test_host.cpp` choose which DLL to load instead of always loading `ikaga.dll`.
+
+Done when: test_host sends `OnBoot` to YAYA with a small dictionary and gets an answer.
+
+### 3-2. Translate blocks into YAYA
+
+* The translator lives in `ui/js/model/`. It does not touch the DOM, so the node tests can use it directly,
+  and the UI can show “this block in YAYA”. The exe only receives the translated dictionaries and writes them out.
+* Escaping is kept in one place, so YAYA does not reinterpret `%` or `"` in text people write.
+* The “completeness” check in `tools/check-blocks.js` looks at the translator instead of `interp.cpp`.
+
+### 3-3. Write the runtime in YAYA
+
+The decisions ikaga SHIORI made in C++ (`shiori.cpp`) go into a **runtime dictionary** that the studio always adds (for example `studio_runtime.dic`).
+
+* How to choose when an event has several candidates (how specific the filter is, weighted draw)
+* Thinning “every N seconds”, and random talk that avoids recent talks
+* Default replies for events without blocks (Japanese or English by the ghost language), `\-` on `OnClose`
+* Where communication goes, petting detection, and information such as “time of day”, “season” and “weekday name” (by the ghost language)
+* The length limit (ikaga's `Emit`), and saving variables (using YAYA's own saving)
+
+3-2 and 3-3 go together (each one's tests need both). Done when:
+
+* The parity test ghost (`shiori/test/parity/ghost.json`, one script per block) runs on both ikaga SHIORI and YAYA,
+  and all the Sakura Script that comes out matches (**a parity test across SHIORIs**).
+* The behavior test (currently 18 scenes, 89 checks) passes against YAYA.
+
+### 3-4. Run “Try” on YAYA
+
+* “Try” also runs on the same 32-bit `yaya.dll` that goes into SSP. The 64-bit exe cannot load it directly,
+  so a small 32-bit helper exe (shaped like test_host) is embedded in the exe and does the work.
+* The Variables tab reads values through a “return the variables” entry in the runtime dictionary.
+
+Done when: the same block gives the same answer in “Try” and in SSP.
+
+### 3-5. Shape as a helper tool
+
+* **Open an existing YAYA ghost folder** (stage 4's “Import an existing shell folder” is done here too).
+* The studio writes **only its own files** (`studio_*.dic`, and a few marked lines in `yaya.txt`).
+  It never touches hand-written dictionaries. If a file it is about to write has no mark, it stops instead of overwriting.
+* Read the list of functions in hand-written dictionaries so blocks can call them (“Call a YAYA function” and “YAYA expression” blocks).
+* When running in SSP, send `\![reload,shiori]` over SSTP after exporting so the ghost reloads
+  (ikaga SHIORI reloaded on its own when `ghost.json` changed).
+
+Done when: a hand-written ghost made from a YAYA template is opened, blocks are added and exported,
+and the hand-written dictionaries stay byte-for-byte unchanged.
+
+### 3-6. Remove ikaga SHIORI
+
+Removed only after both tests in 3-3 are green.
+
+* Delete `shiori/` (`interp.cpp` and the rest) and the 32-bit/64-bit parity test, and drop `ghost.json` and `ikaga.dll` from the export.
+* Existing projects open as they are; exporting them makes a YAYA ghost.
+* Rewrite the README, `docs/blocks.md` (the translated YAYA alongside the Sakura Script that comes out), `docs/ghost-json.md`,
+  the maintenance guide, the English versions and the CHANGELOG.
+* Raise the version number.
+
+Done when: `.\build.ps1 -Release` is green and the zip contains no ikaga SHIORI.
+
+---
+
+## Stage 4 — New features
+
+Candidates. Which comes first is decided along the way through stage 3.
+The shell feature “Import an existing shell folder” is done in stage 3 (3-5).
 
 ### The rest of SERIKO (“Not there yet” in the README)
 
@@ -405,7 +521,15 @@ Candidates. Which comes first is decided along the way through stage 2.
 | 2026-10-21 | **Make English examples too**: separate ones with English dialogue, chosen by the screen language (2-5b) |
 | 2026-10-21 | The mascots' English names are **Ikaga / Shiori** (2-5b) |
 | 2026-10-21 | **The ghost language is a project setting** (`meta.lang`). New ghosts and examples take the screen language at creation. Built-in lines, values such as “time of day” and the readme follow it, not the screen language at export time (2-5b-2) |
+| 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
 
 ## Not decided yet
 
 * How to count version numbers (stage 0-2)
+* Details of stage 3:
+  * Whether “Try” runs through a 32-bit helper exe, or YAYA is also built as 64-bit and carried directly in the exe
+    (3-4; with 64-bit, a 32-bit/64-bit parity test is needed, as now)
+  * Whether block variables and hand-written dictionary variables share names, or are kept apart by a mark (a prefix)
+  * Whether project files stay in `projects\` next to the exe, or go inside the ghost folder
+  * Whether variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) carry over to YAYA
+  * What to do with the name “如何栞 (ikaga SHIORI)” and the name `ikaga` in the code (including the project format `ikaga/1`)
