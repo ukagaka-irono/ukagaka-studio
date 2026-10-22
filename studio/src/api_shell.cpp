@@ -74,6 +74,9 @@ void Api::ImportShell(const HttpRequest& req, HttpResponse& res) {
     JValue bad = JValue::makeArr();
     for (size_t i = 0; i < r.unreadable.size(); i++) bad.arr.push_back(JValue::makeStr(r.unreadable[i]));
     o.set("unreadable", bad);
+    o.set("areas", r.areas);              // 四角い当たり判定（shell.areas の形）
+    o.set("animations", r.animations);    // うごき（animations の形）
+    o.set("skipped", JValue::makeNum(r.skipped));
     Json(res, 200, o);
 }
 

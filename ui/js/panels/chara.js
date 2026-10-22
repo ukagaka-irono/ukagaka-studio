@@ -133,7 +133,10 @@ async function importShellFolder() {
     return;
   }
   const files = r.images || [];
-  if (files.length) {
+  const areas = r.areas || {};
+  const anims = r.animations || [];
+  const areaCount = Object.values(areas).reduce((n, l) => n + l.length, 0);
+  if (files.length || areaCount || anims.length) {
     Model.act(() => {
       const list = shellImages();
       for (const f of files) {
@@ -142,10 +145,23 @@ async function importShellFolder() {
         if (i >= 0) list[i] = one; else list.push(one);
       }
       list.sort((a, b) => Number(a.id) - Number(b.id));
+      // 当たり判定は立ち絵の番号ごとに置きかえ、うごきは同じ番号・同じ立ち絵のものを置きかえる
+      const sh = Model.project.shell;
+      if (!sh.areas) sh.areas = {};
+      for (const id of Object.keys(areas)) sh.areas[id] = areas[id];
+      for (const a of anims) {
+        const i = Model.project.animations.findIndex((x) => x.id === a.id && x.base === a.base);
+        if (i >= 0) Model.project.animations[i] = a; else Model.project.animations.push(a);
+      }
+      // 読みこんだ形を、ふだんの形にそろえる（知らない重ねかたは base に、など）
+      Model.project.animations = Model.normalize({ format: 'ikaga/1', animations: Model.project.animations }).animations;
+      sh.areas = Model.normalize({ format: 'ikaga/1', shell: { areas: sh.areas } }).shell.areas;
     });
     Stage.refresh();
   }
   let msg = t('シェルの絵を {count} 枚読みこみました', { count: files.length });
+  if (anims.length || areaCount) msg += t('（うごき {anims} 個・当たり判定 {areas} 個も）', { anims: anims.length, areas: areaCount });
+  if (r.skipped) msg += t('（読めない書きかたの行が {n} 行ありました。四角でない当たり判定や古い書式です）', { n: r.skipped });
   const comp = r.compositeOnly || [];
   if (comp.length) {
     msg += t('（{n} 個の番号は、surfaces.txt で絵を組み合わせているので読みこめませんでした: {ids}）',

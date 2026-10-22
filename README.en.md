@@ -119,8 +119,9 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    With “**Hit areas**” on each surface, drag on the picture to draw the places that can be touched (head, face, … or names of your own).
    Drawn areas replace that surface's automatic hit areas, and their names appear in the area list of mouse hats.
    Enter an existing shell folder (such as `shell\master`) under “Import from an existing shell folder” to assign
-   numbered images such as `surface0.png` to their numbers all at once (animations and hit areas are not imported;
-   numbers that `surfaces.txt` builds by combining images have no single picture, so they are not imported).
+   numbered images such as `surface0.png` to their numbers all at once. It also imports the **animations** (SERIKO/2.0 syntax) and
+   **rectangular hit areas** in `surfaces.txt`, and the dress-up names in `descript.txt` (non-rectangular hit areas and the old SERIKO/1
+   syntax are not read; numbers that `surfaces.txt` builds by combining images have no single picture, so they are not imported).
    Under “**Animations**” on the same page you can make animations that flip through surfaces
    (frames are lined up from left to right, each with a preview).
    Set “when” and they play by themselves; you can also start one with the “play animation N” block.

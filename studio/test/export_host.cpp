@@ -99,6 +99,9 @@ int wmain(int argc, wchar_t** argv) {
         }
         for (size_t i = 0; i < r.compositeOnly.size(); i++) printf("composite: %d\n", r.compositeOnly[i]);
         for (size_t i = 0; i < r.unreadable.size(); i++) printf("unreadable: %s\n", r.unreadable[i].c_str());
+        printf("areas: %s\n", r.areas.dump().c_str());
+        for (size_t i = 0; i < r.animations.size(); i++) printf("animation: %s\n", r.animations.at(i).dump().c_str());
+        printf("skipped: %d\n", r.skipped);
         return 0;
     }
 

@@ -719,11 +719,19 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 
 ### Shell features
 
-* ~~Import an existing shell folder~~ (done in 3-5d, numbered images only; importing animations and hit areas goes with the next two)
+* ~~Import an existing shell folder~~ (numbered images in 3-5d; animations, rectangular hit areas and dress-up names in stage 4; see “What was done” below)
 * ~~Draw hit areas on top of the picture~~ (done: “Hit areas” on each surface draws rectangles by dragging on the picture;
   `shell.areas`, `ui/js/panels/areas.js`; drawn names can be picked in mouse hats; the export test input covers them)
+* ~~Also import animations and hit areas from an existing shell~~ (done)
 * ~~More choices for how the balloon looks~~ (done: shape, size, tail, line and text colors; `studio/src/export_balloon.cpp`;
   the export test gained the `balloon-styled.json` input)
+
+> **The shell features are done.** Importing an existing shell folder now also reads the animations in `surfaces.txt` (`animationN.*` in the
+> new SERIKO/2.0 syntax: frames, when they play, and their hit areas), the surfaces' rectangular hit areas (`collisionN`, which become
+> `shell.areas`), and the dress-up names in the shell's `descript.txt` (`sakura.bindgroupN.name` / `.default`) (`studio/src/shell_import.cpp`).
+> Non-rectangular surface hit areas (`collisionexN`) and the SERIKO/1 syntax (`0interval` and so on) are not read; their number is reported.
+> Animations with the same number on the same surface are replaced. The 3-5d decision not to import animations and hit areas was changed now
+> that there is a place for them (`shell.areas`, the new drawing methods; see Decisions). The export test reads a shell built on the spot (36 checks).
 
 ### Editor
 
@@ -802,6 +810,7 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 | 2026-10-22 | The version without ikaga SHIORI is **2.0.0-alpha** (3-6) |
 | 2026-10-22 | Versions **count on from 2.0.0-alpha with ordinary semver** (major for big changes, minor for new features, patch for fixes; `-alpha` / `-beta` mark trial versions). Counting does not restart (0-2) |
 | 2026-10-22 | Variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) **are not carried over to YAYA**. After exporting again, variables start from the project's initial values (“Clear the ghost's memory” also deletes a leftover `ikaga_save.json`) (stage 3) |
+| 2026-10-22 | From an existing shell, **animations (SERIKO/2.0), rectangular hit areas and dress-up names are imported too**; non-rectangular surface hit areas and SERIKO/1 are not (changes the 3-5d decision now that there is a place for them; stage 4) |
 | 2026-10-22 | The name “如何栞 (ikaga SHIORI)” and the `ikaga` names in the code (the project format `ikaga/1`, the input box ID `ikaga:<variable>`, the `ikaga.lang` setting and so on) **stay as they are**, for compatibility with earlier projects and exported ghosts; the docs call them “a leftover from the 1.x SHIORI's name” (stage 3) |
 
 ## Not decided yet

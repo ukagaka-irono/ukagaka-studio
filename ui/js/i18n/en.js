@@ -67,6 +67,8 @@ export const en = {
   'シェルのフォルダではないようです（surfaces.txt も surface の絵もありません）: {detail}': 'This does not look like a shell folder (no surfaces.txt and no surface images): {detail}',
   'シェルのフォルダを入れてください': 'Enter the shell folder',
   'シェルの絵を {count} 枚読みこみました': 'Imported {count} shell images',
+  '（うごき {anims} 個・当たり判定 {areas} 個も）': ' (plus {anims} animations and {areas} hit areas)',
+  '（読めない書きかたの行が {n} 行ありました。四角でない当たり判定や古い書式です）': ' ({n} lines could not be read: non-rectangular hit areas or the old format)',
   '（{n} 個の番号は、surfaces.txt で絵を組み合わせているので読みこめませんでした: {ids}）': ' ({n} numbers are built by combining images in surfaces.txt, so they were not imported: {ids})',
   'いまあるシェルのフォルダから読みこむ': 'Import from an existing shell folder',
   '読みこむ': 'Import',

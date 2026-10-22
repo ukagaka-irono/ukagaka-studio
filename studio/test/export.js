@@ -248,6 +248,7 @@ console.log('  ---- いまあるシェルのフォルダの読みこみ');
       'image: 10 surface0010.png 5x6', 'image: 11 surface11.png 2x2',
       'composite: 3', 'composite: 100', 'composite: 101', 'composite: 102',
       'unreadable: surface2.png',
+      'areas: {}', 'skipped: 0',
     ];
     const cases = [['ゴーストのフォルダを渡しても shell/master を見つける', path.join(root, 'ghost-a')],
       ['シェルのフォルダをじかに渡しても読める', dir]];
@@ -268,6 +269,66 @@ console.log('  ---- いまあるシェルのフォルダの読みこみ');
     try { run(['--shell', root]); } catch (e) { refused = String(e.stdout || ''); }
     if (refused.includes('error: not_shell_folder')) console.log(`${green}  OK  ${off}シェルのフォルダでなければ断る`);
     else { failed++; console.log(`${red}  だめ シェルのフォルダでないのに断りませんでした${off}`); }
+
+    // うごき・当たり判定・着せ替えの名前も読む（四角でない当たり判定と古い書式は数えるだけ）
+    const dir2 = path.join(root, 'shell-b');
+    fs.mkdirSync(dir2, { recursive: true });
+    fs.writeFileSync(path.join(dir2, 'surface0.png'), png(4, 4));
+    fs.writeFileSync(path.join(dir2, 'surface10.png'), png(4, 4));
+    fs.writeFileSync(path.join(dir2, 'surfaces.txt'), [
+      'charset,UTF-8', 'descript', '{', 'version,1', '}',
+      'surface0', '{',
+      'collision0,10,20,90,60,Head',
+      'collisionex1,Ribbon,ellipse,1,2,3,4',
+      'animation0.interval,random,5',
+      'animation0.pattern0,overlay,100,50,0,0',
+      'animation0.pattern1,alternativestart,[1.2]',
+      'animation0.pattern2,scaling,0,300,92.5,100',
+      'animation0.collision0,1,2,30,40,Wing',
+      'animation0.collisionex1,Tail,circle,5,6,7',
+      'animation3.interval,bind',
+      'animation3.pattern0,add,500,0,0,40',
+      '0interval,sometimes',
+      '0pattern0,100,5,overlay,0,0',
+      '}',
+      'surface10{',
+      'animation3.interval,bind',
+      'animation3.pattern0,add,510,0,0,0',
+      '}',
+    ].join('\r\n'));
+    fs.writeFileSync(path.join(dir2, 'descript.txt'),
+      'charset,UTF-8\r\nsakura.bindgroup3.name,服,セーラー,thumb.png\r\nsakura.bindgroup3.default,1\r\nkero.bindgroup3.name,ぼうし,麦わら\r\n');
+    checked++;
+    const got2 = run(['--shell', dir2]).toString('utf8').split(/\r?\n/).filter((s) => s);
+    const pick = (prefix) => got2.filter((l) => l.startsWith(prefix)).map((l) => l.slice(prefix.length));
+    const anims2 = pick('animation: ').map((s) => JSON.parse(s));
+    const want2 = {
+      areas: { 0: [{ name: 'Head', x1: 10, y1: 20, x2: 90, y2: 60 }] },
+      animations: [
+        { id: 0, base: 0, interval: 'random', every: 5, patterns: [
+          { method: 'overlay', surface: 100, wait: 50, x: 0, y: 0 },
+          { method: 'alternativestart', ids: [1, 2] },
+          { method: 'scaling', surface: 0, wait: 300, x: 92.5, y: 100 },
+        ], collisions: [
+          { name: 'Wing', shape: 'rect', x1: 1, y1: 2, x2: 30, y2: 40 },
+          { name: 'Tail', shape: 'circle', x1: 5, y1: 6, x2: 7 },
+        ] },
+        { id: 3, base: 0, interval: 'bind', every: 4, patterns: [{ method: 'add', surface: 500, wait: 0, x: 0, y: 40 }], collisions: [],
+          bind: { category: '服', part: 'セーラー', default: true } },
+        { id: 3, base: 10, interval: 'bind', every: 4, patterns: [{ method: 'add', surface: 510, wait: 0, x: 0, y: 0 }], collisions: [],
+          bind: { category: 'ぼうし', part: '麦わら' } },
+      ],
+      skipped: 3,
+    };
+    const gotAll = { areas: JSON.parse(pick('areas: ')[0] || 'null'), animations: anims2, skipped: Number(pick('skipped: ')[0]) };
+    if (JSON.stringify(gotAll) === JSON.stringify(want2)) {
+      console.log(`${green}  OK  ${off}うごき・四角い当たり判定・着せ替えの名前も読み、読めない行（四角でない当たり判定・古い書式）は数える`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ うごきと当たり判定の読みこみ${off}`);
+      console.log(`        ほしい: ${JSON.stringify(want2)}`);
+      console.log(`        出た  : ${JSON.stringify(gotAll)}`);
+    }
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
