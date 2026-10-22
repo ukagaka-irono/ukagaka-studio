@@ -289,6 +289,19 @@ ui/js/
 * **`reference[n]` は、数に見える文字を数に変えてしまいます**（`007` → 7）。文字のまま使うときは `reference.raw[n]`。
 * 小数を `+` で文字につなぐと `3.500000` になります。文字にするときは `Studio.S`（如何栞と同じ書きかた）を通します。
 
+### 手書きの YAYA ゴーストにつなぐ（段階 3-5b）
+
+* つないだゴーストに書くのは、**1 行目に `// ukagaka-studio: generated` の印がある `studio_*.dic`** と、
+  `yaya.txt` の **`// ukagaka-studio: begin` 〜 `// ukagaka-studio: end`** の行だけです（`studio/src/yaya_ghost.cpp`）。
+  `ui/js/model/yaya.js` が出す辞書と `studio_runtime.dic` の 1 行目は、この印です。**消さないでください**
+  （消すと、次の書き出しで「人が書いたファイル」として止まります）。
+* YAYA は、同じ名前の関数が 2 つあっても、どこにも無い関数をよんでも、**辞書をまるごと読みません**（ゴーストがだまります）。
+  そのため、手書きの辞書にあるイベントの入り口は訳さず（`toYaya(…, { handwritten })`）、つなぐ前に yaya_base と yaya.dll が
+  しくみの辞書に足りるかを見ます（`InspectYayaGhost` の `problems`）。しくみの辞書で yaya_base の関数を新しく使ったら、
+  `yaya_ghost.cpp` の `need[]` にも足してください。
+* テストは `shiori\test\yaya\yaya.js` の「手書きの YAYA ゴーストにつなぐ」です。材料の `shiori/test/yaya/handwritten/` は
+  Shift_JIS・CRLF の手書きゴーストで、`.gitattributes` でバイトのまま持っています。
+
 ### 文書（日本語と英語）
 
 * `README.md` と `docs/` の文書には、英語版があります（`README.en.md`、`docs/en/`）。**日本語版が正**で、

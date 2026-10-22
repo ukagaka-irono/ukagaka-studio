@@ -20,6 +20,7 @@
 #include "json.h"
 #include "util.h"
 #include "fsutil.h"
+#include "yaya_ghost.h"
 
 using namespace ikaga;
 
@@ -81,6 +82,33 @@ int wmain(int argc, wchar_t** argv) {
             else if (dau[i] == '\n') printf("<LF>\n");
             else putchar(dau[i]);
         }
+        return 0;
+    }
+
+    // export_host --inspect <ゴーストのフォルダ>
+    //   手書きの YAYA ゴーストを調べた結果を出す（辞書・関数・足りないもの）
+    if (std::wstring(argv[1]) == L"--inspect") {
+        if (argc < 3) { printf("usage: export_host --inspect <folder>\n"); return 1; }
+        YayaGhostInfo info = InspectYayaGhost(argv[2]);
+        if (!info.ok) { printf("error: %s\n", info.error.c_str()); return 5; }
+        printf("name: %s / %s / %s\n", info.name.c_str(), info.sakuraName.c_str(), info.keroName.c_str());
+        printf("linked: %s\n", info.linked ? "yes" : "no");
+        for (size_t i = 0; i < info.dics.size(); i++) printf("dic: %s\n", info.dics[i].c_str());
+        for (size_t i = 0; i < info.functions.size(); i++) printf("function: %s\n", info.functions[i].c_str());
+        for (size_t i = 0; i < info.problems.size(); i++) printf("problem: %s %s\n", info.problems[i].c_str(), info.problemDetail.c_str());
+        return 0;
+    }
+
+    // export_host --linked <ゴーストのフォルダ> --dic <studio_program.dic>
+    //   つないだ手書きのゴーストに書き出す（スタジオのファイルと yaya.txt の印の行だけ）
+    if (std::wstring(argv[1]) == L"--linked") {
+        if (argc < 3) { printf("usage: export_host --linked <folder> --dic <file>\n"); return 1; }
+        std::vector<OutFile> kit = KitFromRepo();
+        std::string runtime;
+        for (size_t i = 0; i < kit.size(); i++) if (kit[i].name == "studio_runtime.dic") runtime = kit[i].data;
+        ExportResult r = ExportLinked(argv[2], runtime, dic);
+        if (!r.ok) { printf("error: %s %s\n", r.error.c_str(), r.detail.c_str()); return 6; }
+        for (size_t i = 0; i < r.written.size(); i++) printf("written: %s\n", r.written[i].c_str());
         return 0;
     }
 

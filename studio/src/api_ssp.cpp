@@ -1,5 +1,6 @@
 // 伺かスタジオ - 動いている SSP との連携（見つける・起動する・SSTP で話す・ゴーストを入れる）
 #include "api.h"
+#include "yaya_ghost.h"
 #include "api_util.h"
 #include "exporter.h"
 #include "fsutil.h"
@@ -103,12 +104,23 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
 
     std::string dic = body["dic"].asStr();
     if (dic.empty()) { JsonError(res, 400, "no_dic"); return; }
-    ExportResult r = ExportToDir(project, ssp.ghostDir, YayaKitFiles(), dic,
-                                 body["includeShell"].asBool(true),
-                                 body["overwriteShell"].asBool(false));
-    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
-
+    // 手書きの YAYA ゴーストにつないだプロジェクトは、そのゴーストに書いて、そのゴーストを読みなおさせる
+    std::string linked = Unquote(body["linked"].asStr());
     std::string name = project["meta"]["name"].asStr();
+    ExportResult r;
+    if (!linked.empty()) {
+        std::vector<OutFile> kit = YayaKitFiles();
+        r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
+        if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
+        YayaGhostInfo info = InspectYayaGhost(Utf8ToWide(linked));
+        if (!info.name.empty()) name = info.name;
+    } else {
+        r = ExportToDir(project, ssp.ghostDir, YayaKitFiles(), dic,
+                        body["includeShell"].asBool(true),
+                        body["overwriteShell"].asBool(false));
+        if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
+    }
+
     std::string action = "none";
     if (ssp.sstp && body["activate"].asBool(true) && !name.empty()) {
         bool already = !ssp.ghostName.empty() &&

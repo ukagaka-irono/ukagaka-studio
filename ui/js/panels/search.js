@@ -7,6 +7,7 @@ import { getDef } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
+import { Session } from '../core/session.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
 import { Pages } from './pages.js';
@@ -16,7 +17,7 @@ import { t } from '../i18n/i18n.js';
 function renderCheck() {
   const list = $('#check-list');
   const badge = $('#check-badge');
-  const issues = Lint.run(Model.project);
+  const issues = Lint.run(Model.project, { handwritten: (Session.yayaGhost || {}).functions || [] });
   const errors = Lint.countErrors(issues);
 
   badge.textContent = issues.length ? String(issues.length) : '';

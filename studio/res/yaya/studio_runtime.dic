@@ -1,3 +1,4 @@
+// ukagaka-studio: generated（伺かスタジオが書き出すたびに上書きします。この行で、スタジオのファイルだと見分けます）
 //==============================================================================
 // 伺かスタジオ — しくみの辞書（studio_runtime.dic）
 //
@@ -62,9 +63,6 @@ OnGhostLoad.Studio : void
 	Studio.lastTalk = ''
 	if ARRAYSIZE(Studio.recent) > 0 { Studio.lastTalk = Studio.recent[0] }
 
-	// yaya_base のランダムトークは使いません（ランダムトークはこの辞書が出します）
-	aitalkinterval = 0
-
 	// ブロックの中身（studio_program.dic が書きます）
 	Studio.meta.name = ''
 	Studio.meta.sakuraName = ''
@@ -86,6 +84,15 @@ OnGhostLoad.Studio : void
 	Studio.s.contains = IARRAY
 	Studio.s.off = IARRAY
 	if ISFUNC('Studio.Program.Init') { Studio.Program.Init }
+
+	// ブロックにランダムトークがあるときは、yaya_base のランダムトーク（AI トーク）を止めます
+	// （ランダムトークはこの辞書が出します）。無いときは、手書きのゴーストのものをそのまま使います
+	foreach Studio.s.kind; _kind {
+		if _kind == 'talk' {
+			aitalkinterval = 0
+			break
+		}
+	}
 
 	Studio.ResetRun
 	Studio.refs = IARRAY

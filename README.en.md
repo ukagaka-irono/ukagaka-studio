@@ -202,6 +202,29 @@ events. Even without blocks, the SHIORI says a word **when the update succeeded*
 > To delete files, put a `delete.txt` at the upload location
 > (network updates only overwrite; they never delete).
 
+### 6. Add blocks to a hand-written YAYA ghost
+
+You can add talks made with blocks to a ghost written by hand in YAYA (one made from a YAYA template, for example).
+
+1. On the **Export** page, enter the ghost folder (the folder that contains `ghost\master`) under
+   “Link to a hand-written YAYA ghost” and press **Link**.
+   The names (name, sakura.name and kero.name in `descript.txt`) become that ghost's.
+2. While linked, **Export** (or **Run it in SSP**) writes into that ghost, and writes **only the studio's files**:
+   * `ghost/master/studio_runtime.dic` and `studio_program.dic` (with the mark `// ukagaka-studio: generated` on line 1)
+   * the few lines of `yaya.txt` from `// ukagaka-studio: begin` to `// ukagaka-studio: end` (appended if missing)
+
+   Hand-written dictionaries, `descript.txt`, the shell, `yaya.dll` and `yaya_base` are never touched.
+   If a file with a studio file's name has no mark (someone wrote it), the export stops instead of overwriting it.
+3. **For the same event, hand-written code wins.** For an event the hand-written dictionaries also define (say `OnBoot`),
+   the studio writes no entry (with both, YAYA cannot read the dictionaries and the ghost goes silent).
+   To run the blocks too, call `Studio.Event('OnBoot')` inside the hand-written function.
+   The Check tab points such scripts out.
+4. The ghost's `yaya.dll` and `yaya_base` are used as they are. If they are too old for the studio's runtime
+   (not YAYA 6.x, no yaya_base, or an old one), the link section says so and exports stop.
+
+Hand-written YAYA can read and write block variables as `Studio.var['name']`.
+No .nar is made while linked. Unlinking brings back the usual export.
+
 ### Where things are saved
 
 Next to `ukagaka-studio.exe`.
@@ -322,7 +345,7 @@ ukagaka-studio/
 │   │   ├── parity/         parity test comparing the 32-bit and 64-bit output
 │   │   ├── saori/          a “deliberately slow SAORI” for tests
 │   │   ├── behavior/       tests of the SHIORI's behavior (what it picks, default reactions)
-│   │   └── yaya/           tests that YAYA gives the same answers as ikaga SHIORI (stage 3)
+│   │   └── yaya/           tests that YAYA gives the same answers as ikaga SHIORI (stage 3); handwritten/ is a hand-written ghost for the link tests
 │   └── dist/               build results (ikaga.dll / test_host.exe)
 ├── studio/                 Ukagaka Studio (C++ / 64-bit EXE)
 │   ├── build.ps1
@@ -346,7 +369,8 @@ ukagaka-studio/
 │       ├── api_project.cpp   state, saving and loading projects
 │       ├── api_shell.cpp     surfaces (drawing the placeholder shell, your own images)
 │       ├── api_ghost.cpp     Try, and the exported ghost's memory and log
-│       ├── api_export.cpp    export, open in Explorer
+│       ├── api_export.cpp    export, open in Explorer, inspect a hand-written YAYA ghost
+│       ├── yaya_ghost.cpp    inspects a hand-written YAYA ghost and exports into a linked one (the studio's files only)
 │       ├── api_ssp.cpp       working with a running SSP
 │       ├── preview.cpp     runs a script on the 64-bit ikaga SHIORI (used by the parity test's preview_host)
 │       ├── yaya_preview.cpp runs “Try” on YAYA (through yaya_host.exe)
@@ -393,7 +417,8 @@ ukagaka-studio/
 │           ├── chara.js    “Characters” (surfaces, placeholder shell colors, balloon, animations)
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language)
 │           ├── dialog.js   save / open and export
-│           └── ssp.js      working with a running SSP
+│           ├── ssp.js      working with a running SSP
+│           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page
 ├── tools/
 │   ├── check-blocks.js     checks every block is present in every file (no build needed)
 │   └── check-imports.js    checks the SHIORI (and yaya.dll) can be loaded from Windows 2000

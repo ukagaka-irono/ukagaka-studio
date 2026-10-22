@@ -195,6 +195,30 @@ SSP 側で「SSTP を受け付ける」設定が有効（既定でオン）に�
 > 消したいファイルがあるときは、置き場所に `delete.txt` を用意します
 > （ネットワーク更新は上書きだけで、消す操作はしないためです）。
 
+### 6. 手書きの YAYA ゴーストにブロックを足す
+
+YAYA で手書きしたゴースト（YAYA のテンプレートで作ったものなど）に、ブロックで作ったトークを足せます。
+
+1. **書き出し** の画面の「手書きの YAYA ゴーストにつなぐ」に、ゴーストのフォルダ
+   （`ghost\master` が中にあるフォルダ）を入れて **つなぐ** を押します。
+   名前（`descript.txt` の name・sakura.name・kero.name）は、そのゴーストのものになります。
+2. つないでいるあいだは、**書き出す**（または **SSP に入れて動かす**）と、そのゴーストに書きこみます。
+   書くのは **スタジオのファイルだけ** です。
+   * `ghost/master/studio_runtime.dic` と `studio_program.dic`（1 行目に `// ukagaka-studio: generated` の印）
+   * `yaya.txt` の中の、`// ukagaka-studio: begin` から `// ukagaka-studio: end` までの数行（無ければ末尾に足します）
+
+   手書きの辞書・`descript.txt`・シェル・`yaya.dll`・`yaya_base` には触りません。
+   スタジオのファイルと同じ名前で、印の無いもの（人が書いたもの）があれば、上書きせずに止めます。
+3. **同じイベントは手書きが優先** です。手書きの辞書にもあるイベント（たとえば `OnBoot`）は、
+   スタジオは入り口を書きません（両方あると YAYA が辞書を読めず、ゴーストがだまるため）。
+   ブロックも動かしたいときは、手書きの関数の中で `Studio.Event('OnBoot')` をよんでください。
+   チェックタブが、そういうかたまりを知らせます。
+4. ゴーストの `yaya.dll` と `yaya_base` はそのまま使います。古くてスタジオのしくみが動かないとき
+   （YAYA 6 系でない・yaya_base を使っていない・古い）は、つなぐところに出して、書き出しを止めます。
+
+ブロックの変数は、手書きの YAYA から `Studio.var['名前']` で読み書きできます。
+つないでいるあいだは .nar は作りません。つなぐのをやめると、ふつうの書き出しにもどります。
+
 ### 保存される場所
 
 `ukagaka-studio.exe` と同じフォルダに作られます。
@@ -316,7 +340,7 @@ ukagaka-studio/
 │   │   ├── parity/         32bit と 64bit の栞の出力を見くらべる一致テスト
 │   │   ├── saori/          テスト用の「わざとおそい SAORI」
 │   │   ├── behavior/       栞のふるまい（どれを選ぶか・既定の反応）のテスト
-│   │   └── yaya/           YAYA で如何栞と同じ答えになるかのテスト（段階 3）
+│   │   └── yaya/           YAYA で如何栞と同じ答えになるかのテスト（段階 3）。handwritten/ はつなぐテスト用の手書きゴースト
 │   └── dist/               ビルド結果（ikaga.dll / test_host.exe）
 ├── studio/                 伺かスタジオ（C++ / 64bit EXE）
 │   ├── build.ps1
@@ -340,7 +364,8 @@ ukagaka-studio/
 │       ├── api_project.cpp   状態・プロジェクトの保存と読み込み
 │       ├── api_shell.cpp     立ち絵（仮シェルの描画・用意した画像）
 │       ├── api_ghost.cpp     ためす・書き出したゴーストの記憶と記録
-│       ├── api_export.cpp    書き出し・エクスプローラで開く
+│       ├── api_export.cpp    書き出し・エクスプローラで開く・手書きの YAYA ゴーストを調べる
+│       ├── yaya_ghost.cpp    手書きの YAYA ゴーストを調べる・つないだゴーストに書き出す（スタジオのファイルだけ）
 │       ├── api_ssp.cpp       動いている SSP との連携
 │       ├── preview.cpp     64bit の如何栞でかたまりを動かす（一致テストの preview_host が使う）
 │       ├── yaya_preview.cpp 「ためす」を YAYA で動かす（yaya_host.exe に頼む）
@@ -387,7 +412,8 @@ ukagaka-studio/
 │           ├── chara.js    「キャラと絵」（立ち絵・仮シェルの色・バルーン・うごき）
 │           ├── ghost.js    「ゴースト情報」（名前・作者・しゃべる間隔・ネットワーク更新・ゴーストの言語）
 │           ├── dialog.js   保存 / 読込 と 書き出し
-│           └── ssp.js      動いている SSP との連携
+│           ├── ssp.js      動いている SSP との連携
+│           └── yayalink.js 書き出しの「手書きの YAYA ゴーストにつなぐ」
 ├── tools/
 │   ├── check-blocks.js     ブロックが全部のファイルにそろっているか見る（ビルド不要）
 │   └── check-imports.js    栞（と yaya.dll）が Windows 2000 から読みこめるか見る

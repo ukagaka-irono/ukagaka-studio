@@ -301,6 +301,19 @@
 
         <section class="card">
           <div class="card-head">
+            <h2>手書きの YAYA ゴーストにつなぐ</h2>
+            <p class="hint">YAYA で手書きしたゴーストに、ブロックを足せます。つないでいるあいだは、書き出すとそのゴーストに書きこみ、スタジオのファイル（studio_runtime.dic と studio_program.dic）と yaya.txt の印の行のほかには触りません。</p>
+          </div>
+          <div id="yaya-link-status" class="status-line"></div>
+          <label class="field"><span>ゴーストのフォルダ</span><input id="yaya-link-path" type="text" spellcheck="false" placeholder="C:\ssp\ghost\…"></label>
+          <div class="btn-row">
+            <button id="btn-yaya-link" class="btn small">つなぐ</button>
+            <button id="btn-yaya-unlink" class="btn small">つなぐのをやめる</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
             <h2>読み込み</h2>
             <p class="hint">書き出し済みのゴースト（ghost.json）を読み込んで編集できます。</p>
           </div>

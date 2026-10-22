@@ -38,6 +38,7 @@ import { Dialog } from './panels/dialog.js';
 import { Ssp } from './panels/ssp.js';
 import { Guide } from './panels/guide.js';
 import { Language } from './panels/language.js';
+import { YayaLink } from './panels/yayalink.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
 
@@ -57,6 +58,7 @@ function scheduleRender() {
 // 画面を切りかえたら、その画面を描きなおします（Pages.onShow）。
 function renderAll() {
   const project = Model.project;
+  YayaLink.render();         // つないだ手書きのゴースト（つなぎ先が変わったときだけ調べなおす。チェックタブが使う）
   Ghost.render();            // 上のバーの名前と、ゴースト情報の欄（軽いので、いつも）
   Search.renderCheck();      // トークの右の列の「チェック」の数
   switch (Pages.current) {
@@ -168,6 +170,7 @@ async function boot() {
   Zoom.init();
   Dialog.init();
   Ssp.init();
+  YayaLink.init();
   Search.init();
   Picker.init();
   Guide.init();

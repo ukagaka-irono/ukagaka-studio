@@ -14,4 +14,5 @@ export const Session = {
   clipboard: null,          // コピーしたブロック（Ctrl+C / Ctrl+V）
   playToken: 0,             // ステージの再生を、新しいものに切りかえるための番号
   ssp: null,                // いちばん最近たしかめた SSP の状態
+  yayaGhost: null,          // つないだ手書きの YAYA ゴーストを調べた結果（panels/yayalink.js）
 };

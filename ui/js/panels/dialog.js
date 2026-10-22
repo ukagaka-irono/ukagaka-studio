@@ -5,6 +5,7 @@
 
 import { Model } from '../model/model.js';
 import { programOf, toYaya } from '../model/yaya.js';
+import { YayaLink } from './yayalink.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -135,11 +136,17 @@ async function doExport(mode) {
   const box = $('#export-result');
   box.textContent = t('書き出し中…');
   try {
+    // 手書きの YAYA ゴーストにつないでいれば、そのゴーストに書きこむ（手書きにあるイベントは訳さない）
+    const link = await YayaLink.exportOptions();
+    if (link.linked && mode === 'nar') {
+      throw new Error(t('手書きの YAYA ゴーストにつないでいるあいだは、.nar は作れません（つないだゴーストに書きこみます）'));
+    }
     const r = await api('/api/export', {
       method: 'POST',
       body: {
         project: Model.project,
-        dic: toYaya(programOf(Model.project)),   // ブロックを YAYA に訳した辞書（model/yaya.js）
+        dic: toYaya(programOf(Model.project), { handwritten: link.handwritten }),   // ブロックを YAYA に訳した辞書
+        linked: link.linked || '',
         outDir,
         mode,
         includeShell: $('#export-shell').checked,
@@ -148,7 +155,10 @@ async function doExport(mode) {
     });
     box.textContent = '';
     const p = Render.div('');
-    if (mode === 'nar') {
+    if (r.mode === 'linked') {
+      p.innerHTML = t('<b>つないだゴーストに書き出しました</b><br><code>{path}</code><br>書きかえたファイル {count} 個（手書きの辞書には触っていません）',
+        { path: escapeHtml(r.root), count: r.written.length });
+    } else if (mode === 'nar') {
       p.innerHTML = t('<b>.nar を作りました</b><br><code>{path}</code><br>SSP のウィンドウにドラッグ＆ドロップするとインストールできます。',
         { path: escapeHtml(r.path) });
     } else {

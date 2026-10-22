@@ -1,0 +1,4 @@
+// 手書きの YAYA ゴースト（テスト用）
+charset, Shift_JIS
+dicdir, yaya_base
+dic, hand.dic

@@ -298,6 +298,19 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
 * **`reference[n]` turns text that looks like a number into a number** (`007` → 7). Use `reference.raw[n]` to keep the text.
 * Joining a real number to text with `+` gives `3.500000`. Go through `Studio.S` (the same number format as ikaga SHIORI) to make text.
 
+### Linking to a hand-written YAYA ghost (stage 3-5b)
+
+* In a linked ghost, the studio writes only **`studio_*.dic` files whose first line is the mark `// ukagaka-studio: generated`**
+  and the lines of `yaya.txt` **from `// ukagaka-studio: begin` to `// ukagaka-studio: end`** (`studio/src/yaya_ghost.cpp`).
+  The dictionary from `ui/js/model/yaya.js` and `studio_runtime.dic` start with this mark. **Do not remove it**
+  (without it, the next export stops, treating the file as hand-written).
+* YAYA refuses **the whole set of dictionaries** when a function is defined twice or a missing function is called (the ghost goes silent).
+  So entries for events the hand-written dictionaries define are not translated (`toYaya(…, { handwritten })`), and before
+  linking, the studio checks that yaya_base and yaya.dll are enough for the runtime (`problems` from `InspectYayaGhost`).
+  When the runtime starts using another yaya_base function, add it to `need[]` in `yaya_ghost.cpp` too.
+* The test is “link to a hand-written YAYA ghost” in `shiori\test\yaya\yaya.js`. Its material, `shiori/test/yaya/handwritten/`,
+  is a Shift_JIS, CRLF hand-written ghost kept byte-for-byte through `.gitattributes`.
+
 ### Documents (Japanese and English)
 
 * The documents in `README.md` and `docs/` have English versions (`README.en.md`, `docs/en/`). **The Japanese ones are

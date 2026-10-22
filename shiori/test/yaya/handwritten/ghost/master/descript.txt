@@ -1,0 +1,7 @@
+charset,UTF-8
+type,ghost
+name,てがきちゃん
+sakura.name,てがき
+kero.name,ふで
+craftman,test
+shiori,yaya.dll

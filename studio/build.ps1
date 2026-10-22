@@ -141,7 +141,7 @@ try {
 # ---- コンパイル ------------------------------------------------------------
 # 書き出しまわり。exe と書き出しテスト用コンソールの両方に入れます。
 $exportSources = @('exporter.cpp', 'export_program.cpp', 'export_shell.cpp', 'export_seriko.cpp',
-                   'export_balloon.cpp', 'export_dau.cpp', 'lang.cpp',
+                   'export_balloon.cpp', 'export_dau.cpp', 'yaya_ghost.cpp', 'lang.cpp',
                    'image.cpp', 'zip.cpp', 'deflate.cpp', 'fsutil.cpp') |
     ForEach-Object { Join-Path $src $_ }
 

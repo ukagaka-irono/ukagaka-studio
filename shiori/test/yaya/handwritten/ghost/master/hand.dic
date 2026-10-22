@@ -1,0 +1,30 @@
+// 手書きの辞書（Shift_JIS。伺かスタジオは中身に触りません）
+
+/* ブロックにも OnBoot があるが、手書きが優先される */
+OnBoot
+{
+	'\0\s[0]手書きのOnBootです。\e'
+}
+
+// ブロックのイベントを、手書きからよぶ
+OnHandDelegate
+{
+	'\0手書き：' + Studio.Event('OnHandDelegate')
+}
+
+Hand.Helper : void
+{
+	_x = 1
+	if _x == 1 {
+		Hand.flag = 'ok'
+	}
+	else
+	{
+		Hand.flag = 'ng'
+	}
+}
+
+OnHandOnly
+{
+	'\0手書きだけのイベント\e'
+}

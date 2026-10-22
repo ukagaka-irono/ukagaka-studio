@@ -473,6 +473,10 @@ const TEXT = {
     events: 'イベント（SSP から呼ばれる入り口）', // i18n-ignore
     scripts: 'かたまり', // i18n-ignore
     skipped: (ev) => `イベント名「${ev}」は YAYA の関数名にできないので、書き出していません`, // i18n-ignore
+    handwritten: (ev) => [
+      `${ev} は手書きの辞書にもあるので、ここには入り口を書きません（両方あると YAYA が辞書を読めないため）。`, // i18n-ignore
+      `ブロックも動かすときは、手書きの ${ev} の中で Studio.Event('${ev}') をよんでください。`, // i18n-ignore
+    ],
     talk: (n) => `ランダムトーク「${n}」`, // i18n-ignore
     fn: (n) => `トーク「${n}」`, // i18n-ignore
     off: '（無効）', // i18n-ignore
@@ -487,6 +491,10 @@ const TEXT = {
     events: 'events (entry points called by SSP)',
     scripts: 'scripts',
     skipped: (ev) => `the event name "${ev}" cannot be a YAYA function name, so it was not exported`,
+    handwritten: (ev) => [
+      `${ev} is also in a hand-written dictionary, so no entry is written here (with both, YAYA cannot read the dictionaries).`,
+      `To run the blocks too, call Studio.Event('${ev}') inside the hand-written ${ev}.`,
+    ],
     talk: (n) => `random talk "${n}"`,
     fn: (n) => `talk "${n}"`,
     off: ' (disabled)',
@@ -504,7 +512,9 @@ function initialValue(v) {
  * 書き出す ghost.json の形（format / meta / settings / variables / scripts）から、
  * studio_program.dic の中身を作る。
  */
-export function toYaya(program) {
+export function toYaya(program, options = {}) {
+  // 手書きの辞書にある関数の名前（手書きの YAYA ゴーストにつないだとき）。同じ名前のイベントは手書きを優先します
+  const handwritten = new Set(Array.isArray(options.handwritten) ? options.handwritten : []);
   const p = isObj(program) ? program : {};
   const meta = isObj(p.meta) ? p.meta : {};
   const settings = isObj(p.settings) ? p.settings : {};
@@ -514,7 +524,8 @@ export function toYaya(program) {
 
   const bar = '//' + '='.repeat(78);
   const sec = (title) => ['', '//' + '-'.repeat(78), `// ${title}`, '//' + '-'.repeat(78)];
-  const lines = [bar, ...T.head.map((s) => `// ${s}`), bar];
+  // 1 行目の印で、スタジオが書いたファイルだと見分けます（手書きのゴーストにつないだとき、印の無いものは上書きしない）
+  const lines = ['// ukagaka-studio: generated', bar, ...T.head.map((s) => `// ${s}`), bar];
 
   // 関数名（id から。重なったら _2, _3 …）
   const used = new Set();
@@ -570,6 +581,10 @@ export function toYaya(program) {
   for (const ev of events) {
     if (!eventNameOk(ev)) {
       lines.push('', `// ${oneLine(T.skipped(ev))}`);
+      continue;
+    }
+    if (handwritten.has(ev)) {
+      lines.push('', ...T.handwritten(ev).map((s) => `// ${oneLine(s)}`));
       continue;
     }
     lines.push('', ev, '{', `\tStudio.Event(${yayaStr(ev)})`, '}');

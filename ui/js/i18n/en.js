@@ -36,6 +36,33 @@ export const en = {
   'そのかたまりが見つかりません: {detail}': 'Script not found: {detail}',
   'YAYA の辞書がありません': 'No YAYA dictionary was sent',
   'YAYA で動かせませんでした: {detail}': 'Could not run it on YAYA: {detail}',
+  'YAYA のゴーストではないようです（yaya.txt がありません）: {detail}': 'This does not look like a YAYA ghost (no yaya.txt): {detail}',
+  'ゴーストに yaya.dll がありません': 'The ghost has no yaya.dll',
+  'ゴーストの yaya.dll が古いので、スタジオのしくみが動きません（YAYA 6 系にしてください）': "The ghost's yaya.dll is too old for the studio's runtime (use YAYA 6.x)",
+  'ゴーストが YAYA のシステム辞書 yaya_base を使っていません': "The ghost does not use YAYA's system dictionary yaya_base",
+  'ゴーストの yaya_base が古いので、スタジオのしくみが動きません': "The ghost's yaya_base is too old for the studio's runtime",
+  '{file} は人が書いたファイルのようなので、上書きしません': '{file} looks hand-written, so it is not overwritten',
+  // ---- 手書きの YAYA ゴーストにつなぐ（panels/yayalink.js・lint.js・dialog.js・index.html）
+  '{event} は、つないだゴーストの手書きの辞書にもあります': "{event} is also in the linked ghost's hand-written dictionaries",
+  "手書きが優先されるので、このかたまりは、手書きの {event} の中で Studio.Event('{event}') をよんだときだけ動きます。":
+    "Hand-written code wins, so this script runs only when the hand-written {event} calls Studio.Event('{event}').",
+  '手書きの YAYA ゴーストにつないでいるあいだは、.nar は作れません（つないだゴーストに書きこみます）':
+    'While linked to a hand-written YAYA ghost, no .nar is made (exports go into the linked ghost)',
+  '<b>つないだゴーストに書き出しました</b><br><code>{path}</code><br>書きかえたファイル {count} 個（手書きの辞書には触っていません）':
+    '<b>Exported into the linked ghost</b><br><code>{path}</code><br>{count} files rewritten (the hand-written dictionaries were not touched)',
+  'つないでいません（ふつうに書き出します）': 'Not linked (exports work as usual)',
+  '調べています…': 'Checking…',
+  'つないだゴーストを読めません: {message}': 'Cannot read the linked ghost: {message}',
+  '「{name}」につないでいます（手書きの辞書 {dics} こ・関数 {fns} こ）': 'Linked to “{name}” ({dics} hand-written dictionaries, {fns} functions)',
+  'ゴーストのフォルダを入れてください': 'Enter the ghost folder',
+  '「{name}」につなぎました。書き出すと、このゴーストに書きこみます': 'Linked to “{name}”. Exports now go into this ghost',
+  'つなぐのをやめました。書き出しは、ふつうの書き出しにもどります': 'Unlinked. Exports work as usual again',
+  '手書きの YAYA ゴーストにつなぐ': 'Link to a hand-written YAYA ghost',
+  'YAYA で手書きしたゴーストに、ブロックを足せます。つないでいるあいだは、書き出すとそのゴーストに書きこみ、スタジオのファイル（studio_runtime.dic と studio_program.dic）と yaya.txt の印の行のほかには触りません。':
+    "Add blocks to a ghost written by hand in YAYA. While linked, exports go into that ghost and touch nothing but the studio's files (studio_runtime.dic and studio_program.dic) and the marked lines of yaya.txt.",
+  'ゴーストのフォルダ': 'Ghost folder',
+  'つなぐ': 'Link',
+  'つなぐのをやめる': 'Unlink',
   'ssp.exe が見つかりません。SSP の場所を指定してください。': 'ssp.exe was not found. Set the SSP location.',
   'SSP が見つかりません。SSP の場所を指定してください。': 'SSP was not found. Set the SSP location.',
   'スクリプトがありません': 'No script given',

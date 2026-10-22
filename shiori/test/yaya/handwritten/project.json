@@ -1,0 +1,15 @@
+{
+  "format": "ikaga/1",
+  "_comment": "手書きのゴースト（handwritten/）につなぐプロジェクト。OnBoot と OnHandDelegate は手書きにもある",
+  "meta": { "name": "てがきちゃん", "sakuraName": "てがき", "keroName": "ふで" },
+  "settings": { "randomTalkEnabled": false },
+  "variables": [],
+  "scripts": [
+    { "id": "b_boot", "kind": "event", "event": "OnBoot",
+      "blocks": [{ "type": "say", "who": 0, "text": "ブロックのOnBoot", "nl": 0 }] },
+    { "id": "b_dbl", "kind": "event", "event": "OnMouseDoubleClick",
+      "blocks": [{ "type": "say", "who": 0, "text": "ブロックのダブルクリック", "nl": 0 }] },
+    { "id": "b_dele", "kind": "event", "event": "OnHandDelegate",
+      "blocks": [{ "type": "say", "who": 0, "text": "ブロックの返事", "nl": 0 }] }
+  ]
+}

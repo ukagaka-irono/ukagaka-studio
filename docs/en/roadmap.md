@@ -593,6 +593,26 @@ Decisions (see the “Decisions” table for details):
 >   and blocks.md say about exported ghosts now describe YAYA (English versions too). The description of ikaga SHIORI
 >   itself is rewritten in 3-6.
 
+> **3-5b is done.** What was done:
+>
+> * The Export page gained “Link to a hand-written YAYA ghost” (`ui/js/panels/yayalink.js`). Linking stores the folder in the
+>   project's `meta.ghostDir` and takes the names from `descript.txt`. The inspection result (hand-written dictionaries,
+>   functions, what is missing) lives in `Session.yayaGhost` (the exe's `POST /api/yaya/inspect`, `InspectYayaGhost` in `studio/src/yaya_ghost.cpp`).
+> * While linked, Export and “Run it in SSP” go through `ExportLinked` and write only `studio_runtime.dic`, `studio_program.dic`
+>   and the marked lines of `yaya.txt` (no .nar). The studio's files carry the mark `// ukagaka-studio: generated` on line 1, and a
+>   same-named file without it stops the export. The `yaya.txt` lines read `dic, studio_…dic, UTF-8`, so they work even when the
+>   hand-written ghost uses Shift_JIS.
+> * Found while preparing: YAYA also refuses dictionaries that call a function defined nowhere (the ghost goes silent). So before
+>   linking, the studio checks yaya.dll (YAYA 6.x?) and yaya_base (does it have the functions the runtime uses?) and stops exports if not.
+> * For the same event, hand-written code wins (`toYaya(…, { handwritten })` writes no entry and leaves a comment saying so). The Check tab points it out.
+> * yaya_base's random talk (`aitalkinterval`) is no longer turned off when the blocks have no random talks (for hand-written ghosts).
+> * Tests: linking to the Shift_JIS hand-written ghost `shiori/test/yaya/handwritten/` and exporting twice keeps the hand-written
+>   files byte-for-byte, appends the marked lines to `yaya.txt` exactly once, lets the hand-written `OnBoot` win, runs blocks
+>   through `Studio.Event` from hand-written code, and stops in the three cases it should (unmarked file, no yaya_base, old yaya.dll)
+>   (179 YAYA checks). The editor test gained the Check tab notice (96 checks).
+> * In a scratch copy of the exe: linked a hand-written ghost from the UI (“てがきちゃん (1 hand-written dictionary, 4 functions)”),
+>   checked the Check tab notice, the export (only the two studio files and yaya.txt changed), the .nar refusal, and the exported ghost's answers.
+
 ### 3-6. Remove ikaga SHIORI
 
 Removed only after both tests in 3-3 are green.

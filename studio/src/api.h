@@ -42,6 +42,8 @@ private:
     void HandleApi(const HttpRequest& req, HttpResponse& res);
     // 書き出すゴーストの ghost/master/ に置く YAYA 一式（exe に埋めこんだもの）。無ければ空
     std::vector<OutFile> YayaKitFiles() const;
+    // その中の studio_runtime.dic（つないだゴーストに書くもの）
+    static std::string RuntimeDic(const std::vector<OutFile>& kit);
     std::wstring DefaultOutDir() const;
     SspInfo Ssp() const;
 
@@ -64,6 +66,7 @@ private:
 
     // api_export.cpp
     void Export(const HttpRequest& req, HttpResponse& res);
+    void InspectYaya(const HttpRequest& req, HttpResponse& res);
     void Reveal(const HttpRequest& req, HttpResponse& res);
 
     // api_ssp.cpp

@@ -4,6 +4,7 @@
 #include "exporter.h"
 #include "fsutil.h"
 #include "util.h"
+#include "yaya_ghost.h"
 
 #include <shellapi.h>
 
@@ -26,13 +27,22 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
     bool overwriteShell = body["overwriteShell"].asBool(false);
     bool nar = body["mode"].asStr() == "nar";
 
-    ExportResult r = nar ? ExportToNar(project, outDir, kit, dic, includeShell)
-                         : ExportToDir(project, outDir, kit, dic, includeShell, overwriteShell);
-    if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
-    WriteConfig(configPath_, "lastOutDir", WideToUtf8(outDir));
+    // 手書きの YAYA ゴーストにつないだプロジェクトは、そのゴーストに、スタジオのファイルだけを書く
+    std::string linked = Unquote(body["linked"].asStr());
+    ExportResult r;
+    if (!linked.empty()) {
+        nar = false;
+        r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
+        if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
+    } else {
+        r = nar ? ExportToNar(project, outDir, kit, dic, includeShell)
+                : ExportToDir(project, outDir, kit, dic, includeShell, overwriteShell);
+        if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
+        WriteConfig(configPath_, "lastOutDir", WideToUtf8(outDir));
+    }
 
     JValue o = JValue::makeObj();
-    o.set("mode", JValue::makeStr(nar ? "nar" : "dir"));
+    o.set("mode", JValue::makeStr(!linked.empty() ? "linked" : nar ? "nar" : "dir"));
     o.set("folder", JValue::makeStr(r.folder));
     o.set("dll", JValue::makeBool(!kit.empty()));
     o.set("root", JValue::makeStr(WideToUtf8(r.root)));
@@ -43,6 +53,34 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
     JValue skipped = JValue::makeArr();
     for (size_t i = 0; i < r.skipped.size(); i++) skipped.arr.push_back(JValue::makeStr(r.skipped[i]));
     o.set("skipped", skipped);
+    Json(res, 200, o);
+}
+
+// POST /api/yaya/inspect … 手書きの YAYA ゴーストを調べる（つなぐ前と、つないだプロジェクトを開いたとき）
+void Api::InspectYaya(const HttpRequest& req, HttpResponse& res) {
+    JValue body;
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
+    std::string raw = Unquote(body["path"].asStr());
+    if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    YayaGhostInfo info = InspectYayaGhost(Utf8ToWide(raw));
+    if (!info.ok) { JsonError(res, 404, info.error, raw); return; }
+    JValue o = JValue::makeObj();
+    o.set("path", JValue::makeStr(raw));
+    o.set("master", JValue::makeStr(WideToUtf8(info.master)));
+    o.set("name", JValue::makeStr(info.name));
+    o.set("sakuraName", JValue::makeStr(info.sakuraName));
+    o.set("keroName", JValue::makeStr(info.keroName));
+    o.set("linked", JValue::makeBool(info.linked));
+    JValue dics = JValue::makeArr();
+    for (size_t i = 0; i < info.dics.size(); i++) dics.arr.push_back(JValue::makeStr(info.dics[i]));
+    o.set("dics", dics);
+    JValue fns = JValue::makeArr();
+    for (size_t i = 0; i < info.functions.size(); i++) fns.arr.push_back(JValue::makeStr(info.functions[i]));
+    o.set("functions", fns);
+    JValue probs = JValue::makeArr();
+    for (size_t i = 0; i < info.problems.size(); i++) probs.arr.push_back(JValue::makeStr(info.problems[i]));
+    o.set("problems", probs);
+    o.set("problemDetail", JValue::makeStr(info.problemDetail));
     Json(res, 200, o);
 }
 

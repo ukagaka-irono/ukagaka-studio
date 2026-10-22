@@ -187,6 +187,109 @@ async function main() {
     }
   }
 
+  // ---- 4e. 手書きの YAYA ゴーストにつなぐ（段階 3-5b） --------------------------
+  // handwritten/ は YAYA のテンプレートで作ったような手書きのゴースト（辞書は Shift_JIS）。
+  // project.json をそこにつないで書き出しても、手書きのファイルがバイトのまま変わらないこと、
+  // 同じイベントは手書きが優先され、手書きから Studio.Event をよべばブロックも動くことを見ます
+  {
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const { execFileSync } = require('child_process');
+    const { toYaya, programOf } = await host.yayaTranslator();
+    const src = path.join(__dirname, 'handwritten');
+    const make = (name) => {
+      const dir = path.join(__dirname, 'work', name);
+      fs.rmSync(dir, { recursive: true, force: true });
+      fs.cpSync(src, dir, { recursive: true });
+      fs.rmSync(path.join(dir, 'project.json'));
+      const master = path.join(dir, 'ghost', 'master');
+      fs.copyFileSync(host.yayaDll, path.join(master, 'yaya.dll'));
+      fs.cpSync(path.join(host.root, 'third_party', 'yaya-dic', 'yaya_base'), path.join(master, 'yaya_base'), { recursive: true });
+      return { dir, master };
+    };
+    const run = (args) => {
+      try {
+        return { code: 0, out: execFileSync(exportHost, args, { encoding: 'utf8' }) };
+      } catch (e) {
+        return { code: e.status, out: String(e.stdout || '') };
+      }
+    };
+    const hashes = (master) => {
+      const out = {};
+      const walk = (d, rel) => {
+        for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
+          const r = rel ? `${rel}/${ent.name}` : ent.name;
+          if (ent.isDirectory()) walk(path.join(d, ent.name), r);
+          else out[r] = crypto.createHash('sha256').update(fs.readFileSync(path.join(d, ent.name))).digest('hex');
+        }
+      };
+      walk(master, '');
+      return out;
+    };
+
+    const { dir, master } = make('hand');
+    const before = hashes(master);
+    const txtBefore = fs.readFileSync(path.join(master, 'yaya.txt'));
+    const inspect = run(['--inspect', dir]).out;
+    const functions = [...inspect.matchAll(/^function: (.+)$/gm)].map((m) => m[1].trim());
+    checks++;
+    const wantFns = ['OnBoot', 'OnHandDelegate', 'Hand.Helper', 'OnHandOnly'];
+    if (functions.join(' ') !== wantFns.join(' ') || /^problem:/m.test(inspect) || !/^dic: hand\.dic\r?$/m.test(inspect)) {
+      fails.push(`手書きのゴーストを調べた結果がちがいます\n      ${inspect.replace(/\r?\n/g, '\n      ')}`);
+    }
+
+    const project = readJson(path.join(src, 'project.json'));
+    const dicFile = path.join(dir, 'studio_program.dic.in');
+    fs.writeFileSync(dicFile, toYaya(programOf(project), { handwritten: functions }));
+    const first = run(['--linked', dir, '--dic', dicFile]);
+    const second = run(['--linked', dir, '--dic', dicFile]);
+    const after = hashes(master);
+    checks++;
+    const changed = Object.keys(before).filter((k) => before[k] !== after[k]);
+    const txtAfter = fs.readFileSync(path.join(master, 'yaya.txt'));
+    const block = txtAfter.slice(txtBefore.length).toString('utf8');
+    if (first.code !== 0 || second.code !== 0 || changed.join(' ') !== 'yaya.txt'
+        || !txtAfter.slice(0, txtBefore.length).equals(txtBefore)
+        || (block.match(/ukagaka-studio: begin/g) || []).length !== 1
+        || !/^dic, studio_program\.dic, UTF-8\r$/m.test(block) || /written: yaya\.txt/.test(second.out)) {
+      fails.push(`つないだゴーストへの書き出しで、手書きのファイルが変わったか、yaya.txt の印の行がおかしい\n      変わったもの: ${changed.join(' ')}\n      1 回目: ${first.out.trim()}\n      2 回目: ${second.out.trim()}`);
+    } else {
+      ok('つないだ手書きのゴーストに書き出しても、手書きのファイルはバイトのままです', 'yaya.txt は印の行を足すだけ');
+    }
+
+    const got = host.runYaya(master, ['OnBoot', 'OnMouseDoubleClick:0,0,0,0,Head', 'OnHandDelegate', 'OnHandOnly'], true);
+    const want = ['\\0\\s[0]手書きのOnBootです。\\e', '\\0ブロックのダブルクリック\\e',
+      '\\0手書き：\\0ブロックの返事\\e', '\\0手書きだけのイベント\\e'];
+    checks++;
+    const vals = got.map((g) => g.value);
+    if (vals.join(' | ') !== want.join(' | ')) {
+      fails.push(`つないだゴーストの答え\n      出た  : ${vals.join(' | ')}\n      ほしい: ${want.join(' | ')}`);
+    } else {
+      ok('同じイベントは手書きが優先され、手書きから Studio.Event をよぶとブロックも動きます');
+    }
+
+    // 書き出す前に止めるもの
+    const cases = [
+      ['印の無い studio_program.dic', (m) => fs.writeFileSync(path.join(m, 'studio_program.dic'), '// 人が書いた辞書\r\n'), 'not_studio_file'],
+      ['yaya_base が無い', (m) => fs.rmSync(path.join(m, 'yaya_base'), { recursive: true }), 'yaya_base_missing'],
+      ['古い yaya.dll', (m) => fs.writeFileSync(path.join(m, 'yaya.dll'), 'MZ old'), 'yaya_dll_old'],
+    ];
+    let stopped = 0;
+    for (const [label, spoil, code] of cases) {
+      checks++;
+      const c = make('hand-ng');
+      spoil(c.master);
+      const keep = hashes(c.master);
+      const r = run(['--linked', c.dir, '--dic', dicFile]);
+      const same = JSON.stringify(hashes(c.master)) === JSON.stringify(keep);
+      if (r.code === 0 || !r.out.includes(`error: ${code}`) || !same) {
+        fails.push(`「${label}」のときに書き出しを止めませんでした（${r.out.trim()}）`);
+      } else {
+        stopped++;
+      }
+    }
+    if (stopped === cases.length) ok('スタジオが動けない手書きのゴーストには、書き出す前に止めます', `${cases.length} 通り`);
+  }
+
   // ---- 5. ふるまいテストの場面 -------------------------------------------------
   let good = 0;
   for (let i = 0; i < scenarios.length; i++) {

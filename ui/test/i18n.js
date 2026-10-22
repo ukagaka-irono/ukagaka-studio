@@ -189,7 +189,8 @@ let errorCodes = 0;
   const patterns = [
     /JsonError\(res,\s*\d+,\s*"([a-z_]+)"/g,              // JsonError(res, 400, "bad_json")
     /\?\s*"([a-z_]+)"\s*:\s*r\.error/g,                  // r.error.empty() ? "export_failed" : r.error
-    /\b(?:r|out)\.error\s*=\s*"([a-z_]+)"/g,             // r.error = "mkdir_failed"（書き出し・SSTP・ためす）
+    /\b(?:r|out|info)\.error\s*=\s*"([a-z_]+)"/g,        // r.error = "mkdir_failed"（書き出し・SSTP・ためす・手書きのゴースト）
+    /problems\.push_back\("([a-z_]+)"\)/g,               // info.problems.push_back("yaya_base_old")（手書きのゴーストを調べる）
   ];
   for (const name of fs.readdirSync(srcDir).filter((n) => n.endsWith('.cpp')).sort()) {
     const src = fs.readFileSync(path.join(srcDir, name), 'utf8');

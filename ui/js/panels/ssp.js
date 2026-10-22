@@ -6,6 +6,7 @@
 
 import { Model } from '../model/model.js';
 import { programOf, toYaya } from '../model/yaya.js';
+import { YayaLink } from './yayalink.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -114,11 +115,13 @@ async function installToSsp() {
   const box = $('#ssp-result');
   box.textContent = t('SSP に入れています…');
   try {
+    const link = await YayaLink.exportOptions();   // 手書きの YAYA ゴーストにつないでいれば、そこに書く
     const r = await api('/api/ssp/install', {
       method: 'POST',
       body: {
         project: Model.project,
-        dic: toYaya(programOf(Model.project)),   // ブロックを YAYA に訳した辞書（model/yaya.js）
+        dic: toYaya(programOf(Model.project), { handwritten: link.handwritten }),   // ブロックを YAYA に訳した辞書
+        linked: link.linked || '',
         includeShell: $('#export-shell').checked,
         overwriteShell: $('#export-overwrite').checked,
         activate: true,

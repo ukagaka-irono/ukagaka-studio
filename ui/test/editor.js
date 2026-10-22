@@ -267,6 +267,17 @@ check('どこでも使われていない変数は言う',
   issuesOf(withScript([{ type: 'say', who: 0, text: 'やあ' }]), 'どこでも使われていません'),
   ['warn']);
 
+{
+  // つないだ手書きの YAYA ゴーストに同じイベントがあると、手書きが優先されることを知らせる（panels/yayalink.js）
+  Model.project = Model.normalize(withScript([{ type: 'say', who: 0, text: 'やあ' }]));
+  const ev = Model.project.scripts.find((s) => s.kind === 'event').event;
+  const pick = (fns) => Lint.run(Model.project, { handwritten: fns })
+    .filter((i) => i.message.includes('手書きの辞書にもあります')).map((i) => i.level);
+  check('手書きの辞書にもあるイベントは知らせる', pick([ev, 'Hand.Helper']), ['warn']);
+  check('手書きの辞書に無いイベントは言わない', pick(['Hand.Helper']), []);
+  check('つないでいなければ言わない', pick([]), []);
+}
+
 // ================================== ブロックを字でさがす（editor/picker.js が使う）
 section('ブロックを字でさがす (blockindex)');
 {

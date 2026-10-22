@@ -66,9 +66,11 @@ function isEmptyText(v) {
   return String(v).trim() === '';
 }
 
-Lint.run = function (project) {
+// ctx.handwritten … つないだ手書きの YAYA ゴーストの辞書にある関数の名前（panels/yayalink.js）
+Lint.run = function (project, ctx = {}) {
   const out = [];
   if (!project) return out;
+  const handwritten = new Set(Array.isArray(ctx.handwritten) ? ctx.handwritten : []);
 
   const varNames = (project.variables || []).map((v) => v.name);
   const groups = (project.scripts || [])
@@ -95,6 +97,12 @@ Lint.run = function (project) {
   for (const s of project.scripts || []) {
     const title = nameOf(s);
     const blocks = Array.isArray(s.blocks) ? s.blocks : [];
+
+    // 手書きの辞書にも同じイベントがあると、そちらが優先される（両方は書けない）
+    if (s.kind === 'event' && !s.disabled && handwritten.has(s.event)) {
+      issue(out, 'warn', t('{event} は、つないだゴーストの手書きの辞書にもあります', { event: s.event }),
+        t("手書きが優先されるので、このかたまりは、手書きの {event} の中で Studio.Event('{event}') をよんだときだけ動きます。", { event: s.event }), s);
+    }
 
     if (s.kind !== 'event' && s.kind !== 'talk' && s.kind !== 'function') {
       issue(out, 'warn', t('どこにもつながっていないブロックがあります'),

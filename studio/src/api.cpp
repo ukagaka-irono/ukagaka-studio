@@ -83,6 +83,11 @@ void Api::PlaceFirstRunSample() {
     }
 }
 
+std::string Api::RuntimeDic(const std::vector<OutFile>& kit) {
+    for (size_t i = 0; i < kit.size(); i++) if (kit[i].name == "studio_runtime.dic") return kit[i].data;
+    return std::string();
+}
+
 std::vector<OutFile> Api::YayaKitFiles() const {
     // 埋めこんだ YAYA 一式のうち、ゴーストに入れるもの（yaya.dll・yaya_base・しくみの辞書）。
     // 「ためす」だけが使う yaya_host.exe と studio_preview.dic は入れません
@@ -162,6 +167,7 @@ const Api::Route Api::kRoutes[] = {
     { "POST", "/api/ghost/log",      &Api::GhostLog },
     // api_export.cpp
     { "POST", "/api/export",         &Api::Export },
+    { "POST", "/api/yaya/inspect",   &Api::InspectYaya },
     { "POST", "/api/reveal",         &Api::Reveal },
     // api_ssp.cpp
     { "GET",  "/api/ssp",            &Api::GetSsp },

@@ -4,3 +4,5 @@ studio/test/expected/** -text
 
 # よそから持ってきたもの（YAYA など）は、配られたときのバイトのまま持ちます。
 third_party/** -text
+# テスト用の手書きゴースト（Shift_JIS・CRLF）は、バイトのまま持ちます
+shiori/test/yaya/handwritten/** -text
