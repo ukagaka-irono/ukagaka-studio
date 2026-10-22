@@ -247,6 +247,34 @@ Lint.run = function (project, ctx = {}) {
               t('変数タブで作るか、別の変数にえらび直してください。'), s, b);
           }
           break;
+        case 'yaya_call': {
+          // 手書きの YAYA の関数をよぶ。名前は書いた文字だけ（ブロックがはまっていたら動かない）
+          const name = typeof b.name === 'string' ? b.name.trim() : '';
+          if (b.name && typeof b.name === 'object') {
+            issue(out, 'error', t('{title}の YAYA の関数の名前に、ブロックがはまっています', { title }),
+              t('関数の名前は、書いた文字だけを使います（ブロックははめられません）。'), s, b);
+          } else if (!name) {
+            issue(out, 'error', t('{title}に、よぶ YAYA の関数の名前が空のブロックがあります', { title }),
+              t('つないだ手書きの YAYA ゴーストの関数の名前を入れてください。'), s, b);
+          } else if (!handwritten.size) {
+            issue(out, 'warn', t('{title}に、手書きの YAYA の関数をよぶブロックがあります', { title }),
+              t('手書きの YAYA ゴーストにつないだときだけ動きます（書き出しの画面でつなげます）。'), s, b);
+          } else if (!handwritten.has(name)) {
+            issue(out, 'warn', t('つないだゴーストの手書きの辞書に、関数「{name}」がありません（{title}）', { name, title }),
+              t('名前をたしかめてください。無い関数をよんでも、ゴーストは何もしゃべりません。'), s, b);
+          }
+          break;
+        }
+        case 'yaya_expr':
+          // 式は書いた文字だけ（外から来た言葉を YAYA のコードにしないため）
+          if (b.code && typeof b.code === 'object') {
+            issue(out, 'error', t('{title}の YAYA の式に、ブロックがはまっています', { title }),
+              t('式は、書いた文字だけを使います（ブロックははめられません）。'), s, b);
+          } else if (isEmptyText(b.code)) {
+            issue(out, 'warn', t('{title}に、中身が空の YAYA の式があります', { title }),
+              t('空の式は、いつも空の値になります。'), s, b);
+          }
+          break;
         case 'update':
           // 「更新のありか」が無いと、SSP は更新しようがない
           if (isEmptyText((project.meta || {}).homeUrl)) {

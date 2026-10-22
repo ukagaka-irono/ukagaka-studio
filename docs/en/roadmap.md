@@ -563,7 +563,8 @@ and the hand-written dictionaries stay byte-for-byte unchanged.
 |---|---|---|
 | 3-5a | **Switch the export to YAYA** (the first half of 3-6, moved ahead). Export `yaya.dll`, `yaya.txt`, `yaya_base`, the runtime dictionary and the translated dictionary instead of `ikaga.dll`; the ghost's saved state and log become YAYA's too | Without exporting YAYA ghosts, there is nothing to put next to hand-written ones |
 | 3-5b | **Open an existing YAYA ghost.** The project remembers the ghost folder and writes only the studio's files and the marked lines of `yaya.txt`. Read the hand-written functions; when an event exists in both, hand-written wins | After the export is YAYA |
-| 3-5c | **Blocks that call hand-written functions** (“Call a YAYA function”, “YAYA expression”) and importing an existing shell folder | Needs the function list of an opened ghost |
+| 3-5c | **Blocks that call hand-written functions** (“Call a YAYA function”, “YAYA expression”) | Needs the function list of an opened ghost |
+| 3-5d | **Importing an existing shell folder** (split off from 3-5c) | Different in nature (work on the shell pages), so it goes separately from the blocks |
 
 Decisions (see the “Decisions” table for details):
 
@@ -612,6 +613,24 @@ Decisions (see the “Decisions” table for details):
 >   (179 YAYA checks). The editor test gained the Check tab notice (96 checks).
 > * In a scratch copy of the exe: linked a hand-written ghost from the UI (“てがきちゃん (1 hand-written dictionary, 4 functions)”),
 >   checked the Check tab notice, the export (only the two studio files and yaya.txt changed), the .nar refusal, and the exported ghost's answers.
+
+> **3-5c is done.** What was done (importing a shell folder was split off as 3-5d):
+>
+> * Two blocks: “**call YAYA function F with A B**” in Control (`yaya_call`; calls a hand-written function and speaks its answer
+>   as it is) and “**value of YAYA expression C**” in Operators (`yaya_expr`). They run on `Studio.YayaCall` and `Studio.YayaExpr`
+>   in the runtime dictionary. Functions are called through `EVAL` and skipped (and logged) when missing (calling a missing
+>   function directly would make YAYA refuse the dictionaries). Arguments go through variables (`Studio.argA`, `Studio.argB`),
+>   so no text in them is ever read as code.
+> * **No blocks can go into** the function name and expression fields (`literal: true`; `editor/render.js`, `drag.js`), so words
+>   from other ghosts never run as YAYA code; the translator also translates them only when they are written text.
+> * ikaga SHIORI does nothing for either (empty). “Try” has no hand-written dictionaries, so the function call does nothing there.
+> * Check tab: an empty name, a block in the field, not linked, and a name missing from the hand-written dictionaries.
+> * Tests: parity case OnP31 (empty on both SHIORIs); the YAYA test's “blocks use hand-written functions and expressions”
+>   (calls the hand-written `Hand.Greet`, speaks its answer, outputs `Studio.var['数'] + 2`; a missing function does nothing;
+>   181 checks); six Check tab checks in the editor test (102 checks).
+> * In a scratch copy of the exe: both blocks can be placed, their fields refuse blocks (2 fields), the Check tab, and “Try” shows
+>   the expression's value. Noticing that a killed exe leaves Try's work folder behind, the exe now cleans up folders of studios
+>   that are no longer running when it starts (`CleanupStaleYayaPreviews`).
 
 ### 3-6. Remove ikaga SHIORI
 
@@ -668,7 +687,7 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
 | 2026-10-22 | **Use the official `yaya.dll`; do not build it from source** (built with today's Visual Studio, it does not run on Windows 2000; 3-0) |
 | 2026-10-22 | The “call SAORI without waiting” block **stays, and becomes a waiting call under YAYA**. `OnSaoriDone` is still raised on the next `OnSecondChange` (3-0) |
-| 2026-10-22 | 3-5 is split into **3-5a (export as YAYA) → 3-5b (open an existing YAYA ghost) → 3-5c (blocks calling hand-written functions, shell import)**; switching the export (the first half of 3-6) comes first (3-5) |
+| 2026-10-22 | 3-5 is split into **3-5a (export as YAYA) → 3-5b (open an existing YAYA ghost) → 3-5c (blocks calling hand-written functions) → 3-5d (shell import)**; switching the export (the first half of 3-6) comes first (3-5) |
 | 2026-10-22 | When hand-written dictionaries and blocks share an event, **hand-written wins**. The studio does not write that entry; calling `Studio.Event('…')` from the hand-written function runs the blocks too (3-5) |
 | 2026-10-22 | An opened ghost's **`yaya.dll` and `yaya_base` are used as they are**; if they fall short, the studio says so and stops (3-5) |
 | 2026-10-22 | Project files **stay in `projects\`**, and a project remembers the ghost folder it is linked to (3-5) |

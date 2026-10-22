@@ -176,6 +176,7 @@ so you can write things like “the wings can be touched only while they flap”
 | open URL in the browser | `{"type":"open_browser","url":"…"}` → `\![open,browser,…]` |
 | run a network update | `{"type":"update"}` → `\![updatebymyself]` |
 | call F with A B (put the answer in V without waiting) | `{"type":"saori_call","file":"F","a":A,"b":B,"into":"V","value":-1}` |
+| call YAYA function F with A B | `{"type":"yaya_call","name":"F","a":A,"b":B}` → outputs the function's answer as it is |
 | end the talk here | `{"type":"end"}` → `\e` |
 | close the ghost | `{"type":"close"}` → `\-` |
 
@@ -233,6 +234,7 @@ is saved in the ghost's `yaya_variable.cfg` (YAYA's own saving; `ikaga_save.json
 | length of A | `{"type":"length","a":A}` |
 | round / round down / round up / absolute value of A | `{"type":"round","op":"round","a":A}` |
 | answer of F called with A B | `{"type":"saori","file":"F","a":A,"b":B,"value":-1}` |
+| value of YAYA expression C | `{"type":"yaya_expr","code":"C"}` |
 
 Comparisons compare as numbers when both sides read as numbers, and as text otherwise.
 Yes/no is treated as the numbers **1 / 0** (dropped into speech, it comes out as `1` or `0`).
@@ -255,6 +257,18 @@ It calls on another thread; **when the answer arrives it goes into variable V**,
 * Many SAORI DLLs are not written to be called concurrently, so the calls themselves
   (waiting or not) are made **one at a time, in order**.
 * Nothing happens in the preview (and nothing goes into the variable).
+
+**Hand-written YAYA** blocks (stage 3-5c) are for ghosts written by hand in YAYA that a project is linked to
+(“6. Add blocks to a hand-written YAYA ghost” in the README).
+
+* “**call YAYA function F with A B**” (`yaya_call`) calls the hand-written function `F` with two arguments
+  (`_argv[0]` and `_argv[1]`, both text) and **speaks its answer as it is** (outputs it as Sakura Script).
+  If `F` does not exist, it does nothing and notes it in the log (`studio_debug.txt`).
+* “**value of YAYA expression C**” (`yaya_expr`) is the value of the YAYA expression `C` (such as `Studio.var['affection'] * 2`).
+* **No blocks can go into** the function name and expression fields; only the text written there is used
+  (so that words from other ghosts and the like never run as YAYA code).
+* “Try” does not include the hand-written dictionaries, so the function call does nothing there and an expression that uses
+  hand-written functions is empty. Check those in SSP. ikaga SHIORI does nothing for either (empty).
 
 ## Info
 

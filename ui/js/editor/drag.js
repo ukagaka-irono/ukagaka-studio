@@ -255,6 +255,7 @@ function findSlotCandidate(d, clientX, clientY) {
   for (const slot of D.canvas.querySelectorAll('.slot')) {
     if (slot.classList.contains('filled')) continue;
     if (slot._slotMode === 'bool' && !isBool) continue;
+    if (slot._slotLiteral) continue;      // YAYA の式・関数の名前の欄には、ブロックをはめない
     const r = slot.getBoundingClientRect();
     const cx = r.left + Math.min(20, r.width / 2);
     const cy = r.top + r.height / 2;

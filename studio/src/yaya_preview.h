@@ -21,4 +21,7 @@ PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId
 // 作業用のフォルダを消す（終わるときに呼びます）
 void CleanupYayaPreview();
 
+// 強制終了などで残った、もう動いていない伺かスタジオの作業用フォルダを消す（起動したときに呼びます）
+void CleanupStaleYayaPreviews();
+
 } // namespace ikaga

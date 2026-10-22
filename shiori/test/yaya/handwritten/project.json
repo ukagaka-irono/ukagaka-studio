@@ -3,13 +3,19 @@
   "_comment": "手書きのゴースト（handwritten/）につなぐプロジェクト。OnBoot と OnHandDelegate は手書きにもある",
   "meta": { "name": "てがきちゃん", "sakuraName": "てがき", "keroName": "ふで" },
   "settings": { "randomTalkEnabled": false },
-  "variables": [],
+  "variables": [{ "name": "数", "value": 40 }],
   "scripts": [
     { "id": "b_boot", "kind": "event", "event": "OnBoot",
       "blocks": [{ "type": "say", "who": 0, "text": "ブロックのOnBoot", "nl": 0 }] },
     { "id": "b_dbl", "kind": "event", "event": "OnMouseDoubleClick",
       "blocks": [{ "type": "say", "who": 0, "text": "ブロックのダブルクリック", "nl": 0 }] },
     { "id": "b_dele", "kind": "event", "event": "OnHandDelegate",
-      "blocks": [{ "type": "say", "who": 0, "text": "ブロックの返事", "nl": 0 }] }
+      "blocks": [{ "type": "say", "who": 0, "text": "ブロックの返事", "nl": 0 }] },
+    { "id": "b_callhand", "kind": "event", "event": "OnBlockCallsHand",
+      "blocks": [
+        { "type": "yaya_call", "name": "Hand.Greet", "a": "てがき", "b": "こんにちは" },
+        { "type": "say", "who": 1, "nl": 0, "text": { "type": "yaya_expr", "code": "Studio.var['数'] + 2" } },
+        { "type": "yaya_call", "name": "Hand.NaiKansuu" }
+      ] }
   ]
 }

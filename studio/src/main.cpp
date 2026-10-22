@@ -183,6 +183,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
+    CleanupStaleYayaPreviews();   // 前に強制終了したときの「ためす」の作業用フォルダ
     g_api.Init();
     // exe が自分で出す言葉の言語。画面が読みこまれたら、画面から lang:… が届いて合わせます
     SetLang(ParseLang(g_api.LoadConfig()["lang"].asStr(), SystemLang()));

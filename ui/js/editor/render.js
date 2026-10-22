@@ -50,6 +50,7 @@ function buildSlot(owner, argName, argDef, project) {
   slot._slotOwner = owner;
   slot._slotArg = argName;
   slot._slotMode = argDef.mode || 'text';
+  slot._slotLiteral = !!argDef.literal;   // 書いた文字だけを使う欄（ブロックははめられない）
 
   if (value && typeof value === 'object' && value.type) {
     slot.classList.add('filled');

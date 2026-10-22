@@ -407,6 +407,17 @@
         { "type": "say", "who": 0, "nl": 1, "text": { "type": "length", "a": { "type": "var", "name": "改行入り" } } },
         { "type": "say", "who": 0, "nl": 0, "text": { "type": "var", "name": "改行入り" } }
       ]
+    },
+    {
+      "id": "p31", "kind": "event", "event": "OnP31",
+      "_": "手書きの YAYA をよぶブロック。手書きの辞書が無いので、どちらの栞でも何もせず、式は空（ブロックがはまっていても空）",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "まえ", "nl": 1 },
+        { "type": "yaya_call", "name": "Hand.NaiKansuu", "a": "x", "b": "y" },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "yaya_expr", "code": "" } },
+        { "type": "say", "who": 0, "nl": 1, "text": { "type": "yaya_expr", "code": { "type": "sys", "key": "commtext" } } },
+        { "type": "say", "who": 0, "text": "あと", "nl": 0 }
+      ]
     }
   ]
 }

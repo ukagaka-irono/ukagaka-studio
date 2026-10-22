@@ -171,10 +171,15 @@ function safeName(s) {
   return String(s).replace(/[^A-Za-z0-9_]/g, (c) => `_x${c.codePointAt(0).toString(16)}_`);
 }
 
+/** YAYA の関数名として書けるか（数字ではじまらず、空白と記号をふくまない） */
+export function yayaNameOk(name) {
+  if (!name || /^[0-9]/.test(name)) return false;
+  return !/[\s!"#$%&'()*+,\-/:;<=>?@[\\\]^`{|}~]/.test(name);
+}
+
 /** イベントの名前が、そのまま YAYA の関数名にできるか */
 function eventNameOk(ev) {
-  if (!ev || /^[0-9]/.test(ev)) return false;
-  if (/[\s!"#$%&'()*+,\-/:;<=>?@[\\\]^`{|}~]/.test(ev)) return false;
+  if (!yayaNameOk(ev)) return false;
   if (RESERVED_EVENT.includes(ev)) return false;
   return !RESERVED_PREFIX.some((p) => ev.startsWith(p));
 }
@@ -234,6 +239,9 @@ function expr(node) {
     case 'length': return `Studio.Len(${expr(node.a)})`;
     case 'saori': return `Studio.Saori(${[yayaInt(asInt(node.value, -1)), expr(node.file), ...saoriArgs(node)].join(', ')})`;
     case 'chance': return `Studio.Chance(${expr(node.a)})`;
+    // 手書きの YAYA の式。書いた文字だけを使います（ブロックがはまっていたら空。外から来た言葉をコードにしない）
+    case 'yaya_expr':
+      return typeof node.code === 'string' && node.code.trim() ? `Studio.YayaExpr(${yayaStr(node.code)})` : "''";
     default: return "''";
   }
 }
@@ -368,6 +376,12 @@ function stmt(b, ind, ctx) {
       return out;
     }
     case 'call_group': return [L(`Studio.CallGroup(${expr(b.group)})`), ...stop];
+    // 手書きの YAYA の関数をよび、答えをそのまましゃべる。名前は書いた文字だけ（ブロックがはまっていたら書かない）
+    case 'yaya_call': {
+      const name = typeof b.name === 'string' ? b.name.trim() : '';
+      if (!yayaNameOk(name)) return [L(`// yaya_call: ${oneLine(name || '?')}`)];
+      return [L(`Studio.YayaCall(${yayaStr(name)}, ${expr(b.a)}, ${expr(b.b)})`)];
+    }
     case 'call': {
       const name = asStr(b.name);
       const target = name ? yayaStr(name) : `Studio.S(${expr(b.target)})`;

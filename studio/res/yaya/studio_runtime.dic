@@ -127,6 +127,7 @@ OnGhostUnload.Studio : void
 		'Studio.strokeTick', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
 		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
 		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', 'Studio.noSaori', /
+		'Studio.argA', 'Studio.argB', /
 		'Studio.meta.name', 'Studio.meta.sakuraName', 'Studio.meta.lang', 'Studio.set.interval', /
 		'Studio.set.enabled', 'Studio.set.noRepeat', 'Studio.s.id', 'Studio.s.fn', 'Studio.s.kind', /
 		'Studio.s.event', 'Studio.s.name', 'Studio.s.group', 'Studio.s.weight', 'Studio.s.every', /
@@ -1076,6 +1077,20 @@ Studio.Later : void
 
 Studio.Update : void { Studio.Emit('\![updatebymyself]') }
 
+// つないだ手書きの YAYA の関数をよび、答えをそのまましゃべる  (関数の名前, 引数 1, 引数 2)
+// 無い関数は、よばずに記録だけ残す（YAYA は、無い関数をじかに書いた辞書を読めないので、EVAL でよびます）
+Studio.YayaCall : void
+{
+	_name = _argv[0]
+	if !ISFUNC(_name) {
+		Studio.Log('YAYA の関数がありません: ' + _name)
+		return
+	}
+	Studio.argA = Studio.S(_argv[1])
+	Studio.argB = Studio.S(_argv[2])
+	Studio.Raw(EVAL(_name + '(Studio.argA, Studio.argB)'))
+}
+
 Studio.End : void
 {
 	Studio.Emit('\e')
@@ -1420,6 +1435,14 @@ Studio.Surrogates
 Studio.Bytes
 {
 	GETSTRBYTES(_argv[0], 'UTF-8')
+}
+
+// 手書きの YAYA の式の値（整数は小数にそろえる）
+Studio.YayaExpr
+{
+	_v = EVAL(_argv[0])
+	if GETTYPE(_v) == 1 { _v = TOREAL(_v) }
+	_v
 }
 
 // 長すぎる文字を切る（UTF-8 で Studio.MAX_VALUE バイトまで。文字の途中では切らない）

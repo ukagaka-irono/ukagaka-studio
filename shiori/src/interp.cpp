@@ -299,6 +299,9 @@ Value EvalExpr(const JValue& node, RunCtx& ctx) {
         return Value::Str("");
     }
 
+    // 手書きの YAYA の式（段階 3-5c）。如何栞は YAYA を動かせないので、いつも空
+    if (type == "yaya_expr") return Value::Str("");
+
     if (type == "chance") {   // "N% の確率で"
         double p = EvalExpr(node["a"], ctx).asNum();
         return Value::Bool(RandUnit() * 100.0 < p);
@@ -535,6 +538,9 @@ static void RunBlock(const JValue& b, RunCtx& ctx) {
         ctx.saori->ExecuteAsync(file, args, Trim(b["into"].asStr()), b["value"].asInt(-1));
         return;
     }
+
+    // 手書きの YAYA の関数をよぶ（段階 3-5c）。如何栞は YAYA を動かせないので、何もしない
+    if (type == "yaya_call") return;
 
     // ネットワーク更新をはじめる。あとは SSP がやって、
     // 結果は OnUpdateComplete / OnUpdateFailure で返ってくる。

@@ -276,6 +276,26 @@ check('どこでも使われていない変数は言う',
   check('手書きの辞書にもあるイベントは知らせる', pick([ev, 'Hand.Helper']), ['warn']);
   check('手書きの辞書に無いイベントは言わない', pick(['Hand.Helper']), []);
   check('つないでいなければ言わない', pick([]), []);
+
+  // 手書きの YAYA をよぶブロック（段階 3-5c）
+  const levels = (blocks, fns, part) => {
+    Model.project = Model.normalize(withScript(blocks));
+    return Lint.run(Model.project, { handwritten: fns })
+      .filter((i) => i.message.includes(part)).map((i) => i.level);
+  };
+  check('YAYA の関数: つないでいなければ、つないだときだけ動くと言う',
+    levels([{ type: 'yaya_call', name: 'Hand.Greet' }], [], '手書きの YAYA の関数をよぶ'), ['warn']);
+  check('YAYA の関数: 手書きの辞書に無い名前は言う',
+    levels([{ type: 'yaya_call', name: 'Hand.Nai' }], ['Hand.Greet'], 'がありません'), ['warn']);
+  check('YAYA の関数: 手書きの辞書にある名前なら言わない',
+    levels([{ type: 'yaya_call', name: 'Hand.Greet' }], ['Hand.Greet'], 'YAYA'), []);
+  check('YAYA の関数: 名前が空',
+    levels([{ type: 'yaya_call', name: '' }], ['Hand.Greet'], '名前が空'), ['error']);
+  check('YAYA の関数: 名前にブロックがはまっている',
+    levels([{ type: 'yaya_call', name: { type: 'sys', key: 'commtext' } }], [], 'ブロックがはまっています'), ['error']);
+  check('YAYA の式: ブロックがはまっている',
+    levels([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: { type: 'sys', key: 'commtext' } } }], [], 'ブロックがはまっています'),
+    ['error']);
 }
 
 // ================================== ブロックを字でさがす（editor/picker.js が使う）

@@ -154,13 +154,36 @@ PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId
     return out;
 }
 
-void CleanupYayaPreview() {
-    const std::wstring dir = WorkDir();
+static void RemoveWorkDir(const std::wstring& dir) {
     if (!IsDirectory(dir)) return;
     std::vector<std::wstring> files = ListFilesDeep(dir);
     for (size_t i = 0; i < files.size(); i++) DeleteFileW(PathJoin(dir, files[i]).c_str());
     RemoveDirectoryW(PathJoin(dir, L"yaya_base").c_str());
     RemoveDirectoryW(dir.c_str());
+}
+
+void CleanupYayaPreview() {
+    RemoveWorkDir(WorkDir());
+}
+
+void CleanupStaleYayaPreviews() {
+    // 強制終了などで消しそびれた、もう動いていない伺かスタジオの作業用フォルダ
+    const std::wstring mine = WorkDir();
+    const std::wstring base = ParentDir(mine);
+    const std::wstring prefix = L"ukagaka-studio-preview-";
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW(PathJoin(base, prefix + L"*").c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return;
+    do {
+        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) continue;
+        std::wstring name = fd.cFileName;
+        DWORD pid = (DWORD)_wtoi(name.c_str() + prefix.size());
+        if (pid == 0 || pid == GetCurrentProcessId()) continue;
+        HANDLE p = OpenProcess(SYNCHRONIZE, FALSE, pid);
+        if (p) { CloseHandle(p); continue; }      // まだ動いている（番号が使いまわされていても、触らない）
+        RemoveWorkDir(PathJoin(base, name));
+    } while (FindNextFileW(h, &fd));
+    FindClose(h);
 }
 
 } // namespace ikaga

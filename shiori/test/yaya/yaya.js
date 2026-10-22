@@ -232,7 +232,7 @@ async function main() {
     const inspect = run(['--inspect', dir]).out;
     const functions = [...inspect.matchAll(/^function: (.+)$/gm)].map((m) => m[1].trim());
     checks++;
-    const wantFns = ['OnBoot', 'OnHandDelegate', 'Hand.Helper', 'OnHandOnly'];
+    const wantFns = ['OnBoot', 'OnHandDelegate', 'Hand.Helper', 'OnHandOnly', 'Hand.Greet'];
     if (functions.join(' ') !== wantFns.join(' ') || /^problem:/m.test(inspect) || !/^dic: hand\.dic\r?$/m.test(inspect)) {
       fails.push(`手書きのゴーストを調べた結果がちがいます\n      ${inspect.replace(/\r?\n/g, '\n      ')}`);
     }
@@ -256,15 +256,18 @@ async function main() {
       ok('つないだ手書きのゴーストに書き出しても、手書きのファイルはバイトのままです', 'yaya.txt は印の行を足すだけ');
     }
 
-    const got = host.runYaya(master, ['OnBoot', 'OnMouseDoubleClick:0,0,0,0,Head', 'OnHandDelegate', 'OnHandOnly'], true);
+    const got = host.runYaya(master, ['OnBoot', 'OnMouseDoubleClick:0,0,0,0,Head', 'OnHandDelegate', 'OnHandOnly',
+      'OnBlockCallsHand'], true);
+    // 最後は、ブロックが手書きの関数をよび（YAYA の関数をよぶ）、YAYA の式の値をしゃべる（無い関数は何もしない）
     const want = ['\\0\\s[0]手書きのOnBootです。\\e', '\\0ブロックのダブルクリック\\e',
-      '\\0手書き：\\0ブロックの返事\\e', '\\0手書きだけのイベント\\e'];
+      '\\0手書き：\\0ブロックの返事\\e', '\\0手書きだけのイベント\\e', '\\0てがきさん、こんにちは\\142\\e'];
     checks++;
     const vals = got.map((g) => g.value);
     if (vals.join(' | ') !== want.join(' | ')) {
       fails.push(`つないだゴーストの答え\n      出た  : ${vals.join(' | ')}\n      ほしい: ${want.join(' | ')}`);
     } else {
       ok('同じイベントは手書きが優先され、手書きから Studio.Event をよぶとブロックも動きます');
+      ok('ブロックから手書きの関数と YAYA の式を使えます', '無い関数は何もしない');
     }
 
     // 書き出す前に止めるもの

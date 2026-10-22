@@ -373,6 +373,17 @@ def({
 // 外部モジュール（SAORI）を、答えを待たずに呼ぶ。
 // 時間のかかる SAORI を「◯◯でよんだ答え」で呼ぶと、その間 SSP が止まります。
 // こちらは別のスレッドで動いて、答えが届いたら変数に入り、OnSaoriDone が起きます。
+// つないだ手書きの YAYA ゴーストの関数をよんで、答えをそのまましゃべる（段階 3-5c）。
+// 関数の名前の欄には、ブロックははめられません
+def({
+  type: 'yaya_call', cat: 'control', shape: 'stack',
+  spec: t('YAYA の関数 %name を %a %b でよぶ'),
+  args: {
+    name: { kind: 'input', mode: 'text', def: '', literal: true },
+    a: { kind: 'input', mode: 'text', def: '', long: true },
+    b: { kind: 'input', mode: 'text', def: '', long: true },
+  },
+});
 def({
   type: 'saori_call', cat: 'control', shape: 'stack',
   spec: t('%file を %a %b でよぶ（答えを待たずに %into に入れる）%value'),
@@ -500,6 +511,13 @@ def({
 });
 
 // 外部モジュール（SAORI）。ゴーストのフォルダに置いた 32bit の DLL を呼びます。
+// 手書きの YAYA の式の値（段階 3-5c）。式の欄は、そこに書いた文字だけを使います（ブロックははめられません。
+// ほかのゴーストから来た言葉などが、YAYA のコードとして動かないように）
+def({
+  type: 'yaya_expr', cat: 'operators', shape: 'reporter',
+  spec: t('YAYA の式 %code の値'),
+  args: { code: { kind: 'input', mode: 'text', def: '', long: true, literal: true } },
+});
 def({
   type: 'saori', cat: 'operators', shape: 'reporter',
   spec: t('%file を %a %b でよんだ答え %value'),
@@ -555,13 +573,13 @@ export const PALETTE = {
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
   looks: ['surface', 'chara', 'anim', 'balloon', 'sound'],
   control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'call',
-    'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call',
+    'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call', 'yaya_call',
     'open_browser', 'end', 'close', 'change_ghost'],
   variables: [{ button: 'add-var', label: t('＋ 変数をつくる') }, '@vars', 'set', 'change'],
   operators: ['arith#+', 'arith#-', 'arith#*', 'arith#/', 'arith#%',
     'compare#<', 'compare#=', 'compare#>', 'compare#!=',
     'logic#and', 'logic#or', 'not', 'random', 'chance',
-    'join', 'contains', 'length', 'round', 'saori'],
+    'join', 'contains', 'length', 'round', 'saori', 'yaya_expr'],
   info: [
     { note: t('イベントの情報＝ダブルクリックの座標など、イベントごとの追加データです。') },
     'sys', 'ref',
