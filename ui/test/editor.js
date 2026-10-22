@@ -351,6 +351,24 @@ section('お手本ゴースト');
   sample(path.join(root, 'studio', 'res', 'sample-project.en.json'), 'en');
 }
 
+section('このソフトについて (about)');
+{
+  // もとにしたプロジェクトの表示は、ライセンス（なしライセンス 1.1 の 3 節）のための決まった文。
+  // ヘルプの画面と README・LICENSE で、1 字もちがわないようにする（全角の空白もふくめて）
+  const { ORIGIN_NOTICE } = require('../js/panels/about.js');
+  const lines = ORIGIN_NOTICE.split('\n');
+  const has = (rel) => {
+    const text = fs.readFileSync(path.join(root, rel), 'utf8').split(/\r?\n/).map((l) => l.replace(/^[>\s]+/, ''));
+    return lines.every((line) => text.includes(line));
+  };
+  check('表示は 3 行（もとにしたこと・場所・作者）', lines.length, 3);
+  check('README.md・README.en.md・LICENSE と同じ文',
+    ['README.md', 'README.en.md', 'LICENSE'].map(has), [true, true, true]);
+  const html = fs.readFileSync(path.join(root, 'ui', 'index.html'), 'utf8');
+  check('ヘルプの画面に、表示を入れる場所と元のページを開くボタンがある',
+    [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
+}
+
 // ------------------------------------------------------------------ おしまい
 if (failed) {
   console.log(`${red}[editor] ${failed} か所ちがいます（${checked} か所中）。${off}`);

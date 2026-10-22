@@ -160,7 +160,7 @@ WebView2 and node both read the files as written.
 ui/js/
 ├── main.js        assembly (calls each part's init(), redraws everything)
 ├── shortcuts.js   keyboard (calls into many layers, so it sits with the assembly)
-├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language
+├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
 └── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya
@@ -330,6 +330,9 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
 * The only things reachable from outside the page are what `main.js` puts on `window.IKAGA`.
   The exe (`studio/src/main.cpp`) calls `IKAGA.Model.dirty` and
   `IKAGA.Dialog.requestSaveAndClose()` when closing. If you rename them, fix that side too.
+* **The notice about the original project** in Help's “About this software” (`panels/about.js`) is fixed text for section 3 of
+  the Nashi License 1.1: the same 3 lines as in the README and LICENSE (not translated, even in the English UI). If you change it,
+  keep all three in step (`ui\test\editor.js` stops if a single character differs).
 * `ui/js/package.json` (`"type": "module"`) tells the node tests to read this folder as ES modules.
   It is not put into the exe (`studio/tools/embed.ps1`).
 

@@ -269,7 +269,7 @@ With `-Test`, nine tests run.
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions the runtime dictionary makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, random talk, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
 | **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`) is still the official build and runs; whether variables survive a restart, the exe's export runs on YAYA as it is, and exporting into a linked hand-written YAYA ghost leaves the hand-written files byte for byte unchanged |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic`, and the file list) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
-| **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, and that every example is clean |
+| **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, that every example is clean, and that the notice in Help's “About this software” is the same text as in the README and LICENSE |
 | **Import check** (`tools\check-imports.js`) | Reads the import table of the `yaya.dll` that goes into exported ghosts directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows (this is for when you upgrade it) |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
 | **UI language check** (`ui\test\i18n.js`) | Whether all Japanese UI text goes through `t()` and has an English translation (so no Japanese is left on the English screen), whether the dictionary has stale entries or mismatched `{placeholders}`, whether every error code the exe returns has UI text, and whether every document has an English version |
@@ -384,7 +384,7 @@ ukagaka-studio/
 │   ├── style.css
 │   ├── samples/            examples (“Start from an example”); the English ones are in samples/en/
 │   ├── test/               tests that run without showing the UI
-│   │                         editor.js  … normalizing, format versions, Check tab, block search, examples
+│   │                         editor.js  … normalizing, format versions, Check tab, block search, examples, About
 │   │                         modules.js … loading, layer direction, call targets, color tokens
 │   │                         i18n.js    … unwrapped t(), the English dictionary, exe error codes, English docs
 │   └── js/                 ES modules (index.html reads only main.js)
@@ -404,6 +404,7 @@ ukagaka-studio/
 │       └── panels/         pages (Talk, Characters, Ghost info, Export, Help)
 │           ├── pages.js    switching pages (right below the top bar)
 │           ├── guide.js    the first-steps guide (the card at the top right of the canvas)
+│           ├── about.js    “About this software” in Help (the version and the notice about the original project)
 │           ├── language.js switching the UI language (English / 日本語 in the top bar)
 │           ├── run.js      “Try” on the right of Talk (running, variables, the ghost's log)
 │           ├── stage.js    the stage of “Try” (animates the balloon and surfaces)
@@ -568,6 +569,7 @@ Not there yet (how to add things is in “Adding one block” in [`docs/en/maint
 Copyright (c) 2026 月見里　彩葉 (miyagawa-yukinterface)
 
 This fork is distributed under the same terms. The “based on” notice at the top is there because those terms (section 3) require it.
+Inside the app, “**About this software**” in Help (the **?** at the top right) shows the version and the same notice.
 
 Anyone may use, modify and distribute it, free of charge, for any purpose.
 

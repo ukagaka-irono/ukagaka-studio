@@ -156,7 +156,7 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
-├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language
+├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
 └── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya
@@ -319,6 +319,9 @@ ui/js/
 * 画面の外から触れるのは、`main.js` が `window.IKAGA` に載せたものだけです。
   exe（`studio/src/main.cpp`）が、閉じるときに `IKAGA.Model.dirty` と
   `IKAGA.Dialog.requestSaveAndClose()` を呼びます。名前を変えたら、そちらも直してください。
+* ヘルプの「このソフトについて」（`panels/about.js`）の **もとにしたプロジェクトの表示**は、なしライセンス 1.1 の 3 節のための
+  決まった文で、README・LICENSE と同じ 3 行です（英語の画面でも訳しません）。変えるときは 3 か所をそろえてください
+  （`ui\test\editor.js` が、1 字でもちがうと止めます）。
 * `ui/js/package.json`（`"type": "module"`）は、node のテストがここを ES モジュールとして
   読むための印です。exe には入れていません（`studio/tools/embed.ps1`）。
 

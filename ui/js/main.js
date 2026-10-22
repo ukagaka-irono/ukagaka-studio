@@ -39,6 +39,7 @@ import { Ssp } from './panels/ssp.js';
 import { Guide } from './panels/guide.js';
 import { Language } from './panels/language.js';
 import { YayaLink } from './panels/yayalink.js';
+import { About } from './panels/about.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
 
@@ -174,6 +175,7 @@ async function boot() {
   Search.init();
   Picker.init();
   Guide.init();
+  About.init(state);
   Shortcuts.init();
   if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面
 

@@ -852,4 +852,13 @@ export const en = {
   '（栞 YAYA）で動きます。ブロックは YAYA の辞書': ' (the YAYA SHIORI). Blocks are exported as the YAYA dictionary ',
   'に書き出されます。SSP で動いているゴーストは、 「SSP に入れて動かす」で書き出すと、すぐ読み込み直されます。':
     '. A ghost running in SSP reloads right away when you export it with “Run it in SSP”.',
+  'このソフトについて': 'About this software',
+  '「なし栞 + なしスタジオ」をもとに、名前を変えて独自に改修しているフォークです（元のものとは別物です）。 下の表示は、元のプロジェクトのライセンス（なしライセンス 1.1 の 3 節）にしたがって置いています。':
+    "A fork of “Nashi SHIORI + Nashi Studio” (なし栞 + なしスタジオ), renamed and reworked independently (it is a separate project from the original). The notice below is shown as the original project's license (section 3 of the Nashi License 1.1) asks; it says this software is based on “Nashi SHIORI + Nashi Studio” by 月見里　彩葉 (miyagawa-yukinterface).",
+  'ライセンスの本文と、exe に入っている WebView2 SDK・栞 YAYA の著作権表示は、配布用の zip の LICENSE と third_party にあります。書き出したゴーストには、この表示を入れる必要はありません。':
+    'The license text and the copyright notices of the WebView2 SDK and the YAYA SHIORI inside the exe are in LICENSE and third_party in the release zip. Ghosts you export do not need to carry this notice.',
+  '元のプロジェクトのページを開く': "Open the original project's page",
+
+  // ---- ui\js\panels\about.js
+  '版 {version}': 'version {version}',
 };
