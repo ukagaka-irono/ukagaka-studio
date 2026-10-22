@@ -54,6 +54,8 @@ private:
     void DeleteProject(const HttpRequest& req, HttpResponse& res);
     void GetProjectHistory(const HttpRequest& req, HttpResponse& res);    // 前の版の一覧（project_history.h）
     void GetProjectVersion(const HttpRequest& req, HttpResponse& res);    // 前の版の中身
+    void GetParts(const HttpRequest& req, HttpResponse& res);             // 部品（exe のとなりの parts.json）
+    void SaveParts(const HttpRequest& req, HttpResponse& res);
     void ImportProject(const HttpRequest& req, HttpResponse& res);
 
     // api_shell.cpp
@@ -85,6 +87,7 @@ private:
     std::wstring projectsDir_;
     std::wstring outputDir_;
     std::wstring configPath_;
+    std::wstring partsPath_;   // 部品（どのプロジェクトからも使う、よく使う組みかた）
 
     // 短時間に何度も探しにいかないための控え
     mutable SspInfo sspCache_;

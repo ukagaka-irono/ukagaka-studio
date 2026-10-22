@@ -70,6 +70,7 @@ void Api::Init() {
     projectsDir_ = PathJoin(exeDir_, L"projects");
     outputDir_ = PathJoin(exeDir_, L"output");
     configPath_ = PathJoin(exeDir_, L"ukagaka-studio.json");
+    partsPath_ = PathJoin(exeDir_, L"parts.json");
 
     EnsureDir(projectsDir_);
 }
@@ -158,6 +159,8 @@ const Api::Route Api::kRoutes[] = {
     { "POST", "/api/project/delete", &Api::DeleteProject },
     { "GET",  "/api/project/history", &Api::GetProjectHistory },
     { "GET",  "/api/project/version", &Api::GetProjectVersion },
+    { "GET",  "/api/parts",          &Api::GetParts },
+    { "POST", "/api/parts",          &Api::SaveParts },
     { "POST", "/api/import",         &Api::ImportProject },
     // api_shell.cpp
     { "GET",  "/api/shell",          &Api::RenderShell },

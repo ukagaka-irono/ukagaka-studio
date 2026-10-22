@@ -56,7 +56,7 @@ const KNOWN = {
 };
 
 // パレットの目じるしが、実際にはどのブロックを並べるか（render.js が展開します）
-const PALETTE_EXPANDS = { '@vars': ['var'] };
+const PALETTE_EXPANDS = { '@vars': ['var'], '@parts': [] };   // @parts は保存した部品（ブロックの定義ではない）
 
 // ------------------------------------------------------------------- 読みこみ
 function read(rel) {

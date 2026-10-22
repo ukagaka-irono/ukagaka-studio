@@ -5,7 +5,8 @@
  *
  * 知らせる側は、だれが聞いているかを知りません。下の層から上の層へ「済んだ」を伝えるときにも使えます。
  * いま使っている名前: 'sample-opened'（お手本を開いた）、'ran'（ためした）、
- * 'exported'（フォルダか .nar に書き出した）、'installed'（SSP に入れた）。
+ * 'exported'（フォルダか .nar に書き出した）、'installed'（SSP に入れた）、
+ * 'parts-changed'（部品を読みこんだ・足した・消した。editor/parts.js → editor/palette.js）。
  */
 
 const handlers = new Map();

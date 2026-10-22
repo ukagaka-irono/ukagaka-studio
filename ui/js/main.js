@@ -26,6 +26,7 @@ import { Scripts } from './editor/scripts.js';
 import { Zoom } from './editor/zoom.js';
 import { ContextMenu } from './editor/contextmenu.js';
 import { Picker } from './editor/picker.js';
+import { Parts } from './editor/parts.js';
 import { Pages } from './panels/pages.js';
 import { Tabs } from './panels/tabs.js';
 import { Run } from './panels/run.js';
@@ -176,6 +177,7 @@ async function boot() {
   Picker.init();
   Guide.init();
   About.init(state);
+  Parts.load();      // 部品（exe のとなりの parts.json）。読めたらパレットの「部品」を描きなおす
   Shortcuts.init();
   if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面
 

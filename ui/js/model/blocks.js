@@ -14,6 +14,7 @@ export const CATEGORIES = [
   { id: 'variables', name: t('変数') },
   { id: 'operators', name: t('演算') },
   { id: 'info',      name: t('情報') },
+  { id: 'parts',     name: t('部品') },   // よく使う組みかた（editor/parts.js。どのプロジェクトからも使う）
 ];
 
 export const EVENTS = [
@@ -582,5 +583,9 @@ export const PALETTE = {
   info: [
     { note: t('イベントの情報＝ダブルクリックの座標など、イベントごとの追加データです。') },
     'sys', 'ref',
+  ],
+  parts: [
+    { note: t('よく使う組みかたを、ブロックの右クリックの「ここから下を部品にする」で保存できます。どのプロジェクトにも置けます。') },
+    '@parts',
   ],
 };

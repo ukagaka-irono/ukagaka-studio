@@ -157,7 +157,7 @@ ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
 ├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
-├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes
+├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
 └── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya
 ```
@@ -311,6 +311,10 @@ ui/js/
   （`index.html` の「キーボードとマウス」）**にも足してください。** 文字を打っている欄の中では、
   `Ctrl+S` などの一部を除いて動きません。ブロックの操作は、トークの画面が見えているときだけです。
 * 右クリックのメニューは `editor/contextmenu.js` です。項目に `key: 'Ctrl+C'` のように書くと、右にキーが出ます。
+* 部品（よく使う組みかた）は `editor/parts.js` です。exe のとなりの `parts.json` に `/api/parts` で読み書きし、パレットの
+  「部品」カテゴリ（`PALETTE.parts` の `@parts`）に並べます。部品をつかんだときは中のブロックをまとめて持ち（`editor/drag.js` の
+  `pickPayload`）、置いたときに使っている変数を足します。部品はブロックの定義ではないので、`tools/check-blocks.js` の
+  `PALETTE_EXPANDS` で `@parts` を空にしてあります。
 * メモ（`block.note`・`script.note`）は `editor/notes.js` です。ブロックの `.blk` の中に、右へはみ出す付せんとして描くので、
   ブロックの大きさ（ドラッグの当たり）は変わりません。「整列」は、はみ出したメモの分も幅に入れます。
   辞書へのコメントは `model/yaya.js` の `noteLines`、ghost.json の写しでは、かたまりの `note` を `programOf` と exe の

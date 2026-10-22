@@ -136,9 +136,14 @@ the block search, type part of a name such as “says” or “petted”, and pr
 below the selected block, and you can type straight into the new block's text field. Press Enter to confirm, then **/** again
 to keep building downward.
 
-**Right-click** a block for copy, cut, paste, duplicate, disable, note and delete; a script's hat for run, duplicate,
-note and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
+**Right-click** a block for copy, cut, paste, duplicate, save as a part, disable, note and delete; a script's hat for run, duplicate,
+note, save as a part and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
 The list of keys is on the How to use page, opened with **?** or **F1**.
+
+A **part** is an arrangement you use often, kept under a name. Save one with “Save this and below as a part” in the right-click
+menu of a block (“Save this script as a part” on a hat); it appears under **Parts** in the palette and can be dragged into any project.
+Variables it uses are added, with their initial values, if the project does not have them. Rename or delete a part from its right-click
+menu in the palette.
 
 A **note** is a memo you can attach to a block or a script with “Add a note” in the right-click menu. It appears like a sticky
 note to the right of the script and can be edited right there (erasing all its text removes it). It does not affect how the ghost
@@ -248,6 +253,7 @@ Next to `ukagaka-studio.exe`.
 | `projects\` | Projects (your unfinished blocks). A sample is put here on first start (`Ikaga.json` in English, `いかがちゃん.json` in Japanese) |
 | `projects\.history\` | Earlier versions of projects. Each save keeps what it overwrites (autosaves only every 10 minutes; the newest 30 per project are kept). Open them with 🕘 in “Open” |
 | `output\` | Exported ghosts (unless you changed the output folder) |
+| `parts.json` | Parts (arrangements you use often; shared by every project) |
 | `ukagaka-studio.json` | The last project opened, the output folder, the window size, the language |
 | `webview-data\` | WebView2's working folder (rebuilt if you delete it) |
 
@@ -411,7 +417,7 @@ ukagaka-studio/
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   └── sample.js   the template for “New”
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
-│       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes)
+│       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)
 │       └── panels/         pages (Talk, Characters, Ghost info, Export, Help)
 │           ├── pages.js    switching pages (right below the top bar)
 │           ├── guide.js    the first-steps guide (the card at the top right of the canvas)

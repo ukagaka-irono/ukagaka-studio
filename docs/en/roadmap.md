@@ -719,7 +719,15 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 * ~~**Notes (comments)** on blocks~~ (done; see “What was done” below)
 * ~~Copy and paste between projects~~ (done)
 * ~~Autosave and going back to an earlier version~~ (done)
-* Saving a frequently used arrangement as a “part”
+* ~~Saving a frequently used arrangement as a “part”~~ (done)
+
+> **Parts are done.** This completes the editor candidates. What was done:
+>
+> * “Save this and below as a part” in a block's right-click menu (“Save this script as a part” on a hat) saves it under a name.
+>   Parts are kept in `parts.json` next to the exe (`GET` / `POST /api/parts`), outside any project, so every project can use them.
+> * The palette has a new “Parts” category. Dragging a part places all its blocks and adds any variables it uses that are missing, with their
+>   initial values (the same rule as copy and paste). A part's right-click menu renames or deletes it (`ui/js/editor/parts.js`).
+> * Tests: the editor test checks that a part holds its name, a copy of the blocks and the initial values of the variables it uses (110 checks).
 
 > **Copy and paste between projects is done.** What was done:
 >

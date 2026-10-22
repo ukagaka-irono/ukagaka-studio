@@ -4,6 +4,7 @@ import { CATEGORIES } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { $ } from '../core/dom.js';
 import { Session } from '../core/session.js';
+import { Events } from '../core/events.js';
 import { Render } from './render.js';
 
 function renderCategories() {
@@ -39,4 +40,9 @@ function render() {
   Render.renderPalette($('#palette-blocks'), Session.category, Model.project);
 }
 
-export const Palette = { init: renderCategories, render };
+function init() {
+  renderCategories();
+  Events.on('parts-changed', () => { if (Session.category === 'parts') render(); });   // editor/parts.js
+}
+
+export const Palette = { init, render };

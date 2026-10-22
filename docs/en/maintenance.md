@@ -161,7 +161,7 @@ ui/js/
 ├── main.js        assembly (calls each part's init(), redraws everything)
 ├── shortcuts.js   keyboard (calls into many layers, so it sits with the assembly)
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
-├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes
+├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
 └── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya
 ```
@@ -322,6 +322,10 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
   (“キーボードとマウス” in `index.html`) **too.** Inside text fields, only a few such as
   `Ctrl+S` work. Block operations work only while the Talk page is shown.
 * Right-click menus are in `editor/contextmenu.js`. Write `key: 'Ctrl+C'` on an item to show the key on the right.
+* Parts (arrangements you use often) are in `editor/parts.js`. They are read and written in `parts.json` next to the exe through `/api/parts`
+  and listed in the palette's “Parts” category (`@parts` in `PALETTE.parts`). Grabbing a part carries all its blocks (`pickPayload` in
+  `editor/drag.js`), and dropping it adds the variables it uses. Parts are not block definitions, so `PALETTE_EXPANDS` in
+  `tools/check-blocks.js` maps `@parts` to nothing.
 * Notes (`block.note`, `script.note`) are in `editor/notes.js`. They are drawn inside the block's `.blk` as a sticky note sticking out
   to the right, so the block's size (its drag hit box) does not change. “Tidy up” counts the overhanging note in the width.
   The dictionary comments come from `noteLines` in `model/yaya.js`; in the ghost.json copy, a script's `note` is written the same way by

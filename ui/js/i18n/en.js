@@ -120,6 +120,22 @@ export const en = {
   'メモを付ける': 'Add a note',
   'メモを書きなおす': 'Edit the note',
   'メモを消す': 'Delete the note',
+  '部品の名前を変える': 'Rename the part',
+  '部品を消す': 'Delete the part',
+  'このかたまりを部品にする': 'Save this script as a part',
+  'ここから下を部品にする': 'Save this and below as a part',
+
+  // ---- ui\js\editor\parts.js
+  '部品の名前は？': 'Name of the part?',
+  'あたらしい部品': 'New part',
+  '部品「{name}」を保存しました。パレットの「部品」から、どのプロジェクトにも置けます':
+    'Saved the part “{name}”. You can place it in any project from “Parts” in the palette',
+  '部品「{name}」を消しますか？': 'Delete the part “{name}”?',
+  '部品「{name}」を消しました': 'Deleted the part “{name}”',
+  'まだ部品がありません。': 'No parts yet.',
+  'ドラッグして置きます。右クリックで名前を変える・消す': 'Drag to place it. Right-click to rename or delete it',
+  'ブロック {n} こ': '{n} blocks',
+  '変数「{names}」も足しました': 'Also added the variables “{names}”',
 
   // ---- ui\js\editor\notes.js
   'メモ（動きには関係しません）': 'Note (does not affect how the ghost behaves)',
@@ -183,6 +199,7 @@ export const en = {
   '変数': 'Variables',
   '演算': 'Operators',
   '情報': 'Info',
+  '部品': 'Parts',
 
   // ---- ui\js\model\blocks.js（イベント）
   '起動したとき': 'When started',
@@ -375,6 +392,8 @@ export const en = {
   'ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。': 'Everything a ghost does starts here. Drag one onto the canvas.',
   '＋ 変数をつくる': '+ New variable',
   'イベントの情報＝ダブルクリックの座標など、イベントごとの追加データです。': 'Event info is extra data for each event, such as where a double-click happened.',
+  'よく使う組みかたを、ブロックの右クリックの「ここから下を部品にする」で保存できます。どのプロジェクトにも置けます。':
+    'Save an arrangement you use often with “Save this and below as a part” in the right-click menu of a block. You can place it in any project.',
 
   // ---- ui\js\model\lint.js
   '「{name}」という名前が 2 つあります': 'The name “{name}” is used twice',
@@ -861,10 +880,12 @@ export const en = {
     'Ctrl+V pastes right below the selected block (at the top of the script when a hat is selected).',
   '右クリックのメニュー': 'Right-click menus',
   'ブロックの上': 'On a block',
-  'コピー・切り取り・すぐ下にはりつけ・複製・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
-    'Copy, cut, paste below, duplicate, disable for now, add a note, delete, delete this and everything below',
+  'コピー・切り取り・すぐ下にはりつけ・複製・ここから下を部品にする・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
+    'Copy, cut, paste below, duplicate, save this and below as a part, disable for now, add a note, delete, delete this and everything below',
   'かたまりの帽子の上': "On a script's hat",
-  '実行してみる・複製・メモを付ける・削除': 'Run, duplicate, add a note, delete',
+  '実行してみる・複製・メモを付ける・このかたまりを部品にする・削除': 'Run, duplicate, add a note, save this script as a part, delete',
+  'パレットの部品の上': 'On a part in the palette',
+  '部品の名前を変える・部品を消す': 'Rename the part, delete the part',
   '何もないところ': 'On empty space',
   'ここにブロックを探して置く・ここにはりつけ・整列': 'Find and place a block here, paste here, tidy up',
   'ブロックの色': 'Block colors',

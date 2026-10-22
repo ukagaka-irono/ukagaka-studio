@@ -95,6 +95,7 @@
   --cat-variables: #ff8c1a;
   --cat-operators: #59c059;
   --cat-info: #5cb1d6;
+  --cat-parts: #8f9bb3;   /* 部品（パレットのカテゴリの印だけ。部品の中のブロックは、それぞれの色） */
 }
 /* 上のバーのボタンで固定したとき（main.js の Theme） */
 :root[data-theme="light"] { color-scheme: light; }
@@ -215,6 +216,14 @@ button, input, select, textarea { font-family: inherit; }
 #palette-blocks .blk { cursor: grab; }
 /* パレットのブロックは「つかむ」だけ。中の入力欄は操作させない */
 #palette .blk input, #palette .blk select, #palette .blk button { pointer-events: none; }
+/* 部品（editor/parts.js）。名前の帯の下に、中のブロックを小さく出す */
+.palette-part {
+  margin: 0 0 12px; padding: 6px 6px 8px; border: 1px dashed var(--line-strong); border-radius: 8px;
+  background: var(--surface-2); cursor: grab;
+}
+.palette-part-name { font-size: 12px; font-weight: 600; color: var(--text-2); margin: 0 0 6px 2px; }
+.palette-part-name small { font-weight: 400; color: var(--text-faint); margin-left: 6px; }
+.palette-part .stack { zoom: .8; }
 .palette-note {
   font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 6px 8px 2px 0;
 }

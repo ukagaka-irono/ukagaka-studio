@@ -1,11 +1,13 @@
 /* 伺かスタジオ - キャンバスの右クリックメニュー
  *
  * 3 つあります。どれも、キーボードで同じことができるものは右にキーを出します。
- *   ・かたまり（帽子）の上 … 実行・複製・メモ・削除
- *   ・ブロックの上         … コピー・切り取り・複製・無効にする・メモ・削除
+ *   ・かたまり（帽子）の上 … 実行・複製・メモ・部品にする・削除
+ *   ・ブロックの上         … コピー・切り取り・複製・部品にする・無効にする・メモ・削除
+ *   ・パレットの部品の上   … 名前を変える・消す
  *   ・何もないところ       … ブロックを探して置く・はりつけ・整列
  */
 
+import { Model } from '../model/model.js';
 import { $ } from '../core/dom.js';
 import { Session } from '../core/session.js';
 import { toast } from '../core/toast.js';
@@ -16,6 +18,7 @@ import { Scripts } from './scripts.js';
 import { Clipboard } from './clipboard.js';
 import { Picker } from './picker.js';
 import { Notes } from './notes.js';
+import { Parts } from './parts.js';
 
 function close() {
   $('#ctx-menu').classList.remove('open');
@@ -59,6 +62,18 @@ function toCanvas(clientX, clientY) {
 
 function init() {
   document.addEventListener('contextmenu', (e) => {
+    // パレットの部品の上 … 名前を変える・消す
+    const partEl = e.target.closest('#palette .palette-part');
+    if (partEl && partEl._palettePart) {
+      e.preventDefault();
+      const part = partEl._palettePart;
+      open(e.clientX, e.clientY, [
+        { label: t('部品の名前を変える'), run: () => Parts.rename(part) },
+        '-',
+        { label: t('部品を消す'), danger: true, run: () => Parts.remove(part) },
+      ]);
+      return;
+    }
     const inWorkspace = e.target.closest('#workspace');
     const scriptEl = e.target.closest('#canvas .script');
     if (!inWorkspace) { close(); return; }
@@ -84,6 +99,7 @@ function init() {
         { label: t('▶ 実行してみる'), run: () => Commands.runScript(script) },
         { label: t('複製する'), run: () => Scripts.duplicateScript(script) },
         ...noteItems(script),
+        { label: t('このかたまりを部品にする'), run: () => Parts.save(script.blocks, Model.scriptTitle(script)) },
         '-',
         { label: t('削除する'), danger: true, run: () => Scripts.deleteScript(script) },
       ]);
@@ -100,6 +116,7 @@ function init() {
         { label: t('切り取り'), key: 'Ctrl+X', run: () => Clipboard.cut(stack, index) },
         { label: t('すぐ下にはりつけ'), key: 'Ctrl+V', run: () => Clipboard.paste(stack, index + 1) },
         { label: t('複製する'), key: 'Ctrl+D', run: () => Clipboard.duplicate(stack, index) },
+        { label: t('ここから下を部品にする'), run: () => Parts.save(stack.slice(index)) },
       );
     }
     items.push({ label: block.disabled ? t('有効にする') : t('一時的に無効にする'), run: () => Clipboard.toggleDisabled(block) });

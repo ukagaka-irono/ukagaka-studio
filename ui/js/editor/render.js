@@ -6,6 +6,7 @@ import { Commands } from '../core/commands.js';
 import { updateTitle } from '../core/title.js';
 import { Scripts } from './scripts.js';
 import { Notes } from './notes.js';
+import { Parts } from './parts.js';
 import { t } from '../i18n/i18n.js';
 
 const INPUT_FONT = '600 12.5px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif';
@@ -374,6 +375,20 @@ function renderPalette(container, catId, project) {
       b.style.marginBottom = '10px';
       b.addEventListener('click', () => Commands.promptNewVariable());
       container.appendChild(b);
+      continue;
+    }
+    if (entry === '@parts') {
+      if (!Parts.list.length) container.appendChild(div('palette-note', t('まだ部品がありません。')));
+      for (const part of Parts.list) {
+        const box = div('palette-part');
+        box._palettePart = part;
+        box.title = t('ドラッグして置きます。右クリックで名前を変える・消す');
+        const head = div('palette-part-name', part.name);
+        head.appendChild(el('small', null, t('ブロック {n} こ', { n: part.blocks.length })));
+        box.appendChild(head);
+        box.appendChild(buildStackEl(Model.clone(part.blocks), project));
+        container.appendChild(box);
+      }
       continue;
     }
     if (entry === '@vars') {

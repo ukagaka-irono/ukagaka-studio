@@ -71,6 +71,13 @@ function insertTarget() {
 
 // ------------------------------------------------------------ drag start
 function pickPayload(target, clientX, clientY) {
+  // パレットの部品から（中のブロックをまとめて。使っている変数も持っていき、置いた先に無ければ足す）
+  const partEl = target.closest && target.closest('#palette .palette-part');
+  if (partEl && partEl._palettePart) {
+    const part = partEl._palettePart;
+    return { type: 'blocks', blocks: Model.clone(part.blocks), vars: part.variables || [], sourceEl: partEl, scale: 1 };
+  }
+
   // パレットから
   const paletteBlk = target.closest && target.closest('#palette .blk');
   if (paletteBlk) {
@@ -367,9 +374,12 @@ function finishDrag(clientX, clientY) {
       x: Math.max(0, Math.round(pos.x)), y: Math.max(0, Math.round(pos.y)),
     });
   }
+  // 部品なら、使っている変数のうち、このプロジェクトに無いものを足す
+  const added = (payload.vars || []).filter((v) => v && v.name && Model.addVariable(v.name, v.value)).map((v) => v.name);
   cleanupEmptyScripts();
   Model.pushUndo(d.snapshot);
   Model.emit();
+  if (added.length) toast(t('変数「{names}」も足しました', { names: added.join(', ') }));
 }
 
 function uniqueName(base) {

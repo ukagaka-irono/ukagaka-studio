@@ -393,6 +393,23 @@ section('プロジェクトをまたいだコピー (clipboard)');
   Model.undo();
   check('元にもどすと、はりつけたものも足した変数も消える',
     [Model.project.scripts.length, Model.project.variables.length], [0, 1]);
+
+  // 部品（editor/parts.js）: ブロックの並びと、使っている変数の初期値を持つ。元のブロックとは切り離す
+  const { Parts } = require('../js/editor/parts.js');
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'C' },
+    variables: [{ name: '好感度', value: 5 }, { name: 'なまえ', value: 'きみ' }],
+    scripts: [{ id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'say', who: 0, text: { type: 'join', a: 'やあ、', b: { type: 'var', name: 'なまえ' } } },
+      { type: 'change', name: '好感度', value: 1 },
+    ] }],
+  });
+  const stack = Model.project.scripts[0].blocks;
+  const part = Parts.make('  あいさつ  ', stack);
+  stack[0].who = 1;
+  check('部品は、名前（前後の空白なし）・ブロックの写し・使っている変数の初期値を持つ',
+    [part.name, part.blocks.length, part.blocks[0].who, part.variables],
+    ['あいさつ', 2, 0, [{ name: 'なまえ', value: 'きみ' }, { name: '好感度', value: 5 }]]);
   globalThis.setTimeout = realTimeout;
   delete globalThis.document;
   delete globalThis.localStorage;

@@ -178,4 +178,28 @@ void Api::ImportProject(const HttpRequest& req, HttpResponse& res) {
     Json(res, 200, o);
 }
 
+// GET /api/parts … 部品の一覧（exe のとなりの parts.json。無ければ空）
+void Api::GetParts(const HttpRequest&, HttpResponse& res) {
+    JValue o = JValue::makeObj();
+    std::string text;
+    JValue saved;
+    std::string err;
+    if (ReadBinaryFile(partsPath_, text) && JsonParse(ToUtf8(text), saved, err) && saved["parts"].isArr()) {
+        o.set("parts", saved["parts"]);
+    } else {
+        o.set("parts", JValue::makeArr());
+    }
+    Json(res, 200, o);
+}
+
+// POST /api/parts … 部品の一覧をまるごと書く（{"parts":[…]}）
+void Api::SaveParts(const HttpRequest& req, HttpResponse& res) {
+    JValue body;
+    if (!ParseBody(req, body) || !body["parts"].isArr()) { JsonError(res, 400, "bad_json"); return; }
+    JValue o = JValue::makeObj();
+    o.set("parts", body["parts"]);
+    if (!WriteBinaryFile(partsPath_, o.dump(2))) { JsonError(res, 500, "save_failed"); return; }
+    Json(res, 200, o);
+}
+
 } // namespace ikaga
