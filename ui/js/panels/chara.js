@@ -449,6 +449,14 @@ function render() {
   setVal('#shell-kero-cloth', sh.keroCloth);
   setVal('#shell-balloon-on', !!sh.balloonEnabled);
   setVal('#shell-balloon-color', sh.balloonColor);
+  setVal('#shell-balloon-shape', sh.balloonShape || 'round');
+  setVal('#shell-balloon-size', sh.balloonSize || 'normal');
+  setVal('#shell-balloon-tail', sh.balloonTail !== false);
+  setVal('#shell-balloon-custom', !!sh.balloonCustomColors);
+  setVal('#shell-balloon-line', sh.balloonLineColor || '#8f8a7a');
+  setVal('#shell-balloon-text', sh.balloonTextColor || '#2e2b22');
+  // 色を自分で決めないときは、線と文字の色の欄を使わない
+  for (const sel of ['#shell-balloon-line', '#shell-balloon-text']) $(sel).disabled = !sh.balloonCustomColors;
   renderPreviews();
   renderShellSlots();
   renderAnimList();
@@ -463,6 +471,12 @@ function init() {
   bindField('#shell-kero-cloth', (v) => { Model.project.shell.keroCloth = v; }, live);
   bindField('#shell-balloon-on', (v) => { Model.project.shell.balloonEnabled = !!v; });
   bindField('#shell-balloon-color', (v) => { Model.project.shell.balloonColor = v; });
+  bindField('#shell-balloon-shape', (v) => { Model.project.shell.balloonShape = v; });
+  bindField('#shell-balloon-size', (v) => { Model.project.shell.balloonSize = v; });
+  bindField('#shell-balloon-tail', (v) => { Model.project.shell.balloonTail = !!v; });
+  bindField('#shell-balloon-custom', (v) => { Model.project.shell.balloonCustomColors = !!v; });
+  bindField('#shell-balloon-line', (v) => { Model.project.shell.balloonLineColor = v; });
+  bindField('#shell-balloon-text', (v) => { Model.project.shell.balloonTextColor = v; });
 
   $('#btn-anim-add').addEventListener('click', addAnimation);
   $('#btn-shell-import').addEventListener('click', importShellFolder);

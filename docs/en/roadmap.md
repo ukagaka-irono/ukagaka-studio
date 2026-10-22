@@ -721,7 +721,8 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 
 * ~~Import an existing shell folder~~ (done in 3-5d, numbered images only; importing animations and hit areas goes with the next two)
 * Draw hit areas on top of the picture
-* More choices for how the balloon looks
+* ~~More choices for how the balloon looks~~ (done: shape, size, tail, line and text colors; `studio/src/export_balloon.cpp`;
+  the export test gained the `balloon-styled.json` input)
 
 ### Editor
 

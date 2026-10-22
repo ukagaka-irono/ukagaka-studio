@@ -189,6 +189,7 @@ Shell images that already exist are not overwritten when you export again.
 A **balloon** can be included too: turn on “Make a balloon too” on the **Characters** page
 (PNG files and a `descript.txt` go into `balloon/`, and `install.txt` says where to put it).
 Without it, the user's own balloon is used.
+Besides the color, you can choose the shape (rounded, square, very round), the size, whether it has a tail, and the line and text colors.
 Here too, your own PNG files are not overwritten when you export again.
 
 ### 5. Network updates

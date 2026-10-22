@@ -1,0 +1,21 @@
+== folder: marui / 27 ファイル
+---- balloon/descript.txt (322 バイト)
+charset,UTF-8
+type,balloon
+name,まるいふきだし のバルーン
+craftman,ミヤガワ
+origin.x,30
+origin.y,24
+validrect.left,0
+validrect.top,0
+validrect.right,0
+validrect.bottom,0
+wordwrappoint.x,-34
+font.color.r,16
+font.color.g,32
+font.color.b,48
+arrow0.x,390
+arrow0.y,8
+arrow1.x,390
+arrow1.y,-14
+

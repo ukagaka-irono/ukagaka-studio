@@ -115,6 +115,8 @@ const cases = [
   ['plain.json', 'ghost/master/descript.txt', 'descript-plain.txt'],
   ['balloon.json', 'balloon/descript.txt', 'balloon-descript.txt'],
   ['balloon.json', 'install.txt', 'balloon-install.txt'],
+  // バルーンの見た目をえらんだとき（大きさ・かたち・しっぽ・線と文字の色）
+  ['balloon-styled.json', 'balloon/descript.txt', 'balloon-styled-descript.txt'],
   // 名前が空のときは「あたらしいゴースト」になる（どこにも空の name が出ない）
   ['noname.json', 'install.txt', 'noname-install.txt'],
   ['noname.json', 'ghost/master/descript.txt', 'noname-descript.txt'],

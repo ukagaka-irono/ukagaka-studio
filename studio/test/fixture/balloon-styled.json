@@ -1,0 +1,11 @@
+{
+  "format": "ikaga/1",
+  "_comment": ["バルーンの見た目をえらんだゴースト。大きい・大きくまるい・しっぽなし・線と文字の色を自分で決める。"],
+  "meta": { "name": "まるいふきだし", "folder": "marui", "craftman": "ミヤガワ" },
+  "shell": {
+    "balloonEnabled": true, "balloonColor": "#eef6ff",
+    "balloonShape": "soft", "balloonSize": "large", "balloonTail": false,
+    "balloonCustomColors": true, "balloonLineColor": "#ff0000", "balloonTextColor": "#102030"
+  },
+  "scripts": []
+}

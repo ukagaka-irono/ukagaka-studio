@@ -112,6 +112,9 @@ const Model = {
       },
       shell: {
         balloonEnabled: false, balloonColor: '#fffdf5',
+        // バルーンの見た目（studio/src/export_balloon.cpp）。色を自分で決めないときは、地の色から線と文字の色を作ります
+        balloonShape: 'round', balloonSize: 'normal', balloonTail: true,
+        balloonCustomColors: false, balloonLineColor: '#8f8a7a', balloonTextColor: '#2e2b22',
         sakuraColor: '#f08cae', sakuraCloth: '#6e82c8',
         keroColor: '#8fd18a', keroCloth: '#e8b45c',
         images: [],       // { id, path, name, w, h } 用意した立ち絵
