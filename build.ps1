@@ -1,7 +1,7 @@
-# 如何栞 + 伺かスタジオ をまとめてビルドする
+# 伺かスタジオをまとめてビルドする
 #
-#   .\build.ps1            栞(32bit DLL) → スタジオ(64bit EXE) の順にビルド
-#   .\build.ps1 -Test      栞のテストホストも作り、テストも走らせる
+#   .\build.ps1            32bit の手伝い（yaya_host.exe）→ スタジオ(64bit EXE) の順にビルド
+#   .\build.ps1 -Test      テスト用のコンソール（test_host.exe など）も作り、テストも走らせる
 #   .\build.ps1 -Clean     中間ファイルを消してから
 #   .\build.ps1 -Release   きれいに作り直してテストし、配布用の zip を作る
 #
@@ -43,10 +43,10 @@ if ($Test -and $node) {
     Write-Host ''
 }
 
-$shioriArgs = @('-Arch', 'x86')
+$shioriArgs = @()
 if ($Test) { $shioriArgs += '-Test' }
 if ($Clean) { $shioriArgs += '-Clean' }
-Write-Host '=== 栞 (ikaga.dll) ===' -ForegroundColor Yellow
+Write-Host '=== 32bit の手伝い (yaya_host.exe) ===' -ForegroundColor Yellow
 Invoke-Sub (Join-Path $root 'shiori\build.ps1') $shioriArgs
 
 $studioArgs = @('-Arch', $StudioArch)
@@ -57,14 +57,15 @@ Write-Host '=== 伺かスタジオ (ukagaka-studio.exe) ===' -ForegroundColor Ye
 Invoke-Sub (Join-Path $root 'studio\build.ps1') $studioArgs
 
 # テスト。Node.js を使うのはここだけで、アプリの動作には要りません。
-#   そろい   … ブロックが、栞・説明・テストにそろっているか（上で先に走ります）
-#   parity   … 同じ interp.cpp を 32bit と 64bit で組んで、出力が一致するか
-#   behavior … 栞だけが持っている判断（どれを選ぶか・既定の反応・間引き）が期待どおりか
+#   そろい   … ブロックが、YAYA への訳・説明・テストにそろっているか（上で先に走ります）
+#   imports  … 書き出すゴーストに入れる yaya.dll が Windows 2000 以降で読みこめるか
+#   parity   … ブロックを YAYA で動かした答えが、決めておいた答え（expected.json）と同じか。「ためす」も同じか
+#   behavior … どれを選ぶか・既定の反応・間引き・保存などのふるまいが期待どおりか
+#   yaya     … YAYA（third_party\yaya\）が公式のビルドのままで、訳した辞書が読みこめるか
 #   export   … 書き出したファイル（surfaces.txt など）の中身が期待どおりか
 #   editor   … エディタのデータ整形とチェックタブが期待どおりか
 #   modules  … 画面のファイルが読みこめて、呼び先がそろっているか（分けたときの移し忘れ）
-#   imports  … 栞が Windows 2000 以降で読みこめるか（新しい API が混ざっていないか）。YAYA の yaya.dll も
-#   yaya     … YAYA（third_party\yaya\）が公式のビルドのままで、test_host から動かせるか
+#   i18n     … 画面の文が日本語と英語でそろっているか
 if ($Test) {
     Write-Host ''
     Write-Host '=== テスト ===' -ForegroundColor Yellow
@@ -79,9 +80,6 @@ if ($Test) {
             & node (Join-Path $root $t)
             if ($LASTEXITCODE -ne 0) { throw "$([System.IO.Path]::GetFileName($t)) が失敗しました。" }
         }
-        # 書き出したゴーストに入れる YAYA も、Windows 2000 から動くか見ます
-        & node (Join-Path $root 'tools\check-imports.js') (Join-Path $root 'third_party\yaya\yaya.dll')
-        if ($LASTEXITCODE -ne 0) { throw 'check-imports.js（yaya.dll）が失敗しました。' }
     }
 }
 

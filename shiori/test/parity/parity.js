@@ -1,19 +1,18 @@
-/* 同じブロックを 32bit と 64bit の栞で動かして、出てきたさくらスクリプトを突き合わせる
+/* ブロックの意味のテスト（一致テスト）
  *
- *   node shiori\test\parity\parity.js
+ *   node shiori\test\parity\parity.js            見くらべる
+ *   node shiori\test\parity\parity.js --update   いまの YAYA の答えを期待値として保存しなおす
  *
- *   32bit の栞 … shiori/dist/test_host.exe        SSP に入るもの（ikaga.dll）
- *   64bit の栞 … studio/test/preview_host.exe     伺かスタジオの「ためす」が使うもの
+ * 一致テストのゴースト（ghost.json。ブロックごとに 1 つの OnP** イベント）を YAYA に訳して動かし、
  *
- * 中身は同じ shiori/src/interp.cpp です。**ビット幅だけが違います。**
- * ここがズレたら、interp.cpp のどこかが int や size_t の大きさに頼っています
- * （エディタで見た結果と、SSP に入れた結果が食いちがう、という形で表に出ます）。
+ *   1. SSP と同じ動かしかた（イベントとして順に投げる）の答えが、期待値（expected.json）と同じか
+ *   2. 「ためす」と同じ動かしかた（yaya_host.exe で、かたまりを 1 つずつまっさらな状態から）の答えが、1 と同じか
  *
- * もともとは、同じ規則を JavaScript でもう一度書いた ui/js/sim.js との
- * 見くらべでした。スタジオが栞そのものを積んだので、JavaScript 版は消しました。
+ * を見ます。expected.json は、如何栞（段階 3-6 で外したもの）が出していた答えを、外す前に写したものです。
+ * OnP25（いまごろ・季節・曜日の名前）は時計で答えが変わるので、ここでその場で作ります。
  *
- * 新しいブロックを足したら、ghost.json にも「毎回おなじ結果になる形」で足してください
- * （足し忘れは node tools\check-blocks.js が止めます）。
+ * 新しいブロックを足したら、ghost.json にも「毎回おなじ結果になる形」で足し、
+ * 出てきた答えを目で確かめてから --update してください（足し忘れは node tools\check-blocks.js が止めます）。
  */
 'use strict';
 
@@ -22,92 +21,103 @@ const path = require('path');
 const host = require('../lib/host');
 
 const here = __dirname;
-const projectPath = path.join(here, 'ghost.json');
 const { red, green, dim, off } = host.COLOR;
+const update = process.argv.includes('--update');
 
-const project = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
-const cases = (project.scripts || []).filter(
-  (s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || '')
-);
+const program = JSON.parse(fs.readFileSync(path.join(here, 'ghost.json'), 'utf8'));
+const expectedPath = path.join(here, 'expected.json');
+const expected = JSON.parse(fs.readFileSync(expectedPath, 'utf8'));
+const cases = (program.scripts || []).filter((s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || ''));
 
 function fail(msg) {
   console.error(`${red}[parity] ${msg}${off}`);
   process.exit(2);
 }
 
-if (!cases.length) fail('ghost.json に OnP** のかたまりがありません。');
-const noId = cases.filter((s) => !s.id);
-if (noId.length) {
-  fail(`id の無いかたまりがあります: ${noId.map((s) => s.event).join(', ')}`
-    + '（64bit 側は id で選びます）');
+/** OnP25 の答え（いまの時計で。ゴーストの言語は日本語） */
+function clockAnswer() {
+  const d = new Date();
+  const h = d.getHours();
+  const m = d.getMonth() + 1;
+  const daypart = h < 5 ? '夜' : h < 11 ? '朝' : h < 17 ? '昼' : h < 22 ? '夕方' : '夜';
+  const season = m >= 3 && m <= 5 ? '春' : m >= 6 && m <= 8 ? '夏' : m >= 9 && m <= 11 ? '秋' : '冬';
+  const week = '日月火水木金土'[d.getDay()];
+  return { value: `\\0${daypart}${season}\\n${week}\\n\\e`, commTo: '' };
 }
-
-// ------------------------------------------------------------ 32bit の栞 を動かす
-let shiori;
-try {
-  shiori = host.run(here, cases.map((s) => {
-    const refs = s.refs || [];
-    return refs.length ? `${s.event}:${refs.join(',')}` : s.event;
-  }));
-} catch (e) {
-  fail(e.message);
-}
-if (shiori.length !== cases.length) {
-  fail(`32bit の栞の応答が ${shiori.length} 件で、かたまりの数 ${cases.length} と合いません。`);
-}
-
-// ------------------------------------------------------------ 64bit の栞 を動かす
-let studio;
-try {
-  studio = host.runPreview(projectPath, cases.map((s) => {
-    const refs = s.refs || [];
-    return refs.length ? `${s.id}:${refs.join(',')}` : s.id;
-  }));
-} catch (e) {
-  fail(e.message);
-}
-if (studio.length !== cases.length) {
-  fail(`64bit の栞の応答が ${studio.length} 件で、かたまりの数 ${cases.length} と合いません。`);
-}
-
-// ---------------------------------------------------------------------- 見くらべ
 
 /** 長い出力は、ちがいはじめたところの前後だけ見せる（画面が流れてしまわないように） */
 function around(s, k) {
   const from = Math.max(0, k - 24);
   const to = Math.min(s.length, k + 40);
-  return (from > 0 ? '…' : '') + s.slice(from, to)
-    + (to < s.length ? `…（ぜんぶで ${s.length} 文字）` : '');
+  return (from > 0 ? '…' : '') + s.slice(from, to) + (to < s.length ? `…（ぜんぶで ${s.length} 文字）` : '');
 }
 
-let bad = 0;
-cases.forEach((s, i) => {
-  const a = shiori[i], b = studio[i];
-  const note = (s._ || '').trim();
-  if (a.value === b.value && a.commTo === b.commTo) {
-    console.log(`${green}  OK  ${off}${s.event}  ${dim}${note}${off}`);
-    return;
-  }
-
-  bad++;
-  console.log(`${red}  ちがう ${s.event}${off}  ${dim}${note}${off}`);
-  if (a.value !== b.value) {
-    let k = 0;
-    while (k < a.value.length && k < b.value.length && a.value[k] === b.value[k]) k++;
-    console.log(`        ${dim}${k} 文字目から違います${off}`);
-    console.log(`        32bit の栞: ${around(a.value, k)}`);
-    console.log(`        64bit の栞: ${around(b.value, k)}`);
-  }
-  if (a.commTo !== b.commTo) {
-    console.log(`        話しかけ先  32bit: "${a.commTo}" / 64bit: "${b.commTo}"`);
-  }
-});
-
-console.log('');
-if (bad) {
-  console.log(`${red}[parity] ${cases.length} 件中 ${bad} 件がズレています。${off}`);
-  console.log(`${dim}        同じ interp.cpp なので、ビット幅に頼った書きかたを探してください`
-    + `（int と size_t、ポインタの大きさ、double の丸め）。${off}`);
-  process.exit(1);
+function diffLines(label, a, b) {
+  let k = 0;
+  while (k < a.length && k < b.length && a[k] === b[k]) k++;
+  return `        ${dim}${k} 文字目から違います${off}\n        ${label[0]}: ${around(a, k)}\n        ${label[1]}: ${around(b, k)}`;
 }
-console.log(`${green}[parity] ${cases.length} 件が、32bit と 64bit で一致しました。${off}`);
+
+async function main() {
+  if (!cases.length) fail('ghost.json に OnP** のかたまりがありません。');
+  const noId = cases.filter((s) => !s.id);
+  if (noId.length) fail(`id の無いかたまりがあります: ${noId.map((s) => s.event).join(', ')}（「ためす」は id で選びます）`);
+
+  // ---------------------------------------------------- 1. SSP と同じ動かしかた
+  const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
+  const ssp = await host.runYayaProgram('parity', program, specs);
+  if (ssp.length !== cases.length) fail(`YAYA の応答が ${ssp.length} 件で、かたまりの数 ${cases.length} と合いません。`);
+
+  if (update) {
+    const out = { _comment: expected._comment, cases: {} };
+    cases.forEach((s, i) => {
+      if (s.event !== 'OnP25') out.cases[s.event] = { value: ssp[i].value, commTo: ssp[i].commTo };
+    });
+    fs.writeFileSync(expectedPath, JSON.stringify(out, null, 2) + '\n');
+    console.log(`${dim}  保存 expected.json（${Object.keys(out.cases).length} 件）${off}`);
+  }
+
+  let bad = 0;
+  for (let i = 0; i < cases.length; i++) {
+    const s = cases[i];
+    const note = (s._ || '').trim();
+    const want = s.event === 'OnP25' ? clockAnswer() : (expected.cases || {})[s.event];
+    const got = ssp[i];
+    const problems = [];
+    if (!want) {
+      problems.push(`        期待値がありません（目で確かめてから --update で作れます）\n        出た: ${got.value}`);
+    } else {
+      if (got.value !== want.value) problems.push(diffLines(['期待値', 'YAYA  '], want.value, got.value));
+      if (got.commTo !== want.commTo) problems.push(`        話しかけ先  期待値: "${want.commTo}" / YAYA: "${got.commTo}"`);
+    }
+
+    // ---------------------------------------------------- 2. 「ためす」と同じ動かしかた
+    const tr = await host.runYayaPreview('parity-try', program, s.id, { refs: s.refs || [], sys: {} });
+    // SSP への応答は、改行を \n にして 1 行にしています
+    const trScript = (tr.script || '').replace(/\r/g, '').replace(/\n/g, '\\n');
+    if (tr.error) problems.push(`        「ためす」がエラー: ${tr.error}`);
+    else {
+      if (trScript !== got.value) problems.push(diffLines(['ためす', 'SSP   '], trScript, got.value));
+      if (tr.commTo !== got.commTo) problems.push(`        話しかけ先  ためす: "${tr.commTo}" / SSP: "${got.commTo}"`);
+    }
+
+    if (!problems.length) {
+      console.log(`${green}  OK  ${off}${s.event}  ${dim}${note}${off}`);
+      continue;
+    }
+    bad++;
+    console.log(`${red}  ちがう ${s.event}${off}  ${dim}${note}${off}`);
+    for (const p of problems) console.log(p);
+  }
+
+  console.log('');
+  if (bad) {
+    console.log(`${red}[parity] ${cases.length} 件中 ${bad} 件がちがいます。${off}`);
+    console.log(`${dim}        訳しかた（ui/js/model/yaya.js）か、しくみの辞書（studio/res/yaya/studio_runtime.dic）を見てください。`
+      + `わざと変えたのなら --update で期待値を作りなおします。${off}`);
+    process.exit(1);
+  }
+  console.log(`${green}[parity] ${cases.length} 件が期待どおりで、「ためす」と SSP の答えも同じです。${off}`);
+}
+
+main().catch((e) => fail(e.stack || e.message));

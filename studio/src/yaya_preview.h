@@ -9,11 +9,21 @@
 //   中身の決まりは studio/res/yaya/studio_preview.dic にあります。
 #pragma once
 
-#include "preview.h"
+#include "json.h"
 
 #include <string>
 
 namespace ikaga {
+
+// 「ためす」の結果
+struct PreviewResult {
+    bool ok = false;
+    std::string error;     // うまくいかなかったときのコード（script_not_found など。文は画面が出す）
+    std::string detail;    // その補足
+    std::string script;    // 出てきたさくらスクリプト
+    std::string commTo;    // 話しかける相手（いれば）
+    JValue vars;           // 動かしたあとの変数
+};
 
 // dic … 画面が訳した studio_program.dic、input … {"vars":…, "sys":…, "refs":…} の JSON
 PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId, const std::string& input);

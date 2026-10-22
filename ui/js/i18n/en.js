@@ -32,7 +32,6 @@ export const en = {
   '書き込みに失敗しました: {detail}': 'Could not write: {detail}',
   '.nar を書き込めませんでした': 'Could not write the .nar',
   '画像が読めません': 'Could not read the image',
-  'プロジェクトを読めませんでした: {detail}': 'Could not read the project: {detail}',
   'そのかたまりが見つかりません: {detail}': 'Script not found: {detail}',
   'YAYA の辞書がありません': 'No YAYA dictionary was sent',
   'YAYA で動かせませんでした: {detail}': 'Could not run it on YAYA: {detail}',

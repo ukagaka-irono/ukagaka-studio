@@ -5,16 +5,15 @@
 > **This is the English translation of [docs/ghost-json.md](../ghost-json.md). The Japanese version is authoritative;**
 > **if the two differ, follow the Japanese one.**
 
-> **From stage 3-5a, exported ghosts run on YAYA.** `ghost.json` is still exported as a copy of the blocks that were
-> translated into the YAYA dictionary (`studio_program.dic`); “Import” in Ukagaka Studio opens it, and YAYA does not read it.
-> The description of “the SHIORI” below is ikaga SHIORI's; YAYA is built to behave the same. Saving goes to
-> `yaya_variable.cfg`, and the log to `studio_debug.txt`.
+The format of Ukagaka Studio projects (`projects\*.json`) and of `ghost/master/ghost.json` in exported ghosts.
 
-ikaga SHIORI (`ikaga.dll`) runs by reading **`ghost.json`** in its own folder
-(`ikaga.json` also works). You may write it by hand without the editor.
+Exported ghosts run on the **YAYA** SHIORI. Ukagaka Studio translates the blocks into a YAYA dictionary (`studio_program.dic`),
+and the runtime dictionary (`studio_runtime.dic`) handles the fixed behavior. `ghost.json` is **a copy of the original blocks**
+(it is there so “Open” in Ukagaka Studio can load it). **YAYA does not read `ghost.json`**:
+editing it by hand changes nothing in the ghost until you open it in Ukagaka Studio and export again.
 
-The encoding is **UTF-8** (with or without a BOM). If it was written in Shift_JIS,
-it is converted automatically. `//` and `/* */` comments are skipped.
+The encoding is **UTF-8** (with or without a BOM). Ukagaka Studio also converts files written in Shift_JIS
+automatically. `//` and `/* */` comments are skipped.
 
 ## Overall shape
 
@@ -66,7 +65,8 @@ raise `FORMAT_VERSION` in `ui/js/model/model.js` by one and add to `MIGRATIONS` 
 previous version”. When a file is opened, it is upgraded step by step from its own version.
 If you only add an item whose default is fine when missing, you do not need a new version (`Model.normalize` fills it in).
 
-The SHIORI (`ikaga.dll`) does not look at `format`: every export bundles the SHIORI that matches it.
+Exported ghosts never look at `format` (YAYA does not read `ghost.json`).
+The `ikaga` in `ikaga/1` is a leftover from the name of the 1.x SHIORI (ikaga SHIORI).
 
 ## scripts
 
@@ -101,14 +101,16 @@ The SHIORI (`ikaga.dll`) does not look at `format`: every export bundles the SHI
 | `event` | The event name when `kind: "event"` |
 | `name` | The name of a `talk` / `function`, used by `call` and choice targets |
 | `weight` | How likely it is to be picked (default 1). When an event has several scripts, one is drawn by weight |
-| `everySec` | How often `OnSecondChange` runs it, in seconds (omitted = every second). SSP sends it every second, so the SHIORI thins it out |
+| `everySec` | How often `OnSecondChange` runs it, in seconds (omitted = every second). SSP sends it every second, so the runtime dictionary thins it out |
 | `filter` | Narrows down the event. Mouse events use `area` (hit area name `Head` / `Face` / `Bust` / `Skirt` / `Hand`) and `who` (`0` = main character, `1` = partner). `OnCommunicate` uses `from` (the sender's name) and `contains` (a word in what was said); each **matches if it is contained**. Omitted items mean “anywhere / anyone / anything” |
 | `disabled` | `true` disables it |
-| `x` / `y` | The position in the editor. The SHIORI ignores them |
+| `x` / `y` | The position in the editor. Not written into the dictionaries |
 
 For the contents of `blocks`, see the [block reference](blocks.md).
 
 ## Rules of behavior
+
+How exported ghosts behave (handled by the runtime dictionary `studio_runtime.dic`).
 
 * **Drawing an event** — When several scripts have the same `event`, one is drawn by weight.
   The one picked last time is left out, so the same reaction does not happen twice in a row.
@@ -117,7 +119,7 @@ For the contents of `blocks`, see the [block reference](blocks.md).
   it draws one `kind: "talk"` by weight and plays it.
   **Recently used ones are left out** (how many is `noRepeatCount`; 0 means
   half the number of talks, up to 8). If that leaves nothing, the oldest come back first.
-  The order is kept in `ikaga_save.json`, so it does not repeat right after a restart either.
+  The order is kept in `yaya_variable.cfg`, so it does not repeat right after a restart either.
   While SSP says “do not talk now” (`Reference1` is not `1`), it waits.
   Saying anything resets the timer.
 * **Loop interval** — A script with `everySec` runs only when the seconds since start are a multiple of it.
@@ -132,13 +134,13 @@ For the contents of `blocks`, see the [block reference](blocks.md).
   “when talked to”). Among several with conditions, one is drawn by weight.
 * **Talking between ghosts** — For `OnCommunicate`, `Reference0` is the sender's name
   (`user` from SSP's communicate box) and `Reference1` is what was said.
-  To talk to someone, use the `communicate` block. The SHIORI adds
+  To talk to someone, use the `communicate` block. It adds
   `Reference0: <their name>` to the reply, and SSP delivers it as their `OnCommunicate`.
   It also adds `Age` (the generation of the exchange: 0 first, +1 for each reply),
   so SSP can stop conversations that run too long.
-  The SHIORI itself also stops sending after 8 rounds back and forth and only talks
+  The ghost itself also stops sending after 8 rounds back and forth and only talks
   (so ghosts do not chat with each other forever).
-* **Petting** — When `OnMouseMove` stays over the same area 8 times in a row, the SHIORI makes an
+* **Petting** — When `OnMouseMove` stays over the same area 8 times in a row, the runtime dictionary makes an
   **`OnNadeNade`** event itself and runs it (reset after a 1.5-second gap or when the area changes).
   SSP never sends an event with this name. Moves outside hit areas are not counted.
 * **Choices** — The `function` / `talk` whose `name` (or `id`) matches the ID in `\q[label,ID]`
@@ -146,12 +148,11 @@ For the contents of `blocks`, see the [block reference](blocks.md).
 * **Closing** — Replies to `OnClose` / `OnCloseAll` always get `\-`
   (forgetting it cannot leave the ghost unable to close).
 * **Adding `\e`** — If the output ends with neither `\e` nor `\-`, `\e` is added.
-* **Saving** — Variables are saved to `ikaga_save.json` (on close and every 2 minutes).
-  Saved values take precedence over the project's initial values.
-  To start over, delete `ikaga_save.json`.
-* **Automatic reload** — It checks `ghost.json` for changes every 3 seconds
-  and, if it changed, rereads it without stopping SSP.
-  Only newly added variables are added, with their initial values.
+* **Saving** — Variables are saved to `yaya_variable.cfg` by YAYA's own saving (when the ghost closes).
+  Saved values take precedence over the project's initial values; only newly added variables get their initial values.
+  To start over, delete `yaya_variable.cfg` (“Clear the ghost's memory” under “Try” does it too).
+* **Reloading** — YAYA does not reload by itself when the dictionaries change. Ukagaka Studio's “Run it in SSP”
+  makes SSP reload the SHIORI after exporting (`\![reload,shiori]`).
 
 ## Default behavior when there are no blocks
 
@@ -171,10 +172,9 @@ When `meta.lang` is `"en"`, it says these in English as above; without it, in Ja
 (「おかえりなさい。」 and so on). Ukagaka Studio writes `"en"` only when “Ghost language” on the Ghost info page is English.
 For English ghosts, the values of the info blocks “time of day”, “season” and “weekday name” are English too ([blocks.md](blocks.md)).
 
-If `ghost.json` cannot be read, it says so at startup along with the error
-(in both Japanese and English, since it cannot tell which language the ghost was exported in).
-
 ## Debugging
 
-Create an empty **`ikaga_debug.txt`** in the same folder as `ikaga.dll`, and the load results
-and reload messages are appended to it.
+Create an empty **`studio_debug.txt`** in the same folder as `yaya.dll`, and loading, YAYA's warnings, misspelled names in
+“call … in N seconds”, SAORI that could not be loaded and so on are appended to it
+(“Start logging” under “Try” in Ukagaka Studio creates it too).
+For errors in YAYA itself (dictionaries that cannot be read and the like), see SSP's developer palette or YAYA's `yaya.log`.

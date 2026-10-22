@@ -1,16 +1,17 @@
-/* YAYA のテスト（段階 3）
+/* YAYA のテスト
  *
  *   node shiori\test\yaya\yaya.js
  *
- * 如何栞と置きかえる YAYA（third_party\yaya\）で、ブロックが如何栞と同じに動くかを見ます。
+ * ゴーストを動かす YAYA（third_party\yaya\）と、そのまわり（書き出し・手書きのゴースト・保存）を見ます。
+ * ブロックの意味は shiori\test\parity\parity.js、栞の判断は shiori\test\behavior\behavior.js が見ます。
  *
  *   1. yaya.dll が、third_party\README.md に書いた公式のビルドのまま（SHA-256 が同じ）か
  *   2. test_host から読みこめて、受け口の辞書 yaya_base を通してイベントに答えるか（いちばん小さな辞書で）
  *   3. ブロックを訳すところ（ui\js\model\yaya.js）がよける #globaldefine の名前が、yaya_base とそろっているか
- *   4. 栞をまたいだ一致テスト: 一致テストのゴースト（shiori\test\parity\ghost.json）を
- *      如何栞と YAYA の両方で動かして、出てくるさくらスクリプトと話しかけ先がすべて同じか
- *   5. ふるまいテストの場面（shiori\test\behavior\scenarios.js）を、YAYA でもすべて満たすか
- *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか
+ *   4. 「ためす」の入り口が、初期値の上に続きの変数をかさね、無い id にエラーを返すか
+ *      画面で作る書き出しの形が exe と同じか、exe の書き出したゴーストがそのまま動くか
+ *      手書きの YAYA ゴーストにつないで書き出しても、手書きのファイルがバイトのままか
+ *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか。記録（studio_debug.txt）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -21,7 +22,6 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const host = require('../lib/host');
-const { scenarios, checkScenario } = require('../behavior/scenarios');
 
 const { red, green, dim, off } = host.COLOR;
 const SMOKE = path.join(__dirname, 'smoke');
@@ -37,13 +37,6 @@ function ok(msg, note) {
   console.log(`${green}  OK  ${off}${msg}${note ? ` ${dim}(${note})${off}` : ''}`);
 }
 const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
-
-/** 長い出力は、ちがいはじめたところの前後だけ見せる */
-function around(s, k) {
-  const from = Math.max(0, k - 24);
-  const to = Math.min(s.length, k + 40);
-  return (from > 0 ? '…' : '') + s.slice(from, to) + (to < s.length ? `…（ぜんぶで ${s.length} 文字）` : '');
-}
 
 async function main() {
   // ---- 1. 公式のビルドのままか -------------------------------------------------
@@ -88,45 +81,9 @@ async function main() {
     ok('#globaldefine の名前をよけています', `${defined.size} 個`);
   }
 
-  // ---- 4. 栞をまたいだ一致テスト ----------------------------------------------
+  // ---- 4. 「ためす」の入り口（studio_preview.dic）の変数とエラー ----------------
+  // 一致テストのゴーストの答えと「ためす」の答えの見くらべは、shiori\test\parity\parity.js がします
   const program = readJson(path.join(PARITY, 'ghost.json'));
-  const cases = program.scripts.filter((s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || ''));
-  const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
-  const ikaga = host.run(PARITY, specs);
-  const yaya = await host.runYayaProgram('parity', program, specs);
-  let same = 0;
-  cases.forEach((s, i) => {
-    checks++;
-    const a = ikaga[i] || {};
-    const b = yaya[i] || {};
-    if (a.value === b.value && a.commTo === b.commTo) { same++; return; }
-    let k = 0;
-    while (k < a.value.length && k < b.value.length && a.value[k] === b.value[k]) k++;
-    fails.push(`栞をまたいだ一致テスト ${s.event}（${(s._ || '').trim()}）`
-      + `\n      如何栞: ${around(a.value || '', k)}  話しかけ先 "${a.commTo}"`
-      + `\n      YAYA  : ${around(b.value || '', k)}  話しかけ先 "${b.commTo}"`);
-  });
-  if (same === cases.length) ok('一致テストのゴーストが、如何栞と YAYA で同じ答えです', `${cases.length} 件`);
-
-  // ---- 4b. 「ためす」と SSP で同じ答えか -----------------------------------------
-  // 「ためす」は、かたまりを 1 つずつ、まっさらな状態から yaya_host.exe で動かします（studio_preview.dic）。
-  // 一致テストのかたまりは、どれも自分の中で変数を作ってから使うので、SSP でイベントとして順に動かした答えと同じになるはず
-  let sameTry = 0;
-  for (let i = 0; i < cases.length; i++) {
-    const s = cases[i];
-    checks++;
-    const tr = await host.runYayaPreview('preview', program, s.id, { refs: s.refs || [], sys: {} });
-    const b = yaya[i] || {};
-    // SSP への応答は、改行を \n にして 1 行にしています
-    const script = (tr.script || '').replace(/\r/g, '').replace(/\n/g, '\\n');
-    if (!tr.error && script === b.value && tr.commTo === b.commTo) { sameTry++; continue; }
-    let k = 0;
-    while (k < script.length && k < (b.value || '').length && script[k] === b.value[k]) k++;
-    fails.push(`「ためす」と SSP ${s.event}（${(s._ || '').trim()}）${tr.error ? `  エラー: ${tr.error}` : ''}`
-      + `\n      ためす: ${around(script, k)}  話しかけ先 "${tr.commTo}"`
-      + `\n      SSP   : ${around(b.value || '', k)}  話しかけ先 "${b.commTo}"`);
-  }
-  if (sameTry === cases.length) ok('「ためす」（yaya_host.exe）と SSP で同じ答えです', `${cases.length} 件`);
   {
     checks++;
     const tr = await host.runYayaPreview('preview', program, 'p06', { vars: { 'あたい': 100 } });
@@ -292,19 +249,6 @@ async function main() {
     }
     if (stopped === cases.length) ok('スタジオが動けない手書きのゴーストには、書き出す前に止めます', `${cases.length} 通り`);
   }
-
-  // ---- 5. ふるまいテストの場面 -------------------------------------------------
-  let good = 0;
-  for (let i = 0; i < scenarios.length; i++) {
-    const sc = scenarios[i];
-    const got = await host.runYayaProgram(`behavior${i + 1}`, readJson(path.join(sc.dir, 'ghost.json')),
-      sc.steps.map((s) => s[0]));
-    const { problems, counted } = checkScenario(sc, got);
-    checks += counted;
-    if (problems.length) fails.push(`ふるまい「${sc.name}」（work\\behavior${i + 1}）\n      ${problems.join('\n      ')}`);
-    else good++;
-  }
-  if (good === scenarios.length) ok('ふるまいテストの場面を、YAYA でもすべて満たします', `${scenarios.length} 場面`);
 
   // ---- 6. 保存して、次の起動に残るか -------------------------------------------
   const counter = {

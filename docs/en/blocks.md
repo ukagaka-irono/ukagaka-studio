@@ -8,14 +8,15 @@
 The blocks you can build with in the editor, and how each is written in `ghost.json`.
 Block names are given as they appear in the English UI.
 
-When you add a new block, you write it in **6 places, including this table and its Japanese original** (during stage 3, that includes the translation into YAYA).
+When you add a new block, you write it in **5 places, including this table and its Japanese original**.
 The steps are in “Adding one block” in [`maintenance.md`](maintenance.md).
 If you forget one, `node tools\check-blocks.js` stops and names it,
 so **run that first after adding a block** (no build needed).
 
-The rules that run blocks live in **one place only: `shiori/src/interp.cpp`**.
-The editor's “Try” and ghosts installed in SSP both go through it
-(the editor asks the SHIORI through `POST /api/preview`).
+Blocks are **translated into a dictionary for the YAYA SHIORI by `ui/js/model/yaya.js`**, and the runtime dictionary
+`studio/res/yaya/studio_runtime.dic` handles the fixed behavior. The editor's “Try” and ghosts installed in SSP both run
+the same dictionaries on the same `yaya.dll` (the editor asks through `POST /api/preview`).
+The right-hand columns below show the shape in `ghost.json` (the copy of the blocks) and the Sakura Script that comes out.
 
 Slots that take a number or text (the `%` parts) **accept blocks from the Operators and Info categories**.
 When you drop one in, the slot's value becomes a block (an object) instead of a string or number.
@@ -65,7 +66,7 @@ About 5 seconds keeps it light without a noticeable difference
 (“wait N ms” is `\_w`, a block that **pauses the speech**; it does not delay the next loop).
 
 `OnNadeNade` (when petted) is not an SSP event.
-The SHIORI makes it and runs it itself when `OnMouseMove` hits the same area 8 times in a row.
+The runtime dictionary makes it and runs it itself when `OnMouseMove` hits the same area 8 times in a row.
 
 Choosing **When talked to** (`OnCommunicate`) turns the hat into
 “**When talked to (from …, containing …)**”. The first is the sender's name, the second is what was said;
@@ -189,11 +190,11 @@ Anything beyond is not output (the whole piece is dropped rather than cut in the
 Say the question itself first with an ordinary speech block
 (place “says ‘What's your name?’” → ask, in that order).
 The input box ID is `ikaga:<variable name>`; when SSP returns `OnUserInput`,
-the SHIORI reads it and puts the contents into the variable. You also get it as an event,
+the runtime dictionary reads it and puts the contents into the variable. You also get it as an event,
 so a “When an answer comes back” hat can say thanks.
 Variable names containing commas or square brackets cannot be used (they would break the command to SSP; the Check tab stops them).
 
-**Call … in N seconds** (`later`) runs a named talk **later**. The SHIORI remembers the reservation
+**Call … in N seconds** (`later`) runs a named talk **later**. The runtime dictionary remembers the reservation
 and checks the time on the next “Repeat forever”. Up to 32 reservations, at most one day ahead.
 They are dropped when the ghost closes (they are not saved).
 
@@ -217,7 +218,7 @@ See “Network updates” in the [README](../../README.en.md) for details.
 | V (read the value) | `{"type":"var","name":"V"}` |
 
 A variable's initial value is kept in the project's `variables`, and its actual value
-is saved in the ghost's `yaya_variable.cfg` (YAYA's own saving; `ikaga_save.json` under ikaga SHIORI).
+is saved in the ghost's `yaya_variable.cfg` (YAYA's own saving).
 
 ## Operators (values and conditions)
 
@@ -241,24 +242,25 @@ Yes/no is treated as the numbers **1 / 0** (dropped into speech, it comes out as
 
 **External modules (SAORI)** call a DLL placed in the ghost folder.
 `file` is relative to the ghost folder; `..` and absolute paths are not allowed.
-The DLL must be **32-bit, like the SHIORI**. A `value` of `-1` takes `Result:`;
+The DLL must be **32-bit, like the SHIORI (`yaya.dll`)**. A `value` of `-1` takes `Result:`;
 `0` and up take `Value0:` onward. If the call fails it returns an empty string, and
 the reason goes to `studio_debug.txt` (it is logged if you create an empty file next to `yaya.dll`; “Start logging” in Ukagaka Studio creates it too).
 A loaded DLL stays loaded until the ghost closes.
 The preview cannot load real DLLs, so it **always returns empty**. Check in SSP.
 
 This block **waits for the answer**, so calling a slow SAORI (one that goes online, say)
-stops SSP for that long. In that case use
-“**call F with A B (put the answer in V without waiting)**” (`saori_call`) from the Control category.
-It calls on another thread; **when the answer arrives it goes into variable V**, and the next
-“Repeat forever” raises `OnSaoriDone` (`Reference0` is the file called, `Reference1` the answer).
+stops the ghost for that long.
 
-* Up to 4 can run at the same time. Calls beyond that are not made.
-* Many SAORI DLLs are not written to be called concurrently, so the calls themselves
-  (waiting or not) are made **one at a time, in order**.
+“**call F with A B (put the answer in V without waiting)**” (`saori_call`) in the Control category
+**puts the answer into variable V at the next event**, and the next “Repeat forever” raises `OnSaoriDone`
+(`Reference0` is the file called, `Reference1` the answer).
+
+* YAYA has no way to run things on another thread, so **the call itself waits for the answer**.
+  Like the waiting block, the ghost stops while a slow SAORI runs (1.x's ikaga SHIORI called it on another thread).
+* Answers that pile up without being delivered are dropped, oldest first, beyond 32.
 * Nothing happens in the preview (and nothing goes into the variable).
 
-**Hand-written YAYA** blocks (stage 3-5c) are for ghosts written by hand in YAYA that a project is linked to
+**Hand-written YAYA** blocks are for ghosts written by hand in YAYA that a project is linked to
 (“6. Add blocks to a hand-written YAYA ghost” in the README).
 
 * “**call YAYA function F with A B**” (`yaya_call`) calls the hand-written function `F` with two arguments
@@ -268,7 +270,7 @@ It calls on another thread; **when the answer arrives it goes into variable V**,
 * **No blocks can go into** the function name and expression fields; only the text written there is used
   (so that words from other ghosts and the like never run as YAYA code).
 * “Try” does not include the hand-written dictionaries, so the function call does nothing there and an expression that uses
-  hand-written functions is empty. Check those in SSP. ikaga SHIORI does nothing for either (empty).
+  hand-written functions is empty. Check those in SSP.
 
 ## Info
 
@@ -309,5 +311,5 @@ What `ReferenceN` holds differs per event. The common ones:
 Reference 0 of `OnUpdateComplete` is `none` (nothing new) or `changed` (updated).
 Reference 0 of `OnUpdateFailure` is `timeout` / `md5 miss` / `artificial` (stopped by yourself) / `404` and so on.
 
-If you write no blocks for them, the SHIORI says a word **only when the update succeeded** and **when it failed**
+If you write no blocks for them, the ghost says a word **only when the update succeeded** and **when it failed**
 (it stays quiet about “nothing changed” and the steps in between, which would get noisy).

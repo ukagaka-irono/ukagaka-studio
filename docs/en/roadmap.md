@@ -14,25 +14,21 @@ The plan for substantially reworking **Ukagaka Studio (伺かスタジオ)**, wh
 
 Whatever the rework does, these stay. Each is a core strength of the original project.
 
-* **ikaga SHIORI (`ikaga.dll`) runs from Windows 2000.** It stays built without the C runtime.
+* **Exported ghosts run from Windows 2000.** The SHIORI is the official `yaya.dll`, used as it is (not built from source).
   `node tools\check-imports.js` watches this.
-* **The rules that run blocks live in one place only, `shiori/src/interp.cpp`.**
-  The UI's “Try” uses the same code, carried inside the exe.
+* **Only YAYA runs blocks.** The UI's “Try” also runs on the same `yaya.dll` that goes into SSP.
+  The rules that translate blocks into YAYA live in one place only, `ui/js/model/yaya.js`, and the fixed behavior in one place only,
+  the runtime dictionary `studio/res/yaya/studio_runtime.dic`.
 * **Ukagaka Studio runs as a single exe.** No runtime to install, no open ports,
   no outside connections (it only talks to SSP).
 * **No new tools to build the UI.** The files in `ui/` go into the exe as written
   (you can build with just `.\build.ps1`, without installing Node or npm).
 * **Nothing goes in unless the tests pass.** Each stage turns `.\build.ps1 -Test` green before moving on.
 
-> **Stage 3 changes the first and second premises above** (decided on 2026-10-22; see “Decisions” below).
-> ikaga SHIORI is dropped and replaced with **YAYA**, and Ukagaka Studio becomes **a helper tool for YAYA ghosts**.
-> Once stage 3 is done, the premises read:
->
-> * **Exported ghosts run from Windows 2000.** Step 3-0 confirmed from its import table that the official `yaya.dll` meets this
->   (built from source with today's Visual Studio it does not, so the official one is used).
-> * **Only YAYA runs blocks.** “Try” also runs on the same `yaya.dll` that goes into SSP.
->   The rules that translate blocks into YAYA live in one place only.
-> * The other three (a single exe, no new tools to build the UI, nothing goes in unless the tests pass) stay.
+> **Stage 3 changed the first and second premises above** (decided on 2026-10-22, done in 3-6; see “Decisions” below).
+> Up to stage 2 they read “ikaga SHIORI (`ikaga.dll`) runs from Windows 2000; it is built without the C runtime” and
+> “the rules that run blocks live in one place only, `shiori/src/interp.cpp`”. ikaga SHIORI was dropped and replaced with **YAYA**,
+> and Ukagaka Studio became **a helper tool for YAYA ghosts**. The other three are unchanged.
 
 ---
 
@@ -382,7 +378,7 @@ Done **together with** the page rework, because gathering text in one place whil
 
 ---
 
-## Stage 3 — Replace ikaga SHIORI with YAYA
+## Stage 3 — Replace ikaga SHIORI with YAYA (done)
 
 Drop ikaga SHIORI (`ikaga.dll`) and replace it with **YAYA**, a SHIORI widely used for Ukagaka ghosts.
 Ukagaka Studio changes from “a tool to make ghosts from blocks alone” into **a tool that helps make YAYA ghosts**.
@@ -649,7 +645,7 @@ Decisions (see the “Decisions” table for details):
 > * In a scratch copy of the exe: imported the shell of a previously exported ghost from the UI, and the six images (0–2, 10–12)
 >   lined up under their numbers.
 
-### 3-6. Remove ikaga SHIORI
+### 3-6. Remove ikaga SHIORI (done)
 
 Removed only after both tests in 3-3 are green.
 
@@ -660,6 +656,30 @@ Removed only after both tests in 3-3 are green.
 * Raise the version number.
 
 Done when: `.\build.ps1 -Release` is green and the zip contains no ikaga SHIORI.
+
+> What was done (this completes stage 3):
+>
+> * Deleted ikaga SHIORI's sources (`interp.cpp`, `shiori.cpp`, `saori.cpp`, `program.cpp`, `dllmain.cpp`, `tinycrt.cpp` and the
+>   `.def` files in `shiori/src/`), `studio/src/preview.cpp` and `studio/test/preview_host.cpp`, which ran the 64-bit ikaga SHIORI,
+>   and the test ghost `shiori/test/fixture/`. `json.cpp` and `util.cpp`, which the studio also uses, moved to `studio/src/`,
+>   minus the random numbers and the log (`ikaga_debug.txt`) nothing uses any more. The exe no longer embeds `ikaga.dll` (resource 900 is gone).
+> * `shiori\build.ps1` now builds only the 32-bit helper `yaya_host.exe` (plus `test_host.exe` and `slow_saori.dll` with `-Test`).
+>   `test_host.exe` loads `yaya.dll` by default, and `tools\check-imports.js` defaults to `third_party\yaya\yaya.dll`.
+>   The “SHIORI only” Actions artifact (`ikaga-dll-…`) is gone.
+> * **The parity test** no longer compares the 32-bit and 64-bit ikaga SHIORI; it **compares the answers on YAYA with `expected.json`**.
+>   `expected.json` is a copy of ikaga SHIORI's answers (30 cases) taken before removing it (OnP25, which reads the clock, is built from the
+>   current time). It also runs the same scripts the way “Try” does (`yaya_host.exe`) and checks they match the way SSP runs them (31 cases).
+>   When you change an answer on purpose, regenerate it with `node shiori\test\parity\parity.js --update`.
+> * **The behavior test** now translates the blocks into YAYA and runs them (19 scenarios, 98 checks). The parts that moved to the parity
+>   and behavior tests were taken out of the YAYA test (21 checks). `tools\check-blocks.js` looks only at the YAYA translation
+>   (`yaya.js` and the runtime dictionary) instead of `interp.cpp` (adding a block now takes 5 places).
+> * `ghost.json` is **kept in the export as a copy of the blocks**, not dropped (so “Open” can load it; see Decisions).
+> * The version is now **2.0.0-alpha** (see Decisions). The version the UI gets (`/api/state`) is now made from `VERSION`
+>   (it used to be hard-coded as `1.0.0`, out of step with `VERSION`).
+> * Rewrote the README, `docs/blocks.md`, `docs/ghost-json.md` and the maintenance guide for YAYA (and their English versions).
+>   The description of SAORI “called without waiting” now says that YAYA waits for the answer.
+> * Dropped `bad_project`, which only ikaga SHIORI's preview returned, from the UI's error table. `ui\test\i18n.js` also checks the codes
+>   the Try entry dictionary returns (`script_not_found`).
 
 ---
 
@@ -711,6 +731,8 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 | 2026-10-23 | From an existing shell folder, **only numbered images** are imported; animations (SERIKO) and hit areas are not (the project has no place for them yet; considered together in stage 4; 3-5d) |
 | 2026-10-22 | “Try” runs **the same `yaya.dll` as SSP through a 32-bit helper (`yaya_host.exe`)**; no 64-bit YAYA is built (we use the official build; 3-4) |
 | 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
+| 2026-10-22 | The exported **`ghost.json` stays, as a copy of the blocks** (YAYA does not read it; it is there so “Open” can load it; 3-6) |
+| 2026-10-22 | The version without ikaga SHIORI is **2.0.0-alpha** (3-6) |
 
 ## Not decided yet
 

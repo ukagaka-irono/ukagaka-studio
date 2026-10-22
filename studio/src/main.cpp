@@ -1,7 +1,7 @@
 // 伺かスタジオ - Windows ネイティブアプリ
 //
 // ・自前のウィンドウに WebView2 を埋め込んで画面を出す（ブラウザは開かない）
-// ・画面（HTML/CSS/JS）と栞 ikaga.dll は exe に埋め込み済み
+// ・画面（HTML/CSS/JS）と YAYA 一式（yaya.dll・yaya_host.exe・辞書）は exe に埋め込み済み
 // ・ネットワークは使わない。要求は WebView2 の中で受け取って直接返している
 //
 #define WIN32_LEAN_AND_MEAN

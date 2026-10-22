@@ -1,4 +1,4 @@
-// ikaga SHIORI - a tiny dependency-free JSON reader/writer (UTF-8 in, UTF-8 out)
+// 伺かスタジオ - a tiny dependency-free JSON reader/writer (UTF-8 in, UTF-8 out)
 #pragma once
 
 #include <string>

@@ -7,20 +7,13 @@ ukagaka-studio.json
 webview-data/
 projects/
 output/
-**/ikaga_save.json
-**/ikaga_debug.txt
 .vs/
 
 # git bundle などの手元バックアップ（リポジトリには入れない）
 *.bundle
 
 # テストが作業用に置くもの
-shiori/test/fixture/ikaga.dll
-shiori/test/*/ikaga.dll
-shiori/test/*/*/ikaga.dll
-shiori/test/*/slow_saori.dll
-shiori/test/*/*/slow_saori.dll
-# YAYA のテスト（shiori/test/yaya/）が置くものと、YAYA が書く変数の保存
+# YAYA のテスト（shiori/test/）が置くものと、YAYA が書く変数の保存
 shiori/test/*/*/yaya.dll
 shiori/test/*/*/yaya_base/
 shiori/test/yaya/work/

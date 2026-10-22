@@ -1,6 +1,6 @@
-/* 栞が「どの Windows から動くか」を、出来あがった DLL から測る道具
+/* 栞が「どの Windows から動くか」を、DLL から測る道具
  *
- *   node tools\check-imports.js [dll のパス]
+ *   node tools\check-imports.js [dll のパス]    （省略すると、書き出すゴーストに入れる third_party\yaya\yaya.dll）
  *
  * SSP は Windows 2000 以降で動きます（公式の動作環境）。栞は SSP に読みこまれる
  * DLL なので、**SSP が動く Windows すべてで動く**のが本来の姿です。
@@ -49,7 +49,7 @@ const SINCE = {
     'SetStdHandle', 'SetUnhandledExceptionFilter', 'Sleep', 'TerminateProcess',
     'UnhandledExceptionFilter', 'VirtualProtect', 'VirtualQuery',
     'WaitForSingleObject', 'WideCharToMultiByte', 'WriteConsoleW', 'WriteFile',
-    // --- msvcrt.dll から借りているもの（shiori/src/msvcrt.def）---
+    // --- msvcrt.dll にあるもの（1.x の如何栞が借りていたもの）---
     // どれも Windows 2000 の msvcrt.dll に入っている、昔ながらの C の関数です。
     'malloc', 'free', 'realloc',
     'memcpy', 'memmove', 'memset', 'memcmp', 'memchr',
@@ -194,9 +194,9 @@ function readPe(buf) {
 }
 
 // ---------------------------------------------------------------------- 本体
-const target = process.argv[2] || path.join(root, 'shiori', 'dist', 'ikaga.dll');
+const target = process.argv[2] || path.join(root, 'third_party', 'yaya', 'yaya.dll');
 if (!fs.existsSync(target)) {
-  console.error(`${C.red}[輸入] ${target} がありません。先に .\\build.ps1 を実行してください。${C.off}`);
+  console.error(`${C.red}[輸入] ${target} がありません。${C.off}`);
   process.exit(2);
 }
 

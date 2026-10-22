@@ -1,9 +1,8 @@
-// ikaga SHIORI - stand-alone test host.
+// Ukagaka Studio - stand-alone SHIORI test host (stands in for SSP).
 //
 //   test_host.exe [--dll <name>] <moduleDir> [request ...]
 //
-// --dll picks the SHIORI DLL inside <moduleDir> (default: ikaga.dll),
-// so the same host can drive yaya.dll too.
+// --dll picks the SHIORI DLL inside <moduleDir> (default: yaya.dll).
 //
 // A request is written as  ID  or  ID:ref0,ref1,...
 // Example:
@@ -61,7 +60,7 @@ static std::string WideToUtf8(const wchar_t* w) { return WideToCp(w, CP_UTF8); }
 int wmain(int argc, wchar_t** wargv) {
     SetConsoleOutputCP(CP_UTF8);
     // "--dll <name>" comes first; the rest keeps its old positions
-    std::wstring dllName = L"ikaga.dll";
+    std::wstring dllName = L"yaya.dll";
     if (argc >= 3 && wcscmp(wargv[1], L"--dll") == 0) {
         dllName = wargv[2];
         argc -= 2;

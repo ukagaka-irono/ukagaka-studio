@@ -3,7 +3,7 @@
  *   node studio\test\export.js            見くらべる
  *   node studio\test\export.js --update   いまの出力を期待値として保存しなおす
  *
- * 栞のほうは parity / behavior で守られていますが、スタジオが書き出すファイル
+ * ブロックの動きは parity / behavior で守られていますが、スタジオが書き出すファイル
  * （surfaces.txt・descript.txt・ghost.json・yaya.txt・studio_program.dic）は形が崩れても気づけませんでした。
  * ここで材料のプロジェクトを export_host.exe に流して、出てきた中身を
  * studio/test/expected/ の期待値とバイトで見くらべます。

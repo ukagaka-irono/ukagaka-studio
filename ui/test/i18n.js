@@ -195,11 +195,16 @@ let errorCodes = 0;
   for (const name of fs.readdirSync(srcDir).filter((n) => n.endsWith('.cpp')).sort()) {
     const src = fs.readFileSync(path.join(srcDir, name), 'utf8');
     for (const re of patterns) {
-      for (const m of src.matchAll(re)) if (!used.has(m[1])) used.set(m[1], name);
+      for (const m of src.matchAll(re)) if (!used.has(m[1])) used.set(m[1], `studio\\src\\${name}`);
     }
   }
+  // 「ためす」の入り口の辞書も、YAYA の中からコードを返します（_res['error'] = 'script_not_found'）
+  const previewDic = fs.readFileSync(path.join(root, 'studio', 'res', 'yaya', 'studio_preview.dic'), 'utf8');
+  for (const m of previewDic.matchAll(/\['error'\]\s*=\s*'([a-z_]+)'/g)) {
+    if (!used.has(m[1])) used.set(m[1], 'studio\\res\\yaya\\studio_preview.dic');
+  }
   bad('exe が返すエラーのコードに、画面の文がありません（ui/js/core/api.js の ERRORS に足してください）',
-    [...used].filter(([code]) => !ERROR_CODES.includes(code)).map(([code, file]) => `${code} … studio\\src\\${file}`));
+    [...used].filter(([code]) => !ERROR_CODES.includes(code)).map(([code, file]) => `${code} … ${file}`));
   bad('画面のエラーの表に、exe がどこからも返さないコードが残っています',
     ERROR_CODES.filter((code) => !used.has(code)));
   errorCodes = used.size;

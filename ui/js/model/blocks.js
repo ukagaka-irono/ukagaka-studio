@@ -370,10 +370,7 @@ def({
   args: { url: { kind: 'input', mode: 'text', def: 'https://', long: true } },
 });
 
-// 外部モジュール（SAORI）を、答えを待たずに呼ぶ。
-// 時間のかかる SAORI を「◯◯でよんだ答え」で呼ぶと、その間 SSP が止まります。
-// こちらは別のスレッドで動いて、答えが届いたら変数に入り、OnSaoriDone が起きます。
-// つないだ手書きの YAYA ゴーストの関数をよんで、答えをそのまましゃべる（段階 3-5c）。
+// つないだ手書きの YAYA ゴーストの関数をよんで、答えをそのまましゃべる。
 // 関数の名前の欄には、ブロックははめられません
 def({
   type: 'yaya_call', cat: 'control', shape: 'stack',
@@ -384,6 +381,8 @@ def({
     b: { kind: 'input', mode: 'text', def: '', long: true },
   },
 });
+// 外部モジュール（SAORI）を呼んで、答えを「つぎのイベントで」変数に入れ、OnSaoriDone を起こす。
+// YAYA には別のスレッドが無いので、呼ぶときは答えを待ちます（1.x の如何栞では別のスレッドで動いていました）。
 def({
   type: 'saori_call', cat: 'control', shape: 'stack',
   spec: t('%file を %a %b でよぶ（答えを待たずに %into に入れる）%value'),

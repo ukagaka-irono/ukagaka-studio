@@ -14,18 +14,19 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 > | 元の名前 | このフォークでの名前 |
 > |---|---|
 > | なしスタジオ `nashi-studio.exe` | **伺かスタジオ / Ukagaka Studio** `ukagaka-studio.exe` |
-> | なし栞 `nashi.dll` | **如何栞 / ikaga SHIORI** `ikaga.dll` |
+> | なし栞 `nashi.dll` | 如何栞 / ikaga SHIORI `ikaga.dll`（**2.0 で栞 YAYA に置きかえました**。いまは入っていません） |
 
 [![build](https://github.com/ukagaka-irono/ukagaka-studio/actions/workflows/build.yml/badge.svg)](https://github.com/ukagaka-irono/ukagaka-studio/actions/workflows/build.yml)
 
-伺か（SSP）用の **栞（SHIORI）** と、その栞を使うゴーストを **Scratch のようにブロックを積んで作れるアプリ** の一式です。
-どちらも Windows ネイティブ（C++ / MSVC）で、ランタイムのインストールは要りません。
+伺か（SSP）のゴーストを **Scratch のようにブロックを積んで作れるアプリ** です。
+組んだブロックは、伺かでよく使われている栞 **YAYA** の辞書に訳して書き出すので、
+**書き出したものはふつうの YAYA ゴースト**です。YAYA で手書きしたゴーストに、ブロックで作ったトークを足すこともできます。
+Windows ネイティブ（C++ / MSVC）で、ランタイムのインストールは要りません。
 
 | | |
 |---|---|
-| **如何栞 `ikaga.dll`** | SHIORI/3.0 の DLL（32bit）。**SSP と同じく Windows 2000 から**動きます。会話は C++ ではなく `ghost.json` に入ったブロックで書く。**段階 3 で YAYA に置きかえ中**で、書き出すゴーストはもう YAYA で動きます（[`docs/roadmap.md`](docs/roadmap.md)） |
-| **栞 YAYA `yaya.dll`** | 書き出すゴーストが使う栞（公式ビルド。Windows 2000 から動きます）。ブロックは YAYA の辞書に訳して書き出します |
-| **伺かスタジオ `ukagaka-studio.exe`** | ブロックエディタ本体（64bit・単体で動く1ファイル）。自前のウィンドウに WebView2 を埋め込んだネイティブアプリ。UI も栞も exe の中。 |
+| **伺かスタジオ `ukagaka-studio.exe`** | ブロックエディタ本体（64bit・単体で動く1ファイル）。自前のウィンドウに WebView2 を埋め込んだネイティブアプリ。UI も YAYA 一式も exe の中 |
+| **栞 YAYA `yaya.dll`** | 書き出すゴーストが使う栞（公式ビルドをそのまま。**SSP と同じく Windows 2000 から**動きます）。スタジオの「ためす」も、同じ `yaya.dll` で動かします |
 
 ---
 
@@ -39,10 +40,10 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 ゴーストを**作る**のは新しい Windows で、**配ったゴーストが動く**のは古い Windows から、
 という形です。エディタは WebView2（Edge）の上に乗っているので、古い Windows では動きません。
 
-栞のほうは、そこに合わせるために **Visual Studio の C ランタイムを使わずに**組んでいます。
-ふつうに組むと、自分では呼んでいない Vista からの API が混ざってしまい、
+栞の `yaya.dll` は、そこに合わせるために **公式のビルドをそのまま**入れています。
+いまの Visual Studio でソースから組むと、Vista からの API が混ざってしまい、
 そこから下の Windows では**読みこみ自体が失敗する**ためです。
-ねらいどおりかは `node tools\check-imports.js` がいつでも確かめます
+Windows 2000 にある API だけを使っているかは `node tools\check-imports.js` がいつでも確かめます
 （くわしくは [`docs/maintenance.md`](docs/maintenance.md)）。
 
 ---
@@ -54,10 +55,9 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 | [**Releases**](https://github.com/ukagaka-irono/ukagaka-studio/releases) | 何も要りません | 版ごとの zip。**ふつうはこちら** |
 | [**Actions**](https://github.com/ukagaka-irono/ukagaka-studio/actions) の実行ページ | **GitHub のログイン** | 押すたびの最新。30 日間 |
 
-Actions のほうは、実行ページをいちばん下まで送ると **Artifacts** にあります。
-
-* `ukagaka-studio-<版>-<sha>` … Releases の zip と同じ中身（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs / third_party（YAYA のライセンス））
-* `ikaga-dll-<版>-<sha>` … 栞だけ。自分でゴーストに入れる人むけ
+Actions のほうは、実行ページをいちばん下まで送ると **Artifacts** の
+`ukagaka-studio-<版>-<sha>` にあります。Releases の zip と同じ中身です
+（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs / third_party（YAYA のライセンス））。
 
 > Actions の成果物は、**GitHub にログインしていないと落とせません**（ボタンが出ません）。
 > ログインしたくなければ Releases のほうを使ってください。
@@ -244,7 +244,7 @@ YAYA で手書きしたゴースト（YAYA のテンプレートで作ったも�
 Visual Studio の「C++ によるデスクトップ開発」が入っていれば、これだけです。
 
 ```powershell
-.\build.ps1            # 栞(32bit DLL) → スタジオ(64bit EXE)
+.\build.ps1            # 32bit の手伝い（yaya_host.exe）→ スタジオ(64bit EXE)
 .\build.ps1 -Test      # 画面を出さずに動かすコンソールも作り、テストも走らせる
 .\build.ps1 -Release   # きれいに作り直してテストし、配布用の zip を作る
 ```
@@ -258,13 +258,13 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 
 | | |
 |---|---|
-| **そろい点検**（`tools\check-blocks.js`） | ブロックが「定義・栞・説明（日本語と英語）・テスト」のすべてにそろっているか。ビルドが要らないので、いちばん先に走ります |
-| **一致テスト**（`shiori\test\parity\parity.js`） | 同じ `interp.cpp` を **32bit（SSP に入る栞）** と **64bit（伺かスタジオの「ためす」）** で組んで、同じ `ghost.json` を流し、出てきたさくらスクリプトが一致するか見くらべます（ビット幅に頼った書きかたを見つけます） |
-| **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | 栞だけが持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応（英語のゴーストなら英語で）、`OnClose` の `\-`、「◯秒ごと」の間引き、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
-| **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | 如何栞と置きかえる予定の YAYA（`third_party\yaya\`）が公式のビルドのままで動くか。ブロックを YAYA に訳して、一致テストのゴーストが如何栞と同じ答えになるか（**栞をまたいだ一致テスト**）、ふるまいテストの場面を YAYA でもすべて満たすか、変数が次の起動に残るか |
+| **そろい点検**（`tools\check-blocks.js`） | ブロックが「定義・YAYA への訳・説明（日本語と英語）・テスト」のすべてにそろっているか。ビルドが要らないので、いちばん先に走ります |
+| **一致テスト**（`shiori\test\parity\parity.js`） | ブロックごとのかたまりを YAYA に訳して動かし、出てきたさくらスクリプトが決めておいた答え（`expected.json`）と同じか。同じかたまりを「ためす」と同じやりかた（`yaya_host.exe`）でも動かして、**「ためす」と SSP の答えが同じか**も見ます |
+| **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | しくみの辞書が持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応（英語のゴーストなら英語で）、`OnClose` の `\-`、「◯秒ごと」の間引き、ランダムトーク、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
+| **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | YAYA（`third_party\yaya\`）が公式のビルドのままで動くか。変数が次の起動に残るか、exe の書き出しがそのまま YAYA で動くか、手書きの YAYA ゴーストにつないで書き出しても手書きのファイルがバイトのまま変わらないか |
 | **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic` とファイルの一覧）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
 | **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形と形の版の確かめ（`model.js`）と、チェックタブが出す注意（`lint.js`）、ブロックを字でさがすところが期待どおりか。お手本がどれもチェックに引っかからないか |
-| **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` と、YAYA の `yaya.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
+| **輸入の点検**（`tools\check-imports.js`） | 書き出すゴーストに入れる `yaya.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows では DLL の読みこみ自体が失敗します（版を上げたときのため） |
 | **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js`（ES モジュール）が入り口の `main.js` からたどれるか、どれを最初に読みこんでも落ちないか、`Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます。`style.css` の色がトークンを通っているか（暗い表示で色がぬけないように）も見ます |
 | **画面の言葉の点検**（`ui\test\i18n.js`） | 画面の日本語がすべて `t()` を通り、英語の訳があるか（英語の画面でそこだけ日本語が残らないように）、英語の辞書に古い訳や `{差しこみ}` のずれが無いか、exe が返すエラーのコードがすべて画面の文になるか。文書の英語版がそろっているか |
 
@@ -272,8 +272,8 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 ふるまいテストには、わざと待つ場面（おそい SAORI と終了が重なるところ）があるので、
 10 秒ほどかかります。
 ブロックやふるまいを足したら、`shiori\test\` `studio\test\` `ui\test\` の材料と期待値も
-いっしょに直してください。書き出しかたをわざと変えたときは、出てきたものを目で確かめてから
-`node studio\test\export.js --update` で期待値を作りなおします。
+いっしょに直してください。書き出しかたや、ブロックの出すものをわざと変えたときは、出てきたものを目で確かめてから
+`node studio\test\export.js --update` / `node shiori\test\parity\parity.js --update` で期待値を作りなおします。
 
 **ブロックを 1 つ足すときの手順**（どのファイルに何を書くか）と、つまずきやすいところは
 [`docs/maintenance.md`](docs/maintenance.md) にまとめてあります。
@@ -281,13 +281,12 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 この 9 つは **GitHub でも自動で走ります**（`main` への push・`v*` タグ・プルリク）。
 打ち忘れても止まるようにするためのものです。設定は `.github/workflows/build.yml`。
 
-個別に作るときは `shiori\build.ps1` / `studio\build.ps1`。
-スタジオのビルドでは `studio\tools\embed.ps1` が `ui\` 以下と `ikaga.dll`・`yaya.dll` を
-リソースにまとめ、exe に埋め込みます（UI を直したら再ビルドしてください）。
+個別に作るときは `shiori\build.ps1`（32bit の手伝いとテスト用のコンソール）/ `studio\build.ps1`。
+スタジオのビルドでは `studio\tools\embed.ps1` が `ui\` 以下と YAYA 一式（`yaya.dll`・`yaya_host.exe`・
+しくみの辞書・`yaya_base`）をリソースにまとめ、exe に埋め込みます（UI や辞書を直したら再ビルドしてください）。
 
-栞 **YAYA** の公式ビルド（`yaya.dll`）と、その受け口の辞書 `yaya_base` は `third_party\` に入れてあります
-（段階 3 で如何栞と置きかえるためのものです。[`docs/roadmap.md`](docs/roadmap.md)）。ソースからは組みません
-（いまの Visual Studio で組むと Windows 2000 で動かなくなるため）。どこから持ってきたか・版の上げかたは
+栞 **YAYA** の公式ビルド（`yaya.dll`）と、その受け口の辞書 `yaya_base` は `third_party\` に入れてあります。
+ソースからは組みません（いまの Visual Studio で組むと Windows 2000 で動かなくなるため）。どこから持ってきたか・版の上げかたは
 [`third_party/README.md`](third_party/README.md) にあります。YAYA のライセンス（AYA Ver.5 の条件／BSD 3-Clause）の
 本文は `third_party\yaya\` にあり、配布用の zip にも入ります。
 
@@ -313,7 +312,7 @@ Windows 11 の **スマートアプリコントロール**（既定でオンの�
    「スマートアプリコントロール」→ オフ。
    **一度オフにすると Windows を再インストールするまで戻せません**。よく考えてから行ってください。
 
-作りたての `ikaga.dll` や `test_host.exe` が、テストの途中で同じように止められることも
+作りたての `yaya_host.exe` や `test_host.exe` が、テストの途中で同じように止められることも
 あります（`error 4551`）。**もう一度ビルドすると通る**ことが多いです。
 
 ---
@@ -327,36 +326,24 @@ ukagaka-studio/
 ├── ukagaka-studio.exe        ビルド結果（これ1つで動く）
 ├── build.ps1               まとめてビルド
 ├── LICENSE                 なしライセンス（＋同梱物の表示）
-├── shiori/                 栞（C++ / 32bit DLL）
-│   ├── build.ps1
-│   ├── src/
-│   │   ├── dllmain.cpp     load / unload / request の DLL エントリ
-│   │   ├── shiori.cpp      SHIORI/3.0 の解析とイベント振り分け
-│   │   ├── interp.cpp      ブロック → さくらスクリプトの実行
-│   │   ├── saori.cpp       外部モジュール（SAORI）の呼び出し
-│   │   ├── program.cpp     ghost.json の読み込みと変数
-│   │   ├── json.cpp        小さな JSON パーサ（スタジオと共用）
-│   │   ├── util.cpp        文字コード・ファイル・乱数（スタジオと共用）
-│   │   ├── tinycrt.cpp     小さなランタイム（Windows 2000 で動かすため）
-│   │   ├── msvcrt.def      Windows の msvcrt.dll から借りる関数の一覧
-│   │   └── ikaga.def       DLL が公開する名前（load / unload / request）
-│   ├── test/               SSP なしで動かせるテストホスト
-│   │   ├── lib/            テスト用の道具箱（32bit / 64bit の栞を動かして応答をほどく）
-│   │   ├── parity/         32bit と 64bit の栞の出力を見くらべる一致テスト
+├── shiori/                 栞（YAYA）を動かすテストと、32bit のものを組むところ
+│   ├── build.ps1           yaya_host.exe（-Test で test_host.exe・slow_saori.dll も）を 32bit で組む
+│   ├── test/               SSP なしで動かせるテスト
+│   │   ├── test_host.cpp   SSP のかわりに yaya.dll を読みこんで、イベントを順にたずねる
+│   │   ├── lib/            テスト用の道具箱（ブロックを YAYA に訳して動かし、応答をほどく）
+│   │   ├── parity/         ブロックごとの答えを見る一致テスト（expected.json が決めておいた答え）
 │   │   ├── saori/          テスト用の「わざとおそい SAORI」
-│   │   ├── behavior/       栞のふるまい（どれを選ぶか・既定の反応）のテスト
-│   │   └── yaya/           YAYA で如何栞と同じ答えになるかのテスト（段階 3）。handwritten/ はつなぐテスト用の手書きゴースト
-│   └── dist/               ビルド結果（ikaga.dll / test_host.exe）
+│   │   ├── behavior/       ふるまい（どれを選ぶか・既定の反応・間引き）のテスト
+│   │   └── yaya/           YAYA そのもの・保存・書き出し・つなぐテスト。handwritten/ はつなぐテスト用の手書きゴースト
+│   └── dist/               ビルド結果（yaya_host.exe / test_host.exe）
 ├── studio/                 伺かスタジオ（C++ / 64bit EXE）
 │   ├── build.ps1
-│   ├── test/               答え合わせテスト（-Test でコンソールも作る）
-│   │                         export_host  … 書き出したファイルの中身を見る
-│   │                         preview_host … 64bit の如何栞で動かした結果を見る（一致テスト用）
+│   ├── test/               答え合わせテスト（-Test で export_host.exe も作る。書き出したファイルの中身を見る）
 │   ├── res/                アイコン・はじめて起動したときに置くサンプル（日本語と英語）
-│   │   └── yaya/           YAYA で動かすときのしくみの辞書 studio_runtime.dic と「ためす」の入り口 studio_preview.dic（段階 3）
+│   │   └── yaya/           しくみの辞書 studio_runtime.dic と「ためす」の入り口 studio_preview.dic
 │   ├── yaya_host/          「ためす」が YAYA を動かす 32bit の手伝い（shiori\build.ps1 が組む）
 │   ├── third_party/        WebView2 SDK（ヘッダ + 静的ローダ）
-│   ├── tools/embed.ps1     ui\ と ikaga.dll・yaya.dll をリソース化
+│   ├── tools/embed.ps1     ui\ と YAYA 一式をリソース化
 │   ├── tools/make-icon.mjs ロゴ（ui/img/logo.svg）から exe のアイコンを作る
 │   └── src/
 │       ├── main.cpp        ウィンドウ・起動終了・多重起動防止
@@ -373,7 +360,6 @@ ukagaka-studio/
 │       ├── yaya_ghost.cpp    手書きの YAYA ゴーストを調べる・つないだゴーストに書き出す（スタジオのファイルだけ）
 │       ├── shell_import.cpp  いまあるシェルのフォルダから、番号ごとの立ち絵を集める
 │       ├── api_ssp.cpp       動いている SSP との連携
-│       ├── preview.cpp     64bit の如何栞でかたまりを動かす（一致テストの preview_host が使う）
 │       ├── yaya_preview.cpp 「ためす」を YAYA で動かす（yaya_host.exe に頼む）
 │       ├── exporter.cpp    ゴースト一式の組み立てと、フォルダ / .nar への書きこみ
 │       ├── export_program.cpp  ghost.json（ブロックの写し。伺かスタジオで読みこみなおすためのもの）
@@ -384,6 +370,8 @@ ukagaka-studio/
 │       ├── image.cpp       PNG 出力と簡易ラスタライザ
 │       ├── zip.cpp         .nar (ZIP) 出力
 │       ├── deflate.cpp     deflate 圧縮（固定ハフマン + LZ77）
+│       ├── json.cpp        小さな JSON パーサ
+│       ├── util.cpp        文字コード・ファイル・数の書きかた
 │       └── fsutil.cpp      ファイル操作
 ├── ui/                     画面（exe に埋め込まれる）
 │   ├── index.html
@@ -402,8 +390,8 @@ ukagaka-studio/
 │       │   ├── model.js    プロジェクトのデータと Undo
 │       │   ├── lint.js     チェックタブ（空のセリフ・無い変数・行き先のない選択肢）
 │       │   ├── blockindex.js  ブロックを字でさがす（/ キーの「探して置く」）
-│       │   ├── player.js   さくらスクリプトをほどく（動かすのは栞）
-│       │   ├── yaya.js     ブロックを YAYA の辞書に訳す（段階 3）
+│       │   ├── player.js   さくらスクリプトをほどく（動かすのは YAYA）
+│       │   ├── yaya.js     ブロックを YAYA の辞書に訳す
 │       │   └── sample.js   「新規」のひな形
 │       ├── core/           画面の土台（API・お知らせ・画面の状態・上の層への受け口・できごとの知らせ）
 │       ├── editor/         キャンバスとパレット（描画・ドラッグ・ズーム・右クリック・探して置く・コピー）
@@ -422,7 +410,7 @@ ukagaka-studio/
 │           └── yayalink.js 書き出しの「手書きの YAYA ゴーストにつなぐ」
 ├── tools/
 │   ├── check-blocks.js     ブロックが全部のファイルにそろっているか見る（ビルド不要）
-│   └── check-imports.js    栞（と yaya.dll）が Windows 2000 から読みこめるか見る
+│   └── check-imports.js    yaya.dll が Windows 2000 から読みこめるか見る
 ├── third_party/            よそから持ってきたもの（手を入れない）
 │   ├── yaya/               YAYA の公式ビルド yaya.dll とライセンス
 │   └── yaya-dic/           YAYA のシステム辞書 yaya_base（SHIORI/3.0 の受け口）
@@ -438,47 +426,60 @@ ukagaka-studio/
 
 ## 栞のしくみ
 
-エディタの「ためす」は、段階 3 で如何栞の代わりに入る **YAYA**（SSP に入るのと同じ 32bit の `yaya.dll`）が
-動かしています。画面はブロックを YAYA の辞書に訳して `POST /api/preview` で頼み、伺かスタジオは exe に埋めこんだ
-32bit の手伝い `yaya_host.exe` で、それを動かします（画面側にブロックの解釈はありません）。
-違うのは 2 つだけで、**SAORI は呼びません**（本物の 32bit DLL が要るため）、
-**時計や起動回数は画面から渡します**。如何栞と同じ答えになることは、YAYA のテストが確かめています。
+書き出したゴーストの `ghost/master/` には、次のものが入ります。
 
-> **書き出すゴーストも、段階 3-5a から YAYA で動きます。** `ghost/master/` に `yaya.dll`・`yaya.txt`・`yaya_base`・
-> しくみの辞書 `studio_runtime.dic`・ブロックを訳した `studio_program.dic` が入ります（`ghost.json` はブロックの写しです）。
-> 動きは如何栞と同じになるように作ってあり（ちがうところはロードマップの 3-3）、下の説明はそのまま当てはまります。
-> ただし変数などは **`yaya_variable.cfg`**（YAYA の保存）に残り、記録は **`studio_debug.txt`** に書きます。
-> 如何栞の説明は、3-6 で YAYA のものに書きなおします。
+| | |
+|---|---|
+| `yaya.dll` | 栞 YAYA（公式ビルド）。`descript.txt` の `shiori` がこれを指します |
+| `yaya.txt` | YAYA の設定。どの辞書を読むかが書いてあります |
+| `yaya_base\` | YAYA のシステム辞書（SHIORI/3.0 の受け答えをして、イベントの名前の関数をよぶ） |
+| `studio_runtime.dic` | **しくみの辞書**。どのかたまりを選ぶか・間引き・既定の反応などの決まった部分（どのゴーストでも同じ） |
+| `studio_program.dic` | **ブロックを訳した辞書**。かたまり 1 つが YAYA の関数 1 つになります |
+| `ghost.json` | ブロックの写し。YAYA は読みません（「読み込み」でプロジェクトとして開けるように置いています） |
 
-* SHIORI/3.0 の DLL として `load` / `unload` / `request` を公開しています（`src/ikaga.def`）。
-* 起動時に、DLL と同じフォルダの **`ghost.json`** を読み込みます。
-* SSP から来たイベント（`OnBoot`、`OnMouseDoubleClick` など）に対応するブロックを実行し、
-  結果のさくらスクリプトを `Value:` で返します。
+スタジオが書く 2 つの辞書は、1 行目の `// ukagaka-studio: generated` で見分けます。書き出すたびに上書きするので、
+手で YAYA を書くときは、べつの辞書ファイルに書いて `yaya.txt` に足してください。
+
+* SSP から来たイベント（`OnBoot`、`OnMouseDoubleClick` など）は、`yaya_base` がイベントの名前の関数をよび、
+  `studio_program.dic` のその関数が、しくみの辞書に「このイベントのかたまりを動かして」と頼みます。
+  出てきたさくらスクリプトが `Value:` で返ります。
 * 同じイベントのスクリプトが複数あるときは、`weight`（えらばれやすさ）で抽選します。
+  直前に選んだものは避けます。しぼり込みを書いたブロックは、条件なしの同じイベントより**優先**されます。
 * `OnSecondChange` を数えて、設定した間隔で **ランダムトーク**（`kind: "talk"`）を再生します。
   直近に出したトークは候補から外すので、同じ話が続きません（外す数はゴーストの設定で変えられます。
-  既定はトーク数の半分・最大 8）。出した順番は `ikaga_save.json` に残ります。
-* 同じイベントにブロックが複数あるときも、直前に選んだものは避けます。
-* 変数は終了時（および 2 分ごと）に **`ikaga_save.json`** へ保存され、次回起動時に復元されます。
-* リクエストが Shift_JIS で来ても UTF-8 に変換して処理し、応答は常に UTF-8 で返します。
+  既定はトーク数の半分・最大 8）。そのあいだ、`yaya_base` のランダムトーク（`aitalkinterval`）は止めます。
+* 変数・起動回数・出したトークの順番は、YAYA の保存のしくみで **`yaya_variable.cfg`** に残り、次の起動で続きから使えます。
+  ブロックの変数は **`Studio.var['名前']`** の 1 つの入れものにまとめてあるので、どんな名前でもそのまま使え、
+  手書きの YAYA の変数ともぶつかりません。
 * イベントは大きく **はじめの1回**（`OnFirstBoot` / `OnBoot`）・**定常ループ**（`OnSecondChange`）・
   **その他のイベント**の 3 つに分かれます。定常ループは SSP が毎秒たたいてくるので、
   帽子ブロックの「◯秒ごと」で間引けます（`everySec`）。
 * マウス系のイベントは、**当たった場所（あたま・かお・むね・スカート・て）と相手**で
   しぼり込めます。書き出す仮シェルにも、その名前の当たり判定を入れてあります。
 * `OnMouseMove` が同じ場所で続いたら **`OnNadeNade`（なでられたとき）** を自分で作ります。
-  SSP にはこのイベントはありません。栞の中で数えています。
+  SSP にはこのイベントはありません。しくみの辞書の中で数えています。
 * **ゴースト間通信**（`OnCommunicate`）に対応しています。相手の名前と言われたことで
   しぼり込めます。こちらから話しかけるときは応答に `Reference0: 相手の名前` を付けます。
   話しかけ合いが 8 往復続いたら、しゃべるだけにして通信は打ち切ります。
-* **外部モジュール（SAORI）** は読み込んだまま持ち、終了時にまとめて解放します。
-  「答えを待たない呼び出し」は別のスレッドで動きますが、DLL をつつくのは**ひとつずつ**で、
-  届いた答えを変数に入れるのは**主スレッドだけ**です（同時に触らないようにしています）。
-  答えが届くと、つぎの `OnSecondChange` で `OnSaoriDone` を作って知らせます。
-* しぼり込みを書いたブロックは、条件なしの同じイベントより**優先**されます。
+* **外部モジュール（SAORI）** は、YAYA の `REQUESTLIB` でよびます（答えが返るまで待ちます）。
+  「答えを待たずによぶ」ブロックも、中では答えを待ってから、つぎの `OnSecondChange` で `OnSaoriDone` を作って知らせます。
+  YAYA には別のスレッドで動かすしくみが無いので、時間のかかる SAORI のあいだはゴーストが止まります。
 * ブロックが未定義のイベントには、あいさつなどの控えめな既定動作を返します
   （ゴーストの言語が英語なら英語で）。
   `OnClose` では必ず `\-` を付けて、ゴーストがちゃんと終了するようにします。
+* 記録（`studio_debug.txt`）は、そのファイルがあるときだけ書きます（「ためす」の「記録をはじめる」で作ります）。
+  読みこんだこと・YAYA の注意・SAORI を読みこめないことなどが残ります。
+
+エディタの「ためす」も、SSP に入るのと同じ 32bit の `yaya.dll` が動かしています。画面はブロックを YAYA の辞書に訳して
+`POST /api/preview` で頼み、伺かスタジオは exe に埋めこんだ 32bit の手伝い `yaya_host.exe` で、それを動かします
+（画面側にブロックの解釈はありません）。違うのは 2 つだけで、**SAORI は呼びません**（ゴーストのフォルダの DLL が無いため）、
+**起動してからの時間や起動回数などは画面から渡します**。「ためす」と SSP で同じ答えになることは、一致テストが確かめています。
+
+> 1.x までは、自前の栞 **如何栞**（`ikaga.dll`）がブロックを動かしていました。2.0 で YAYA に置きかえ、
+> 動きは如何栞と同じになるように作ってあります。わざと、または YAYA ではできないために同じにならないところは、
+> [`docs/roadmap.md`](docs/roadmap.md) の 3-3 にあります。
+> 前に如何栞で書き出したゴーストも、プロジェクトを開いて書き出しなおせば YAYA のゴーストになります
+> （いまは、如何栞の変数の保存 `ikaga_save.json` は引きつぎません）。
 
 ### SSP なしで試す
 
@@ -487,7 +488,8 @@ ukagaka-studio/
 .\shiori\dist\test_host.exe .\output\いかがちゃん\ghost\master OnBoot OnMouseDoubleClick:0,0,0,0,Head OnClose
 ```
 
-`イベント名:参照0,参照1,...` の形で指定します。`OnSecondChange:0,1*200` のように `*回数` を付けると繰り返せます。
+`test_host.exe` は SSP のかわりに、フォルダの `yaya.dll` を読みこんでイベントを順にたずねます
+（ほかの栞の DLL を試すときは `--dll <名前>`）。`イベント名:参照0,参照1,...` の形で指定します。`OnSecondChange:0,1*200` のように `*回数` を付けると繰り返せます。
 `!sleep:300` を挟むと、その場で 300 ミリ秒待ちます（答えを待たない SAORI のように、
 裏で動いているものが終わるのを待つとき用）。
 
@@ -503,7 +505,8 @@ ukagaka-studio/
 * ゴースト間通信（`OnCommunicate`）— 話しかけられたときの反応と、こちらから話しかけること
 * 3 人目以降のキャラ（`\p[n]`）の切りかえ
 * 外部モジュール（**SAORI**）の呼び出し — ゴーストのフォルダに置いた 32bit の DLL
-  （答えを待たずに呼ぶこともできます。時間のかかる SAORI でも SSP が止まりません）
+  （「答えを待たずによぶ」ブロックもありますが、YAYA では答えを待つので、そのあいだゴーストは止まります）
+* **手書きの YAYA ゴーストにブロックを足す**、ブロックから**手書きの YAYA の関数や式を使う**
 * **うごき**（SERIKO のアニメーション）— 立ち絵をパラパラ切りかえる。キャラと絵の画面で作る
   （こまごとに位置ずらし・重ねかた（`interpolate` や `blend-*` など）を選べます。
   ほかのうごきを動かす／止める、APNG を差しこむ、そのうごきの間だけ触れる
@@ -533,20 +536,21 @@ ukagaka-studio/
   外部リンクを開くときも `http` / `https` だけを渡します。
 * exe の中の API は、**画面自身から出た要求だけ**を受け付けます
   （独自ヘッダか、同じアドレスから来たことの確認）。
-* 栞は、**外から来た文字**（他のゴーストに言われたこと、入力ボックスに書かれたもの）を
+* しくみの辞書は、**外から来た文字**（他のゴーストに言われたこと、入力ボックスに書かれたもの）を
   さくらスクリプトに入れるとき、タグを閉じる `[` `]` と改行を落とします。
   ただし `さくらスクリプトをそのまま出す` ブロックは素通しなので、そこに外から来た文字を
   入れないでください。
 * **人からもらったプロジェクト（.json）は、開く前に中身を確かめてください。**
   立ち絵の画像はパスで指定されているので、書き出すとその画像がゴーストに同梱されます。
   知らないパスが入っていたら、キャラと絵の画面の「立ち絵」で外せます。
-* 栞が読む SAORI の DLL は、ゴーストのフォルダの中だけです
-  （`..` や絶対パスは受け付けません。YAYA で動かすときも、しくみの辞書が同じ決まりで断ります）。
-* **待たない SAORI** が終わらないまま、ゴーストが終わることがあります。栞は 5 秒だけ待って、
-  あとは置いていきます（そこで固まらないため）。置いていっても、走っているスレッドが
-  消えたメモリや外れた栞を触らないように、置き場を分けあい、栞じしんを押さえています。
-* 変数 1 つに入れておける長さは 32KB までです（つなげ続けてメモリを使いきらないため）。
-  1 回に出すさくらスクリプトも 32KB までで、こえたぶんは出しません。
+* ブロックから読む SAORI の DLL は、ゴーストのフォルダの中だけです
+  （`..` や絶対パスは、しくみの辞書が断ります）。
+* SAORI は答えが返るまで待ってよぶので、終わらない SAORI をよぶとゴーストが止まります。
+  信用できる DLL だけを使ってください。
+* 「YAYA の関数 F を A B でよぶ」「YAYA の式 C の値」のブロックは、関数の名前と式の欄に**ブロックをはめられません**
+  （ほかのゴーストから来た言葉などを、YAYA のコードとして動かさないため）。
+* 変数 1 つに入れておける長さは 32000 文字までです（つなげ続けてメモリを使いきらないため）。
+  1 回に出すさくらスクリプトも 32000 文字までで、こえたぶんは出しません。
 
 ---
 
@@ -574,7 +578,7 @@ Copyright (c) 2026 月見里　彩葉 (miyagawa-yukinterface)
 
 ### このソフト自体を配るとき・フォークするとき
 
-`ukagaka-studio.exe` や `ikaga.dll` を単体で、あるいはソースを配るときは、
+`ukagaka-studio.exe` を単体で、あるいはソースを配るときは、
 `LICENSE` を一緒に入れてください。
 
 **書きかえたもの（フォークを含みます）を配るときは、あわせて**

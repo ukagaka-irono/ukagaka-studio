@@ -45,7 +45,7 @@ jobs:
       - name: 画面の言葉（t() の包み忘れと英語の辞書）
         run: node ui\test\i18n.js
 
-  # 栞（32bit DLL）とスタジオ（64bit EXE）を作って、テストを通し、配る形にまとめる。
+  # 32bit の手伝い（yaya_host.exe）とスタジオ（64bit EXE）を作って、テストを通し、配る形にまとめる。
   build:
     name: ビルドとテスト
     runs-on: windows-latest
@@ -76,7 +76,7 @@ jobs:
           .\build.ps1 -Release
 
       # 手元でビルドしなくても、ここから落として試せるように。
-      # 中身は配る zip とまったく同じです（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs）。
+      # 中身は配る zip とまったく同じです（exe / README（日本語・英語）/ CHANGELOG / LICENSE / docs / third_party）。
       # LICENSE を必ず添えるのは、同梱している WebView2 SDK が
       # 配るときに著作権表示を求めているためです。
       # 署名はしていないので、Windows に止められることがあります（README 参照）。
@@ -89,16 +89,6 @@ jobs:
         with:
           name: ukagaka-studio-${{ steps.ver.outputs.version }}-${{ steps.ver.outputs.short }}
           path: obj/release/ukagaka-studio-${{ steps.ver.outputs.version }}/
-          retention-days: 30
-
-      # 栞だけ欲しい人（自分でゴーストに入れる人）のために、別にしておきます。
-      # エディタの exe にも同じものが入っているので、ふつうは要りません。
-      - name: 栞だけも残す
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ikaga-dll-${{ steps.ver.outputs.version }}-${{ steps.ver.outputs.short }}
-          path: shiori/dist/ikaga.dll
           retention-days: 30
 
       # タグのときだけ。下の release ジョブに渡すためのもので、

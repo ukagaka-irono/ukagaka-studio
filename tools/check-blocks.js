@@ -10,13 +10,9 @@
  * 機械的に見ます。ビルドは要らないので、ブロックを足したら、まずこれを走らせてください。
  * くわしい手順は docs\maintenance.md にあります。
  *
- * ブロックを動かす規則は shiori/src/interp.cpp の 1 か所だけです
- * （画面のプレビューも、そこを呼んでいます）。ここで見るのは「書き忘れ」だけで、
- * 中身が合っているかは一致テストとふるまいテストが見ます。
- *
- * 段階 3（如何栞を YAYA に置きかえる）のあいだは、YAYA に訳すところ
- * （ui/js/model/yaya.js と studio/res/yaya/studio_runtime.dic）も、すべてのブロックを知っているかを見ます。
- * 中身が如何栞と同じ答えになるかは shiori\test\yaya\yaya.js が見ます。
+ * ブロックを動かすのは YAYA です。ブロックは ui/js/model/yaya.js が YAYA の文に訳し、
+ * 情報ブロックなどのしくみは studio/res/yaya/studio_runtime.dic にあります（「ためす」も同じものを使います）。
+ * ここで見るのは「書き忘れ」だけで、中身が合っているかは一致テストとふるまいテストが見ます。
  */
 'use strict';
 
@@ -26,7 +22,6 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const C = { red: '\x1b[31m', green: '\x1b[32m', yellow: '\x1b[33m', dim: '\x1b[2m', off: '\x1b[0m' };
 
-const CPP = 'shiori\\src\\interp.cpp';
 const DOC = 'docs\\blocks.md';
 const DOC_EN = 'docs\\en\\blocks.md';   // 英語版（日本語版と同じく、すべてのブロックの行が要ります）
 const DEFS = 'ui\\js\\model\\blocks.js';
@@ -39,7 +34,7 @@ const YAYA_RT = 'studio\\res\\yaya\\studio_runtime.dic';   // YAYA で動くし�
 const KNOWN = {
   // 手書きの ghost.json だけで使える type（エディタのパレットには出していない）
   types: {
-    num: 'ブロックではなく、数そのもの（EvalExpr / evalExpr が直に読む）',
+    num: 'ブロックではなく、数そのもの（yaya.js が直に読む）',
     text: 'ブロックではなく、文字そのもの',
     bool: 'ブロックではなく、はい／いいえそのもの',
     stop: '「ここでトークをおわる」(end) があるので、パレットには出していない',
@@ -69,7 +64,7 @@ function read(rel) {
 }
 
 const src = {
-  cpp: read(CPP), doc: read(DOC), docEn: read(DOC_EN), yaya: read(YAYA_JS), yayaRt: read(YAYA_RT),
+  doc: read(DOC), docEn: read(DOC_EN), yaya: read(YAYA_JS), yayaRt: read(YAYA_RT),
 };
 
 globalThis.IKAGA_LANG = 'ja';   // ブロックの文は日本語のものを見ます（ui/js/i18n/i18n.js）
@@ -83,9 +78,6 @@ if (!N || !N.BLOCKS) {
 // どのファイルでも「名前を書いた 1 行」を探すだけにしています。
 // 中身の書きかたを変えても壊れないように、関数の場所は当てにしません。
 const has = {
-  cppType: (name) => src.cpp.includes(`type == "${name}"`),
-  cppKey: (name) => src.cpp.includes(`key == "${name}"`),
-  cppOp: (name) => src.cpp.includes(`op == "${name}"`),
   doc: (name) => src.doc.includes(`"type":"${name}"`) || src.doc.includes(`"type": "${name}"`),
   docEn: (name) => src.docEn.includes(`"type":"${name}"`) || src.docEn.includes(`"type": "${name}"`),
   yayaType: (name) => src.yaya.includes(`case '${name}':`),
@@ -145,10 +137,9 @@ const blockTypes = [...new Set(
 
 for (const t of blockTypes) {
   const miss = [];
-  if (!has.cppType(t)) miss.push(`${CPP} に  type == "${t}"  がありません（動きません）`);
   if (!has.doc(t)) miss.push(`${DOC} に  "type":"${t}"  の行がありません`);
   if (!has.docEn(t)) miss.push(`${DOC_EN} に  "type":"${t}"  の行がありません（英語版）`);
-  if (!has.yayaType(t)) miss.push(`${YAYA_JS} に  case '${t}':  がありません（YAYA に訳せません）`);
+  if (!has.yayaType(t)) miss.push(`${YAYA_JS} に  case '${t}':  がありません（YAYA に訳せないので、動きません）`);
   if (!tested.types.has(t)) {
     miss.push(`どのテストのゴーストにも出てきません`
       + `（shiori\\test\\parity\\ghost.json に「毎回おなじ結果になる形」で足してください）`);
@@ -156,17 +147,12 @@ for (const t of blockTypes) {
   if (miss.length) bad(`ブロック「${t}」がそろっていません`, miss);
 }
 
-// 逆むき: 実装にあって、ブロック定義に無いもの。
-// 演算の名前（min など）と情報の key は、それぞれ別の見出しで見ているので外します。
+// 逆むき: 訳しかたはあるのに、ブロック定義に無いもの。
 const implTypes = new Set();
-for (const m of src.cpp.matchAll(/type == "([a-z_][a-z0-9_]+)"/g)) implTypes.add(m[1]);
+for (const m of src.yaya.matchAll(/case '([a-z_][a-z0-9_]*)':/g)) implTypes.add(m[1]);
 const implKeys = new Set();
-for (const m of src.cpp.matchAll(/key == "([a-z_][a-z0-9_]*)"/g)) implKeys.add(m[1]);
-const implOps = new Set();
-for (const m of src.cpp.matchAll(/op == "([a-z_][a-z0-9_]*)"/g)) implOps.add(m[1]);
-const strays = [...implTypes].filter(
-  (t) => !blockTypes.includes(t) && !implKeys.has(t) && !implOps.has(t) && !KNOWN.types[t]
-).sort();
+for (const m of src.yayaRt.matchAll(/_key == '([a-z_][a-z0-9_]*)'/g)) implKeys.add(m[1]);
+const strays = [...implTypes].filter((t) => !blockTypes.includes(t) && !KNOWN.types[t]).sort();
 if (strays.length) {
   bad('実装にあるのに、ブロック定義がありません', strays.map(
     (t) => `"${t}" … ${DEFS} に def({ type: '${t}', … }) が無いので、エディタから置けません`
@@ -178,15 +164,14 @@ if (strays.length) {
 const sysKeys = options('sys', 'key').map((o) => o[1]);
 for (const k of sysKeys) {
   const miss = [];
-  if (!has.cppKey(k)) miss.push(`${CPP} の SysValue に  key == "${k}"  がありません`);
   if (!has.yayaKey(k)) miss.push(`${YAYA_RT} の Studio.Sys に  _key == '${k}'  がありません`);
   if (miss.length) bad(`情報ブロックの「${k}」がそろっていません`, miss);
 }
 
-// 逆むき: 両方が知っているのに、えらべない key
+// 逆むき: しくみは知っているのに、えらべない key
 const hiddenKeys = [...implKeys].filter((k) => !sysKeys.includes(k)).sort();
 if (hiddenKeys.length) {
-  bad('栞は知っているのに、エディタでえらべない情報があります', hiddenKeys.map(
+  bad(`${YAYA_RT} は知っているのに、エディタでえらべない情報があります`, hiddenKeys.map(
     (k) => `"${k}" … ${DEFS} の sys ブロックの options に足してください`
   ));
 }
@@ -197,7 +182,6 @@ for (const key of opKeys) {
   const [type, op] = key.split('#');
   if (KNOWN.implicit[key]) continue;
   const miss = [];
-  if (!has.cppOp(op)) miss.push(`${CPP} の ${type} に  op == "${op}"  がありません`);
   if (!has.yayaOp(op)) miss.push(`${YAYA_JS} か ${YAYA_RT} に、${op} の訳がありません`);
   if (miss.length) bad(`演算「${key}」がそろっていません`, miss);
 }
@@ -207,7 +191,6 @@ for (const o of options('round', 'op')) {
   const key = 'round#' + op;
   if (KNOWN.implicit[key]) continue;
   const miss = [];
-  if (!has.cppOp(op)) miss.push(`${CPP} の round に  op == "${op}"  がありません`);
   if (!has.yayaOp(op)) miss.push(`${YAYA_JS} の round に  op === '${op}'  がありません`);
   if (miss.length) bad(`演算「${key}」がそろっていません`, miss);
 }
@@ -276,5 +259,5 @@ if (problems.length) {
 
 console.log(`${C.green}  OK  ${C.off}ブロック ${blockTypes.length} 種・`
   + `情報 ${sysKeys.length} 種・演算 ${opKeys.length} 種が、`
-  + `栞・説明・テストにそろっています`);
+  + `YAYA への訳・説明・テストにそろっています`);
 console.log(`${C.green}[そろい] ぜんぶそろっています。${C.off}`);

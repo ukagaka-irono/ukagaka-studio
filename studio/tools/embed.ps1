@@ -7,7 +7,6 @@
 param(
     [Parameter(Mandatory = $true)][string]$PublicDir,
     [Parameter(Mandatory = $true)][string]$StageDir,
-    [string]$DllPath,
     [string]$YayaDllPath,
     [string]$YayaHostPath,
     [string]$YayaResDir,
@@ -63,13 +62,7 @@ if ($IconPath -and (Test-Path $IconPath)) {
     Copy-Item $IconPath (Join-Path $assetsDir 'ukagaka-studio.ico') -Force
     [void]$rc.AppendLine('101 ICON "assets\\ukagaka-studio.ico"')
 }
-if ($DllPath -and (Test-Path $DllPath)) {
-    Copy-Item $DllPath (Join-Path $assetsDir 'ikaga.dll') -Force
-    [void]$rc.AppendLine('900 RCDATA "assets\\ikaga.dll"')
-} else {
-    Write-Warning '[embed] ikaga.dll が見つかりません。栞なしの exe になります。'
-}
-# YAYA 一式（段階 3 で如何栞と置きかえます）。「ためす」が作業用のフォルダに書き出して使います。
+# YAYA 一式。書き出すゴーストに入れ、「ためす」も作業用のフォルダに書き出して使います。
 #   yaya.dll（公式ビルド）・yaya_host.exe（32bit の手伝い）・しくみの辞書・「ためす」の入り口・yaya_base
 # 書き出すときのフォルダでの名前と、リソースの番号の対応を assets_gen.h の kYayaKit に書きます。
 $kit = @()
@@ -166,5 +159,10 @@ if (-not $kit.Count) { [void]$h.AppendLine('    { L"", 0 },') }
 
 $hPath = Join-Path $StageDir 'assets_gen.h'
 [System.IO.File]::WriteAllText($hPath, $h.ToString(), (New-Object System.Text.UTF8Encoding($false)))
+
+# ---- 版（VERSION の中身。画面が /api/state で読みます）---------------------
+$vh = "// このファイルは studio\tools\embed.ps1 が自動生成します。編集しないでください。`r`n#pragma once`r`n" +
+      "#define STUDIO_VERSION `"$Version`"`r`n"
+[System.IO.File]::WriteAllText((Join-Path $StageDir 'version_gen.h'), $vh, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host ("[embed] UI {0} ファイルを埋め込みます" -f $entries.Count) -ForegroundColor DarkGray

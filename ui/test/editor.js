@@ -8,8 +8,8 @@
  *   lint.js       … チェックタブが出す注意
  *   blockindex.js … 「ブロックを探して置く」（/ キー）で、字からブロックをさがすところ
  *
- * ブロックを動かすところは栞（shiori/src/interp.cpp）にしかないので、ここでは見ません
- * （そちらは shiori/test/parity と shiori/test/behavior が見ています）。
+ * ブロックを動かすところ（YAYA への訳 ui/js/model/yaya.js と、しくみの辞書）は、ここでは見ません
+ * （そちらは shiori/test/parity と shiori/test/behavior が YAYA で動かして見ています）。
  */
 'use strict';
 
@@ -169,10 +169,10 @@ check('オブジェクトでないもの（null）は読まない', !!formatOf(n
     [threw, Model.project.meta.name], [true, 'ひらいているもの']);
 }
 check('ひな形（newProject）はいまの版', Model.newProject().format, Model.FORMAT);
-// 栞が読む形の ghost.json（栞のテスト用ゴースト）も、そのまま読みこめる
-for (const rel of ['parity', 'fixture', 'behavior/main', 'behavior/empty']) {
+// 書き出す形の ghost.json（ブロックの写し。YAYA のテスト用ゴースト）も、そのまま読みこめる
+for (const rel of ['parity', 'behavior/main', 'behavior/empty']) {
   const raw = fs.readFileSync(path.join(root, 'shiori', 'test', ...rel.split('/'), 'ghost.json'), 'utf8');
-  check(`栞の ghost.json も読みこめる（shiori/test/${rel}）`, formatOf(JSON.parse(raw)), { format: Model.FORMAT });
+  check(`書き出す形の ghost.json も読みこめる（shiori/test/${rel}）`, formatOf(JSON.parse(raw)), { format: Model.FORMAT });
 }
 
 section('かたまりの名前 (scriptTitle)');

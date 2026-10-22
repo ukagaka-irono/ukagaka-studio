@@ -20,57 +20,50 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 ---
 
-## ブロックを動かすのは、いつも栞です
-
-**段階 3（如何栞を YAYA に置きかえる）のあいだは、動かすものが 2 つあります。**
+## ブロックを動かすのは、いつも YAYA です
 
 | どこで動くか | 誰が動かすか |
 |---|---|
-| SSP に入れたゴースト | **YAYA**（書き出すゴーストに `yaya.dll` と、訳した辞書・しくみの辞書が入ります。3-5a から） |
+| SSP に入れたゴースト | **YAYA**（書き出すゴーストに `yaya.dll` と、訳した辞書・しくみの辞書が入ります） |
 | エディタの「ためす」 | **YAYA**（SSP に入るのと同じ 32bit の `yaya.dll`。exe に埋めこんだ `yaya_host.exe` が動かします） |
 
 画面（`ui/js/`）はブロックを解釈しません。ブロックを YAYA の辞書に訳して（`ui/js/model/yaya.js`）
 `POST /api/preview` に頼み（`studio/src/yaya_preview.cpp`）、返ってきたさくらスクリプトを
 `ui/js/model/player.js` がほどき、`ui/js/panels/stage.js` が再生するだけです。
-2 つが同じ答えになることは、`shiori\test\yaya\yaya.js` が見ます（如何栞と YAYA、YAYA の「ためす」と SSP の動かしかた）。
+決まった動き（どのかたまりを選ぶか・間引き・既定の反応・情報ブロックの値など）は、どのゴーストにも同じものを入れる
+**しくみの辞書** `studio/res/yaya/studio_runtime.dic` の `Studio.〜` にあります。
+「ためす」と SSP が同じ答えになることは、`shiori\test\parity\parity.js` が見ます。
 
 「ためす」は、作業用のフォルダ（`%TEMP%\ukagaka-studio-preview-<プロセス番号>\`）に YAYA 一式
 （`yaya.dll`・`yaya_host.exe`・`yaya_base`・`studio_runtime.dic`・「ためす」の入り口 `studio_preview.dic`）を書き出し、
 かたまりを 1 つ動かすたびに `yaya_host.exe` を 1 回動かします（1 回 0.1 秒ほど。起動して最初の 1 回だけ、
-Windows の検査で 1〜2 秒かかることがあります）。フォルダは exe を閉じるときに消します。
+Windows の検査で 1〜2 秒かかることがあります）。フォルダは exe を閉じるときに消し、強制終了で残ったものは次に起動したときに消します。
 `studio_preview.dic` は書き出すゴーストには入れません（外から変数を書きかえられてしまうため）。
+「ためす」は SAORI を呼びません（`Studio.noSaori`）。
 
 > むかしは `ui/js/sim.js` に同じ規則を JavaScript でもう一度書いていました。
 > 片方だけ直すと、エディタでは思ったとおりなのに SSP では違う、という形で
 > あとから分かる、いちばん厄介なズレかたをしました。474 行を消してあります。
-
-如何栞の一致テストは、同じ `interp.cpp` を 32bit と 64bit で組んで見くらべます（64bit のほうは、
-もとは「ためす」が使っていたものです。いまはテスト用の `preview_host.exe` だけが使います）。
-`int` と `size_t` の大きさに頼った書きかたをすると、そこで止まります。
-
-`interp.cpp` は SAORI の DLL の読みかたを知りません（`saori.h` の `SaoriHost` で
-一枚はさんであります）。プレビューは SAORI を呼ばないので、そこに `NULL` を渡しています。
-YAYA の「ためす」も SAORI は呼びません（`Studio.noSaori`）。
+> 1.x までは自前の栞（如何栞。`shiori/src/interp.cpp`）が動かしていましたが、2.0 で YAYA に置きかえて消しました。
 
 ---
 
 ## ブロックを 1 つ足す
 
-順番に、6 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
+順番に、5 か所です。`node tools\check-blocks.js` が、抜けたところを名指しで教えます。
 
 1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`。
    見た目と `ghost.json` の形が決まります。そして `PALETTE` の、置きたいカテゴリに
    名前を足します（足さないと、定義してもパレットに並びません）。
-2. **`shiori/src/interp.cpp`** — `RunBlock` に `if (type == "…")`。**ここだけが動かす側です。**
-   文字を出すときは直に足さず、**`Emit(ctx, …)`** を通してください（長さの上限がかかります）。
+2. **`ui/js/model/yaya.js`** — YAYA に訳すところ。**ここが動かす側です。** 値のブロックなら `expr()`、
+   文のブロックなら `stmt()` に `case '…':` を足して、しくみの辞書の `Studio.〜` を呼ぶ 1 行にします。
+   人の書いた文は `yayaStr` を通します。新しい動きが要るなら、**`studio/res/yaya/studio_runtime.dic`** に `Studio.〜` を足します
+   （文字を出すときは直に足さず **`Studio.Emit`** を通してください。長さの上限がかかります）。
 3. **`docs/blocks.md`** — 表に 1 行。`{"type":"…"}` の形と、出るさくらスクリプトを書きます。
 4. **`docs/en/blocks.md`** — 英語版の表にも同じ 1 行（ブロックの名前は、英語の画面に出る名前で）。
 5. **`shiori/test/parity/ghost.json`** — `OnP**` の帽子で 1 つ。`id` も付けてください。
    **毎回おなじ結果になる形**にしてください（乱数や時計を使うと、毎回ちがう答えになります）。
-6. **`ui/js/model/yaya.js`** — YAYA に訳すところ（段階 3）。値のブロックなら `expr()`、文のブロックなら `stmt()` に
-   `case '…':` を足して、しくみの辞書の `Studio.〜` を呼ぶ 1 行にします。新しい動きが要るなら、
-   **`studio/res/yaya/studio_runtime.dic`** に `Studio.〜` を足します（情報ブロックの key は `Studio.Sys` に `_key == '…'`）。
-   如何栞と同じ答えになるかは、`node shiori\test\yaya\yaya.js` が 5. の場面を両方で動かして見ます。
+   `node shiori\test\parity\parity.js --update` で答えを `expected.json` に足し、**その答えが正しいかを目で確かめてから**入れます。
 
 「空だと困る欄」があるブロックなら、**`ui/js/model/lint.js`**（チェックタブ）にも足します。
 ブロックの文は `t()` を通すので、**`ui/js/i18n/en.js` に英語の文**も足します（無いと `ui\test\i18n.js` が止めます）。
@@ -78,13 +71,13 @@ YAYA の「ためす」も SAORI は呼びません（`Studio.noSaori`）。
 `PALETTE` に足したブロックは、`/` の「ブロックを探して置く」にも自動で出ます（`model/blockindex.js` が
 `PALETTE` から一覧を作ります）。`ui\test\editor.js` が、パレットのブロックが全部さがせることを確かめます。
 
-`ui/` を直したら、**`studio\build.ps1` で exe を作りなおします**（UI は exe に埋め込まれています）。
-`interp.cpp` を直したときは、**栞とスタジオの両方**を作りなおしてください
-（`.\build.ps1` が順に作ります）。
+`ui/` や `studio/res/yaya/` を直したら、**`studio\build.ps1` で exe を作りなおします**（UI もしくみの辞書も exe に埋め込まれています）。
+node のテストは、しくみの辞書をリポジトリのものから読むので、作りなおさなくても新しい中身で走ります。
 
 ### 情報ブロック（`sys`）を足すとき
 
-`blocks.js` の `sys` の `options` と、`interp.cpp` の `SysValue` の 2 か所です。
+`blocks.js` の `sys` の `options` と、しくみの辞書の `Studio.Sys`（`_key == '…'`）の 2 か所です。
+「ためす」では、起動してからの時間・起動回数・しゃべった数などは画面から渡すので（`studio_preview.dic` の `sys`）、そういう値なら `ui/js/panels/run.js` の渡すものも見てください。
 時計まわりの値は毎回ちがう答えになるので、一致テストには乗せられません
 （`check-blocks.js` が「テストで動かしていない情報ブロック」として、お知らせに並べます）。
 
@@ -101,23 +94,22 @@ YAYA の「ためす」も SAORI は呼びません（`Studio.noSaori`）。
 
 | 走らせかた | 守っているもの |
 |---|---|
-| `node tools\check-blocks.js` | ブロックが 6 か所にそろっているか（書き忘れ探し） |
-| `node shiori\test\parity\parity.js` | 同じ `interp.cpp` を 32bit と 64bit で組んで、出力が同じか（ビット幅に頼った書きかたを見つける） |
-| `node shiori\test\behavior\behavior.js` | 栞**だけ**が持っている判断（どれを選ぶか・既定の反応・間引き・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も |
-| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。ブロックを YAYA に訳して、一致テストのゴーストが如何栞と同じ答えになるか（栞をまたいだ一致テスト）、ふるまいテストの場面（`shiori\test\behavior\scenarios.js`）を YAYA でも満たすか、変数が次の起動に残るか |
+| `node tools\check-blocks.js` | ブロックが 5 か所にそろっているか（書き忘れ探し） |
+| `node shiori\test\parity\parity.js` | ブロックごとのかたまり（`shiori\test\parity\ghost.json`）を YAYA で動かした答えが、`expected.json` と同じか。同じかたまりを「ためす」のやりかた（`yaya_host.exe`）でも動かして、SSP の動かしかたと同じ答えか |
+| `node shiori\test\behavior\behavior.js` | しくみの辞書が持っている判断（どれを選ぶか・既定の反応・間引き・ランダムトーク・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も。場面は `scenarios.js` |
+| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。`YAYA_DEFINES` が yaya_base とそろっているか、変数が次の起動に残るか、exe の書き出しがそのまま動くか、手書きのゴーストにつなぐ書き出し |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
-| `node tools\check-imports.js` | `ikaga.dll` が Windows 2000 から読みこめるか（輸入表を直に読む）。`.\build.ps1 -Test` は、`third_party\yaya\yaya.dll` もこれで見ます |
+| `node tools\check-imports.js` | `third_party\yaya\yaya.dll` が Windows 2000 から読みこめるか（輸入表を直に読む。版を上げたときのため） |
 | `node ui\test\i18n.js` | 画面の日本語がすべて `t()` を通り、英語の訳があるか。英語の辞書に、使われていない訳や `{差しこみ}`／`%欄` のずれが無いか。exe が返すエラーのコードが、すべて画面の文になるか。文書の英語版がそろっているか |
 
-`parity` と `behavior` と `yaya` は `shiori\dist\test_host.exe` を、`parity` はさらに
-`studio\test\preview_host.exe` を使うので、**先にビルドが要ります**（`.\build.ps1 -Test`）。
-`check-imports` も出来あがった `ikaga.dll` を見るので、ビルドが要ります。
-`check-blocks` と `editor` と `modules` はビルド無しで走ります。
+`parity` と `behavior` と `yaya` は `shiori\dist\test_host.exe` を、`parity` と `yaya` はさらに
+`shiori\dist\yaya_host.exe` を、`export` は `studio\test\export_host.exe` を使うので、**先にビルドが要ります**（`.\build.ps1 -Test`）。
+`check-blocks` と `check-imports` と `editor` と `modules` と `i18n` はビルド無しで走ります。
 
-書き出しかたをわざと変えたときは、出てきたものを**目で確かめてから**
-`node studio\test\export.js --update` で期待値を作りなおします。
+書き出しかたやブロックの出すものをわざと変えたときは、出てきたものを**目で確かめてから**
+`node studio\test\export.js --update` / `node shiori\test\parity\parity.js --update` で期待値を作りなおします。
 
 ### 押したら勝手に走ります
 
@@ -133,12 +125,9 @@ YAYA の「ためす」も SAORI は呼びません（`Studio.noSaori`）。
 
 ### できたものを落とす
 
-Actions の実行ページをいちばん下まで送ると **Artifacts** があります。**30 日間**残ります。
-
-| 名前 | 中身 |
-|---|---|
-| `ukagaka-studio-<版>-<sha>` | 配る zip とまったく同じ（`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`（英語版の `docs/en` も）/ `third_party`（YAYA のライセンス）） |
-| `ikaga-dll-<版>-<sha>` | `ikaga.dll` だけ。自分でゴーストに入れる人むけ（エディタの exe にも同じものが入っています） |
+Actions の実行ページをいちばん下まで送ると **Artifacts** に `ukagaka-studio-<版>-<sha>` があります。**30 日間**残ります。
+中身は配る zip とまったく同じです（`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` /
+`docs`（英語版の `docs/en` も）/ `third_party`（YAYA のライセンス））。
 
 `LICENSE` を必ず添えるのは、同梱している WebView2 SDK が配るときに著作権表示を
 求めているためです。`build.ps1 -Release` も、`LICENSE` が無ければ**その場で止まります**。
@@ -247,9 +236,9 @@ ui/js/
   `Model.normalize` は、ここを画面の言語で埋めません（日本語で作ったゴーストが、英語の画面で開いただけで英語にならないように）。
 * ゴーストの言語が英語なら、書き出すもの（readme.txt・名前が空のときの名前 New Ghost・Sakura・Kero・バルーンの名前）が英語になり、
   `ghost.json` の `meta.lang` が `"en"` になります（日本語のときは書かないので、前と同じ中身のままです）。
-  栞はそれを見て、自分で言う決まり文句（`shiori.cpp`）と、「いまごろ」「季節」「曜日の名前」の値（`interp.cpp`。
-  `朝` → `morning` など）を英語にします。値はゴーストの中で比べるものなので、ゴーストの言語で決まり、画面の言語では変わりません。
-  「ためす」も同じ栞の仕組みで動くので、同じ値になります。
+  訳した辞書はそれを `Studio.English` にして、しくみの辞書が、自分で言う決まり文句と、「いまごろ」「季節」「曜日の名前」の値
+  （`朝` → `morning` など）を英語にします。値はゴーストの中で比べるものなので、ゴーストの言語で決まり、画面の言語では変わりません。
+  「ためす」も同じしくみの辞書で動くので、同じ値になります。
 * **お手本は言語ごと**です。英語のお手本は `ui/samples/en/`（日本語と同じ数。`ui\test\editor.js` が数とゴーストの言語を見ます）、
   はじめて起動したときに置くサンプルは `studio/res/sample-project.json` と `sample-project.en.json` です
   （exe の言語が英語なら英語のほう。`Api::PlaceFirstRunSample`）。お手本の置き場所は、その言語の画面で「整列」をかけて決めています。
@@ -275,7 +264,7 @@ ui/js/
 * YAYA はソースからは組みません。いまの Visual Studio で組むと、Windows 2000 に無い API が入るためです（`docs/roadmap.md` の 3-0）。
 * exe に `yaya.dll` を埋めこんでいるので、配布用の zip には YAYA のライセンスの本文を入れています（`build.ps1` の `-Release`）。
 
-### YAYA の辞書（段階 3）
+### YAYA の辞書
 
 ブロックは `ui/js/model/yaya.js` が YAYA の辞書（`studio_program.dic`）に訳し、決まった部分は
 `studio/res/yaya/studio_runtime.dic` の `Studio.〜` にあります。YAYA の辞書を書くときの落とし穴:
@@ -287,9 +276,12 @@ ui/js/
 * **`#globaldefine` の名前は、文字列の中でも置きかえられます。** 人の書いた文は `yayaStr` を通して書きます
   （名前の途中で文字列を分けます。名前の一覧 `YAYA_DEFINES` は、yaya_base とそろっているかをテストが見ます）。
 * **`reference[n]` は、数に見える文字を数に変えてしまいます**（`007` → 7）。文字のまま使うときは `reference.raw[n]`。
-* 小数を `+` で文字につなぐと `3.500000` になります。文字にするときは `Studio.S`（如何栞と同じ書きかた）を通します。
+* 小数を `+` で文字につなぐと `3.500000` になります。文字にするときは `Studio.S`（ブロックの数の書きかた）を通します。
+  `STRFORM` の書式は `'$.10g'` のように `$` で始めます。
+* **正規表現は、2 単位の文字（絵文字など）の範囲を扱えません**（なんにでも当たってしまいます）。`Studio.Surrogates` は
+  1 文字ずつ見ています。`GETSTRBYTES` は UTF-8 のバイト数を正しく返します。
 
-### 手書きの YAYA ゴーストにつなぐ（段階 3-5b）
+### 手書きの YAYA ゴーストにつなぐ
 
 * つないだゴーストに書くのは、**1 行目に `// ukagaka-studio: generated` の印がある `studio_*.dic`** と、
   `yaya.txt` の **`// ukagaka-studio: begin` 〜 `// ukagaka-studio: end`** の行だけです（`studio/src/yaya_ghost.cpp`）。
@@ -366,41 +358,28 @@ node のテストは ES モジュールを `require()` で読むので、**Node.
 
 ---
 
-## 栞は、C ランタイムを使わずに組んでいます
+## 栞の `yaya.dll` は、公式のビルドのままです
 
 SSP は **Windows 2000 以降**で動きます。栞は SSP に読みこまれる DLL なので、そこに合わせます。
 
-ところが Visual Studio の C ランタイムをふつうに静的リンク（`/MT`）すると、**自分では
-一度も呼んでいないのに** `FlsAlloc` や `InitializeCriticalSectionEx`（どちらも Vista から）
-といった API が輸入表に載ります。輸入表は**読みこみのときに全部そろっている必要がある**ので、
-古い Windows では **DLL を開くことすらできません**。手元が Windows 11 だと当然動くので、
-ソースを読んでも気づけません。
+ところが、いまの Visual Studio で組むと、**自分では一度も呼んでいないのに** C ランタイムが新しい API
+（`FlsAlloc` や `InitializeCriticalSectionEx` など、Vista から）を輸入表に載せます。輸入表は**読みこみのときに全部
+そろっている必要がある**ので、古い Windows では **DLL を開くことすらできません**。手元が Windows 11 だと当然動くので、
+ソースを読んでも気づけません。YAYA をソースから v145 で組むと、XP からの API が 7 個、Vista からの API が 9 個入りました。
 
-そこで栞は、
+そこで、**YAYA はソースから組まず、古い Visual C++ で組まれた公式の `yaya.dll` をそのまま使います**
+（`third_party/yaya/`。版の上げかたは `third_party/README.md`）。
 
-* `/NODEFAULTLIB` で CRT を丸ごと外し、
-* **Windows に最初から入っている `msvcrt.dll`** につなぎ（`shiori/src/msvcrt.def`）、
-* それでも足りない Visual Studio 独自のものだけを `shiori/src/tinycrt.cpp` で用意する
+**Windows 2000 にある API だけかは `node tools\check-imports.js` が見ます。** PE の輸入表を
+直に読んで、Windows 2000 に無い API が混ざっていたら名指しで止めます。`.\build.ps1 -Test` にも入っています。
+早見表に無い API は「要確認」として止めるので、版を上げて新しい API が出てきたら、Windows 2000 にあるかを確かめてから
+`check-imports.js` の `SINCE` に足してください。
 
-という組みかたにしてあります。`strtod` や `sprintf` のような「自分で書くと間違えるもの」は
-借りものの本物です。`ikaga.dll` は 268KB から 134KB になりました。
+`yaya_host.exe`・`test_host.exe` は自分で組みますが、ゴーストには入りません（`yaya_host.exe` は伺かスタジオの中で
+「ためす」に使うだけ）。なのでふつうの C ランタイム（`/MT`）のままです。
 
-**ねらいどおりかは `node tools\check-imports.js` が見ます。** 出来あがった PE の輸入表を
-直に読んで、Windows 2000 に無い API が混ざっていたら名指しで止めます。
-`.\build.ps1 -Test` にも入っています。
-
-### ここを触るときの注意
-
-* **`shiori/src/msvcrt.def` は ASCII だけで書いてください。** `lib.exe` は `.def` を
-  ANSI コードページで読むので、日本語のコメントを入れると**次の行を巻きこんで消します**
-  （実際に `memcpy` と `strlen` が黙って落ちました）。
-* 借りる関数を足すときは、**Windows 2000 の `msvcrt.dll` にもあるか**確かめてください。
-* 例外は投げません。投げるはずの場面（メモリ不足・長さ超過）は、その場で終わります。
-  栞は 32KB で頭打ちにしてあるので、ふつうは起きません。
-* `<random>` や 64bit 整数と小数の行き来は、CRT にしか無い関数を呼びます。
-  避けかたは `util.cpp` の `NumToStr` と乱数のところにコメントで書いてあります。
-* **伺かスタジオ（64bit）はふつうの CRT のままです。** 同じ `.cpp` を両方で組んでいますが、
-  `tinycrt.cpp` をリンクするのは栞だけです。一致テストが、両方で同じ答えになることを見ています。
+> 1.x の如何栞は、自分で組んだ DLL を Windows 2000 で動かすために、C ランタイムを外して `msvcrt.dll` につなぎ、
+> 足りないものを `tinycrt.cpp` で用意していました。2.0 で栞ごと消しています。
 
 ---
 
@@ -427,7 +406,7 @@ node studio\tools\make-icon.mjs     # Windows の Edge で 16〜256px に描い�
 | `docs/ghost-json.md`・`README.md`（と英語版） | 例として |
 
 「新規」の既定の名前（**あたらしいゴースト**、英語では **New Ghost**）は、画面（`model.js`・`sample.js`・`title.js`・`index.html`。
-英語は `en.js`）と、書き出しの `GhostName()`（`studio/src/exporter.cpp`）にあります。栞のテスト用ゴースト・書き出しテストの材料に
+英語は `en.js`）と、書き出しの `GhostName()`（`studio/src/exporter.cpp`）にあります。栞のテストのゴースト・書き出しテストの材料に
 出てくる「なしこ」「つぶ」は、テストの材料なので変えていません。
 
 ---
@@ -435,7 +414,7 @@ node studio\tools\make-icon.mjs     # Windows の Edge で 16〜256px に描い�
 ## つまずきやすいところ
 
 **スマートアプリコントロールが、作りたてのファイルを止める。**
-`test_host.exe` や `ikaga.dll` や `ukagaka-studio.exe` が
+`test_host.exe` や `yaya_host.exe` や `ukagaka-studio.exe` が
 「An Application Control policy has blocked this file」（エラー 4551）で
 読み込めないことがあります。**もう一度ビルドすると通る**ことが多いです。
 くわしくは README の「スマートアプリコントロールでブロックされたら」。
@@ -453,16 +432,12 @@ Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-CodeIntegrity/Operati
   Select-Object TimeCreated, Message
 ```
 
-ここに `ikaga.dll` の名前が出ていれば、それが原因です。
+ここに止められたファイルの名前が出ていれば、それが原因です。
 Defender のほうを疑うなら `Get-MpThreatDetection`（何も出なければ、Defender は無関係）。
 
 **`studio\test\expected\` は、バイトのまま見くらべています。**
 `.gitattributes` で `-text` にして、git が改行を書きかえないようにしてあります。
 期待値を作りなおしたあとに差分がおかしいときは `git add --renormalize` を試してください。
-
-**テスト用の SAORI（`slow_saori.dll`）は `load` / `unload` を持っています。**
-栞と同じ名前なので、中間ファイルを同じ場所に置くとリンクでぶつかります
-（`obj\x86\testbuild\` に分けてあります）。
 
 **`ukagaka-studio.exe` は画面つきです。** スクリプトから `& .\ukagaka-studio.exe` と書くと
 戻ってきません。動きを確かめたいときは自分の手で起動してください。

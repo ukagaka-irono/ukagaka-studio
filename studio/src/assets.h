@@ -4,10 +4,9 @@
 #include <string>
 
 #define IDI_IKAGA_APP        101
-#define IDR_IKAGA_DLL        900
 #define IDR_SAMPLE_PROJECT   901
 #define IDR_SAMPLE_PROJECT_EN 902   // 英語のサンプル（はじめて起動したとき、exe の言語が英語なら置く）
-#define IDR_YAYA_DLL         903    // YAYA の公式ビルド（third_party/yaya/。段階 3 で如何栞と置きかえる）
+#define IDR_YAYA_DLL         903    // YAYA の公式ビルド（third_party/yaya/）
 // 904〜（yaya_host.exe・辞書・yaya_base）も YAYA 一式。番号と名前の対応は assets_gen.h の kYayaKit
 #define IDR_WEB_ASSET_BASE  1000
 

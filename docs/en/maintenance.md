@@ -23,56 +23,50 @@ Inside `build.ps1 -Test` it also runs before the build (you learn about a forgot
 
 ---
 
-## Blocks are always run by the SHIORI
-
-**During stage 3 (replacing ikaga SHIORI with YAYA), two things run blocks.**
+## Blocks are always run by YAYA
 
 | Where it runs | Who runs it |
 |---|---|
-| A ghost installed in SSP | **YAYA** (exported ghosts carry `yaya.dll` with the translated and runtime dictionaries, from 3-5a) |
+| A ghost installed in SSP | **YAYA** (exported ghosts carry `yaya.dll` with the translated and runtime dictionaries) |
 | The editor's “Try” | **YAYA** (the same 32-bit `yaya.dll` that goes into SSP, run by `yaya_host.exe` embedded in the exe) |
 
 The UI (`ui/js/`) does not interpret blocks. It translates them into a YAYA dictionary (`ui/js/model/yaya.js`),
 asks `POST /api/preview` (`studio/src/yaya_preview.cpp`), `ui/js/model/player.js` unpacks the Sakura Script that
 comes back, and `ui/js/panels/stage.js` plays it.
-`shiori\test\yaya\yaya.js` checks that the two give the same answers (ikaga SHIORI vs YAYA, and YAYA's “Try” vs how SSP runs it).
+The fixed behavior (which script to pick, thinning out, default reactions, info block values and so on) lives in the
+`Studio.*` functions of **the runtime dictionary** `studio/res/yaya/studio_runtime.dic`, the same in every ghost.
+`shiori\test\parity\parity.js` checks that “Try” and SSP give the same answers.
 
 “Try” writes the YAYA kit (`yaya.dll`, `yaya_host.exe`, `yaya_base`, `studio_runtime.dic`, and the Try entry
 `studio_preview.dic`) to a work folder (`%TEMP%\ukagaka-studio-preview-<process id>\`) and runs `yaya_host.exe` once
 per script it tries (about 0.1 s each; the very first run after startup can take 1–2 s while Windows scans the files).
-The folder is deleted when the exe closes. `studio_preview.dic` never goes into an exported ghost
-(it would let outsiders rewrite variables).
+The folder is deleted when the exe closes, and one left behind by a forced quit is deleted at the next startup.
+`studio_preview.dic` never goes into an exported ghost (it would let outsiders rewrite variables).
+“Try” does not call SAORI (`Studio.noSaori`).
 
 > `ui/js/sim.js` used to write the same rules again in JavaScript.
 > Fixing only one side showed up later as “it works in the editor but not in SSP”,
 > the most troublesome kind of drift. Those 474 lines are gone.
-
-ikaga SHIORI's parity test builds the same `interp.cpp` as 32-bit and 64-bit and compares them (the 64-bit one
-used to run “Try”; now only the test's `preview_host.exe` uses it). Code that relies on the size of `int` or
-`size_t` stops there.
-
-`interp.cpp` does not know how to load SAORI DLLs (`SaoriHost` in `saori.h` sits in between).
-The preview does not call SAORI, so it passes `NULL` there. YAYA's “Try” does not call SAORI either (`Studio.noSaori`).
+> Up to 1.x a SHIORI of our own (ikaga SHIORI, `shiori/src/interp.cpp`) ran the blocks; 2.0 replaced it with YAYA and removed it.
 
 ---
 
 ## Adding one block
 
-Six places, in order. `node tools\check-blocks.js` names any you missed.
+Five places, in order. `node tools\check-blocks.js` names any you missed.
 
 1. **`ui/js/model/blocks.js`** — `def({ type: '…', cat: '…', shape: '…', spec: '…', args: {…} })`.
    This decides its look and its shape in `ghost.json`. Then add its name to the category of
    `PALETTE` you want it in (without that, it is defined but not shown in the palette).
-2. **`shiori/src/interp.cpp`** — `if (type == "…")` in `RunBlock`. **This is the only place that runs it.**
-   Do not append text directly; go through **`Emit(ctx, …)`** (it applies the length limit).
+2. **`ui/js/model/yaya.js`** — the translation into YAYA. **This is what makes it run.** Add `case '…':` to `expr()` for a
+   value block or to `stmt()` for a statement block, producing one line that calls a `Studio.*` function of the runtime dictionary.
+   Text people wrote goes through `yayaStr`. If new behavior is needed, add a `Studio.*` function to
+   **`studio/res/yaya/studio_runtime.dic`** (do not append text directly; go through **`Studio.Emit`**, which applies the length limit).
 3. **`docs/blocks.md`** — one row in the table: the `{"type":"…"}` shape and the Sakura Script it outputs.
 4. **`docs/en/blocks.md`** — the same row in the English table (with the block name as the English UI shows it).
 5. **`shiori/test/parity/ghost.json`** — one under an `OnP**` hat, with an `id`.
    **Make it give the same result every time** (random numbers or the clock give different answers each run).
-6. **`ui/js/model/yaya.js`** — the translation into YAYA (stage 3). Add `case '…':` to `expr()` for a value block or to
-   `stmt()` for a statement block, producing one line that calls a `Studio.*` function of the runtime dictionary.
-   If new behavior is needed, add a `Studio.*` function to **`studio/res/yaya/studio_runtime.dic`** (an information key goes
-   into `Studio.Sys` as `_key == '…'`). `node shiori\test\yaya\yaya.js` runs step 5's scripts on both SHIORIs to check the answers match.
+   Add its answer to `expected.json` with `node shiori\test\parity\parity.js --update`, and **check with your own eyes that the answer is right** before committing it.
 
 If the block has a field that must not be empty, add it to **`ui/js/model/lint.js`** (the Check tab) too.
 Block text goes through `t()`, so add **its English text to `ui/js/i18n/en.js`** as well (`ui\test\i18n.js` stops otherwise).
@@ -80,13 +74,14 @@ Block text goes through `t()`, so add **its English text to `ui/js/i18n/en.js`**
 Blocks added to `PALETTE` show up in the `/` “find and place” automatically (`model/blockindex.js`
 builds its list from `PALETTE`). `ui\test\editor.js` checks that every palette block can be found.
 
-After changing `ui/`, **rebuild the exe with `studio\build.ps1`** (the UI is embedded in the exe).
-After changing `interp.cpp`, rebuild **both the SHIORI and the studio**
-(`.\build.ps1` builds them in order).
+After changing `ui/` or `studio/res/yaya/`, **rebuild the exe with `studio\build.ps1`** (the UI and the runtime dictionaries are embedded in the exe).
+The node tests read the runtime dictionary from the repository, so they run on the new contents without a rebuild.
 
 ### Adding an info block (`sys`)
 
-Two places: the `options` of `sys` in `blocks.js`, and `SysValue` in `interp.cpp`.
+Two places: the `options` of `sys` in `blocks.js`, and `Studio.Sys` (`_key == '…'`) in the runtime dictionary.
+In “Try”, values such as the uptime, boot count and number of talks come from the UI (`sys` in `studio_preview.dic`),
+so for such a value also look at what `ui/js/panels/run.js` passes.
 Clock-related values give a different answer every time, so they cannot go into the parity test
 (`check-blocks.js` lists them in a note as “info blocks not exercised by the tests”).
 
@@ -103,23 +98,22 @@ Some types and operators are not shown in the palette and exist for hand-written
 
 | How to run | What it protects |
 |---|---|
-| `node tools\check-blocks.js` | that blocks are present in all 6 places (catches forgotten files) |
-| `node shiori\test\parity\parity.js` | that the same `interp.cpp` built as 32-bit and 64-bit gives the same output (catches code relying on bit width) |
-| `node shiori\test\behavior\behavior.js` | the decisions **only** the SHIORI makes (what it picks, default reactions, thinning, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day” |
-| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that with the blocks translated into YAYA, the parity ghost gives the same answers as ikaga SHIORI (a parity test across SHIORIs), the behavior scenarios (`shiori\test\behavior\scenarios.js`) also hold on YAYA, and variables survive a restart |
+| `node tools\check-blocks.js` | that blocks are present in all 5 places (catches forgotten files) |
+| `node shiori\test\parity\parity.js` | that the scripts, one per block (`shiori\test\parity\ghost.json`), give the answers in `expected.json` on YAYA; and that running them the way “Try” does (`yaya_host.exe`) gives the same answers as running them the way SSP does |
+| `node shiori\test\behavior\behavior.js` | the decisions the runtime dictionary makes (what it picks, default reactions, thinning, random talk, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day”. The scenarios are in `scenarios.js` |
+| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that `YAYA_DEFINES` matches yaya_base, variables survive a restart, the exe's export runs as it is, and exports into a linked hand-written ghost |
 | `node studio\test\export.js` | the contents of exported files (compared byte by byte), including English ghosts' readme.txt, fallback names and `meta.lang` |
 | `node ui\test\editor.js` | normalizing loaded projects and format versions (`model.js`), the Check tab (`lint.js`), searching blocks by text (`blockindex.js`), and that the examples (Japanese and English) pass the Check tab |
 | `node ui\test\modules.js` | that `ui\js\` is reachable from `main.js`, imports follow the layer rules with no cycles, any file loads first without failing, and every `Xxx.yyy()` has a target. That colors in `style.css` go through tokens |
-| `node tools\check-imports.js` | that `ikaga.dll` loads from Windows 2000 (reads the import table directly). `.\build.ps1 -Test` also checks `third_party\yaya\yaya.dll` with it |
+| `node tools\check-imports.js` | that `third_party\yaya\yaya.dll` loads from Windows 2000 (reads the import table directly; for when you upgrade it) |
 | `node ui\test\i18n.js` | that all Japanese UI text goes through `t()` and has an English translation; that the English dictionary has no unused entries or mismatched `{placeholders}` / `%slots`; that every error code the exe returns has UI text; that every document has an English version |
 
-`parity`, `behavior` and `yaya` use `shiori\dist\test_host.exe`, and `parity` also
-`studio\test\preview_host.exe`, so **they need a build first** (`.\build.ps1 -Test`).
-`check-imports` looks at the built `ikaga.dll`, so it needs a build too.
-`check-blocks`, `editor` and `modules` run without a build.
+`parity`, `behavior` and `yaya` use `shiori\dist\test_host.exe`, `parity` and `yaya` also `shiori\dist\yaya_host.exe`,
+and `export` uses `studio\test\export_host.exe`, so **they need a build first** (`.\build.ps1 -Test`).
+`check-blocks`, `check-imports`, `editor`, `modules` and `i18n` run without a build.
 
-When you changed the export on purpose, **check what comes out with your own eyes**, then
-regenerate the expected files with `node studio\test\export.js --update`.
+When you changed the export or what a block outputs on purpose, **check what comes out with your own eyes**, then
+regenerate the expected files with `node studio\test\export.js --update` / `node shiori\test\parity\parity.js --update`.
 
 ### They run by themselves on push
 
@@ -135,12 +129,9 @@ It is there to stop you even if you forget, so **if it turns red, fix it before 
 
 ### Downloading the results
 
-Scroll an Actions run page to the bottom for **Artifacts**. They are kept for **30 days**.
-
-| Name | Contents |
-|---|---|
-| `ukagaka-studio-<version>-<sha>` | exactly the same as the distributed zip (`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` / `docs`, including the English `docs/en` / `third_party` with YAYA's license) |
-| `ikaga-dll-<version>-<sha>` | `ikaga.dll` only, for people who put it into a ghost themselves (the editor's exe carries the same one) |
+Scroll an Actions run page to the bottom for `ukagaka-studio-<version>-<sha>` under **Artifacts**. It is kept for **30 days**.
+It is exactly the same as the distributed zip (`ukagaka-studio.exe` / `README.md` / `README.en.md` / `CHANGELOG.md` / `LICENSE` /
+`docs`, including the English `docs/en` / `third_party` with YAYA's license).
 
 `LICENSE` is always included because the bundled WebView2 SDK requires its copyright notice
 when distributed. `build.ps1 -Release` also **stops right there** if `LICENSE` is missing.
@@ -254,9 +245,9 @@ ui/js/
   because you opened it with the English UI).
 * For an English ghost, exported files (readme.txt, the fallback names New Ghost / Sakura / Kero, the balloon name)
   are English, and `meta.lang` in `ghost.json` becomes `"en"` (nothing is written for Japanese, so the output is unchanged).
-  The SHIORI reads it and switches its own lines (`shiori.cpp`) and the values of “time of day”, “season” and “weekday name”
-  (`interp.cpp`; `朝` → `morning` and so on) to English. Scripts compare against those values, so they follow the
-  ghost language, never the screen language. “Try” runs the same SHIORI code, so it gets the same values.
+  The translated dictionary turns it into `Studio.English`, and the runtime dictionary switches its own lines and the values of
+  “time of day”, “season” and “weekday name” (`朝` → `morning` and so on) to English. Scripts compare against those values, so they follow the
+  ghost language, never the screen language. “Try” runs the same runtime dictionary, so it gets the same values.
 * **Examples are per language.** The English examples are in `ui/samples/en/` (as many as the Japanese ones;
   `ui\test\editor.js` checks the count and the ghost language). The samples placed on first start are
   `studio/res/sample-project.json` and `sample-project.en.json` (the English one when the exe's language is English;
@@ -284,7 +275,7 @@ ui/js/
 * YAYA is not built from source: built with today's Visual Studio, it pulls in APIs Windows 2000 does not have (step 3-0 in `docs/roadmap.md`).
 * `yaya.dll` is embedded in the exe, so the release zip carries the text of YAYA's license (`-Release` in `build.ps1`).
 
-### YAYA dictionaries (stage 3)
+### YAYA dictionaries
 
 Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/model/yaya.js`; the fixed part is the
 `Studio.*` functions in `studio/res/yaya/studio_runtime.dic`. Pitfalls when writing YAYA dictionaries:
@@ -296,9 +287,12 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
 * **`#globaldefine` names are replaced even inside strings.** Write text people wrote through `yayaStr`
   (it splits the string in the middle of such a name; the test checks that the list `YAYA_DEFINES` matches yaya_base).
 * **`reference[n]` turns text that looks like a number into a number** (`007` → 7). Use `reference.raw[n]` to keep the text.
-* Joining a real number to text with `+` gives `3.500000`. Go through `Studio.S` (the same number format as ikaga SHIORI) to make text.
+* Joining a real number to text with `+` gives `3.500000`. Go through `Studio.S` (the blocks' number format) to make text.
+  `STRFORM` formats start with `$`, as in `'$.10g'`.
+* **Regular expressions cannot handle ranges of two-unit characters (emoji and the like)** (they match everything). `Studio.Surrogates`
+  looks at one character at a time. `GETSTRBYTES` returns the correct UTF-8 byte count.
 
-### Linking to a hand-written YAYA ghost (stage 3-5b)
+### Linking to a hand-written YAYA ghost
 
 * In a linked ghost, the studio writes only **`studio_*.dic` files whose first line is the mark `// ukagaka-studio: generated`**
   and the lines of `yaya.txt` **from `// ukagaka-studio: begin` to `// ukagaka-studio: end`** (`studio/src/yaya_ghost.cpp`).
@@ -375,41 +369,28 @@ the export console gets the same list for the export files).
 
 ---
 
-## The SHIORI is built without the C runtime
+## The SHIORI `yaya.dll` is the official build, unchanged
 
 SSP runs on **Windows 2000 and later**. The SHIORI is a DLL that SSP loads, so it has to match.
 
-But if you link Visual Studio's C runtime statically the usual way (`/MT`), **APIs you never call yourself**,
-such as `FlsAlloc` and `InitializeCriticalSectionEx` (both from Vista), end up in the import table.
-The import table **must be fully satisfied at load time**, so on old Windows
-**the DLL cannot even be opened**. On a Windows 11 machine it naturally works,
-so reading the source does not reveal it.
+But when you build with today's Visual Studio, the C runtime puts newer APIs into the import table even though
+**you never call them yourself** (such as `FlsAlloc` and `InitializeCriticalSectionEx`, from Vista). The import table
+**must be fully satisfied at load time**, so on old Windows **the DLL cannot even be opened**. On a Windows 11 machine
+it naturally works, so reading the source does not reveal it. Building YAYA from source with v145 brought in 7 APIs from XP and 9 from Vista.
 
-So the SHIORI is built like this:
+So **YAYA is not built from source; the official `yaya.dll`, built with an old Visual C++, is used as it is**
+(`third_party/yaya/`; how to upgrade it is in `third_party/README.md`).
 
-* `/NODEFAULTLIB` drops the CRT entirely,
-* it links to **the `msvcrt.dll` that ships with Windows** (`shiori/src/msvcrt.def`), and
-* only the Visual Studio-specific pieces still missing are provided by `shiori/src/tinycrt.cpp`.
+**`node tools\check-imports.js` checks that it uses only APIs Windows 2000 has.** It reads the PE import table
+directly and stops, naming them, if APIs missing from Windows 2000 slip in. It is part of `.\build.ps1 -Test` too.
+APIs missing from its quick-reference table stop it as “needs checking”, so when an upgrade brings in a new API, check that
+Windows 2000 has it before adding it to `SINCE` in `check-imports.js`.
 
-Things that are “easy to get wrong if you write them yourself”, such as `strtod` and `sprintf`,
-are the borrowed real ones. `ikaga.dll` went from 268 KB to 134 KB.
+`yaya_host.exe` and `test_host.exe` are built here, but never go into ghosts (`yaya_host.exe` is only used inside
+Ukagaka Studio for “Try”), so they keep the normal C runtime (`/MT`).
 
-**`node tools\check-imports.js` checks that this holds.** It reads the import table of the built PE
-directly and stops, naming them, if APIs missing from Windows 2000 slip in.
-It is part of `.\build.ps1 -Test` too.
-
-### Careful when touching this
-
-* **Write `shiori/src/msvcrt.def` in ASCII only.** `lib.exe` reads `.def` files in the
-  ANSI code page, so a Japanese comment **swallows the next line**
-  (`memcpy` and `strlen` really did disappear silently).
-* When you borrow another function, check that **Windows 2000's `msvcrt.dll` has it too**.
-* Nothing throws exceptions. Where one would be thrown (out of memory, too long), it just ends there.
-  The SHIORI caps things at 32 KB, so this does not normally happen.
-* `<random>` and conversions between 64-bit integers and floating point call functions that exist only in the CRT.
-  How to avoid them is commented at `NumToStr` and the random numbers in `util.cpp`.
-* **Ukagaka Studio (64-bit) keeps the normal CRT.** The same `.cpp` files are built for both,
-  but only the SHIORI links `tinycrt.cpp`. The parity test checks both give the same answers.
+> To run a DLL it built itself on Windows 2000, 1.x's ikaga SHIORI dropped the C runtime, linked to `msvcrt.dll`,
+> and supplied the missing pieces in `tinycrt.cpp`. 2.0 removed it together with the SHIORI.
 
 ---
 
@@ -437,14 +418,14 @@ examples' contents. To rename them, change these files.
 
 The default name for “New” (**あたらしいゴースト**, **New Ghost** in English) is in the UI (`model.js`, `sample.js`, `title.js`,
 `index.html`; the English in `en.js`) and in `GhostName()` for exports (`studio/src/exporter.cpp`). The names
-「なしこ」 and 「つぶ」 in the SHIORI test ghosts and the export test inputs are test material and were left as they are.
+「なしこ」 and 「つぶ」 in the SHIORI tests' ghosts and the export test inputs are test material and were left as they are.
 
 ---
 
 ## Common pitfalls
 
 **Smart App Control stops freshly built files.**
-`test_host.exe`, `ikaga.dll` or `ukagaka-studio.exe` sometimes cannot be loaded with
+`test_host.exe`, `yaya_host.exe` or `ukagaka-studio.exe` sometimes cannot be loaded with
 “An Application Control policy has blocked this file” (error 4551).
 **Building again usually gets it through.**
 See “If Smart App Control blocks it” in the README for more.
@@ -462,16 +443,12 @@ Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-CodeIntegrity/Operati
   Select-Object TimeCreated, Message
 ```
 
-If `ikaga.dll` appears there, that is the cause.
+If the blocked file's name appears there, that is the cause.
 If you suspect Defender, use `Get-MpThreatDetection` (if it shows nothing, Defender is not involved).
 
 **`studio\test\expected\` is compared byte by byte.**
 `.gitattributes` marks it `-text` so git does not rewrite line endings.
 If a diff looks wrong after regenerating expected files, try `git add --renormalize`.
-
-**The test SAORI (`slow_saori.dll`) has `load` / `unload`.**
-They have the same names as the SHIORI's, so intermediate files in the same place collide at link time
-(they are kept apart in `obj\x86\testbuild\`).
 
 **`ukagaka-studio.exe` has a window.** Writing `& .\ukagaka-studio.exe` in a script
 does not return. Start it by hand to see how it behaves.

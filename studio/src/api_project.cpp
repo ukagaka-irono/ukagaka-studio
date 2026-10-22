@@ -4,12 +4,13 @@
 #include "exporter.h"
 #include "fsutil.h"
 #include "util.h"
+#include "version_gen.h"
 
 #include <algorithm>
 
 namespace ikaga {
 
-static const char* kStudioVersion = "1.0.0";
+static const char* kStudioVersion = STUDIO_VERSION;   // VERSION の中身（embed.ps1 が version_gen.h に書く）
 
 // GET /api/state … 起動したときに画面が読む（栞の有無・プロジェクトの一覧・SSP）
 void Api::GetState(const HttpRequest&, HttpResponse& res) {

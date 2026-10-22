@@ -106,7 +106,6 @@ $libsCommon = @('kernel32.lib', 'user32.lib', 'shell32.lib', 'shlwapi.lib',
                 'advapi32.lib', 'ole32.lib')
 
 # ---- 埋め込みリソースを作る ------------------------------------------------
-$dll = Join-Path $repo 'shiori\dist\ikaga.dll'
 $yayaDll = Join-Path $repo 'third_party\yaya\yaya.dll'
 $yayaHost = Join-Path $repo 'shiori\dist\yaya_host.exe'   # 32bit の手伝い（shiori\build.ps1 が作る）
 $sample = Join-Path $root 'res\sample-project.json'
@@ -120,7 +119,6 @@ Write-Host "[studio] リソースを準備中... (v$version)" -ForegroundColor C
     -Version $version `
     -PublicDir (Join-Path $repo 'ui') `
     -StageDir $obj `
-    -DllPath $dll `
     -YayaDllPath $yayaDll `
     -YayaHostPath $yayaHost `
     -YayaResDir (Join-Path $root 'res\yaya') `
@@ -156,15 +154,10 @@ $sources = @(
     (Join-Path $src 'webview.cpp'),
     (Join-Path $src 'webreq.cpp'),
     (Join-Path $src 'sstp.cpp'),
-    (Join-Path $src 'preview.cpp'),
-    (Join-Path $src 'yaya_preview.cpp')
-) + $apiSources + $exportSources + @(
-    # 「ためす」は栞そのものでブロックを動かします（同じ規則を二重に書かないため）
-    (Join-Path $repo 'shiori\src\interp.cpp'),
-    (Join-Path $repo 'shiori\src\program.cpp'),
-    (Join-Path $repo 'shiori\src\json.cpp'),
-    (Join-Path $repo 'shiori\src\util.cpp')
-)
+    (Join-Path $src 'yaya_preview.cpp'),    # 「ためす」は YAYA で動かします（yaya_host.exe に頼む）
+    (Join-Path $src 'json.cpp'),
+    (Join-Path $src 'util.cpp')
+) + $apiSources + $exportSources
 
 $wv2 = Join-Path $root 'third_party\webview2'
 if (-not (Test-Path (Join-Path $wv2 'include\WebView2.h'))) {
@@ -172,37 +165,21 @@ if (-not (Test-Path (Join-Path $wv2 'include\WebView2.h'))) {
 }
 
 Build-Exe -Label "伺かスタジオ ($Arch)" -Out $exeOut -ObjDir $obj -Sources $sources `
-    -Include @($src, "$repo\shiori\src", $obj, "$wv2\include") `
+    -Include @($src, $obj, "$wv2\include") `
     -Define '_WINDOWS' -Subsystem 'WINDOWS' `
     -Extra @((Join-Path $obj 'assets.res'), (Join-Path $wv2 "$Arch\WebView2LoaderStatic.lib")) `
     -Lib ($libsCommon + @('gdi32.lib', 'comdlg32.lib', 'oleaut32.lib', 'version.lib', 'ws2_32.lib'))
 
 # ---- テスト用コンソール ----------------------------------------------------
 # 画面を出さずに中身を見るためのもの。
-#   export_host  … 書き出されるファイル（surfaces.txt など）
-#   preview_host … 「ためす」の結果（一致テストが 32bit の栞と見くらべます）
+#   export_host  … 書き出されるファイル（surfaces.txt など）・手書きのゴースト・シェルのフォルダ
 if ($Test) {
     Build-Exe -Label '書き出しテスト用コンソール' `
         -Out (Join-Path $root 'test\export_host.exe') -ObjDir (Join-Path $obj 'test') `
-        -Sources (@((Join-Path $root 'test\export_host.cpp')) + $exportSources + @(
-            (Join-Path $repo 'shiori\src\json.cpp'),
-            (Join-Path $repo 'shiori\src\util.cpp')
-        )) `
-        -Include @($src, "$repo\shiori\src") `
+        -Sources (@((Join-Path $root 'test\export_host.cpp'), (Join-Path $src 'json.cpp'),
+                    (Join-Path $src 'util.cpp')) + $exportSources) `
+        -Include @($src) `
         -Lib ($libsCommon + @('gdi32.lib', 'comdlg32.lib', 'oleaut32.lib'))
-
-    Build-Exe -Label 'プレビューテスト用コンソール' `
-        -Out (Join-Path $root 'test\preview_host.exe') -ObjDir (Join-Path $obj 'preview') `
-        -Sources @(
-            (Join-Path $root 'test\preview_host.cpp'),
-            (Join-Path $src 'preview.cpp'),
-            (Join-Path $repo 'shiori\src\interp.cpp'),
-            (Join-Path $repo 'shiori\src\program.cpp'),
-            (Join-Path $repo 'shiori\src\json.cpp'),
-            (Join-Path $repo 'shiori\src\util.cpp')
-        ) `
-        -Include @($src, "$repo\shiori\src") `
-        -Lib $libsCommon
 }
 
 if ($SignThumbprint) {

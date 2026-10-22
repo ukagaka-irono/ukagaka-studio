@@ -6,8 +6,8 @@
  *
  * 動きの決まり（数と文字の扱い・どのかたまりを選ぶか・既定の反応など）は、ここではなく
  * しくみの辞書 studio/res/yaya/studio_runtime.dic の Studio.〜 にあります。ここは「ブロックを
- * その呼び出しに置きかえる」ことだけをします。もとの如何栞（shiori/src/interp.cpp）と
- * 同じ答えになることは、shiori\test\yaya\ のテストが両方を動かして確かめます。
+ * その呼び出しに置きかえる」ことだけをします。答えが合っていることは、shiori\test\parity\ と
+ * shiori\test\behavior\ のテストが YAYA で動かして確かめます。
  *
  * DOM を触らないので、node のテストからそのまま使えます。
  */
@@ -50,7 +50,7 @@ export function yayaTxt() {
 }
 
 // ------------------------------------------------------------- JSON の読みかた
-// 如何栞の JValue と同じ決まり（shiori/src/json.cpp）。書き出しのときに決まる値に使います。
+// スタジオの JValue と同じ決まり（studio/src/json.cpp）。書き出しのときに決まる値に使います。
 
 function trimC(s) {
   let b = 0;
