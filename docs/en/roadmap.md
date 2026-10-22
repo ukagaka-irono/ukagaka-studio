@@ -60,11 +60,15 @@ Small features (a single block and the like) may go in during stages 1 and 2.
 
 | | What | Done when |
 |---|---|---|
-| 0-1 | Push to GitHub and confirm Actions (`build.yml`) is green in the fork too | a green badge |
+| 0-1 | Push to GitHub and confirm Actions (`build.yml`) is green in the fork too (**done**) | a green badge |
 | 0-2 | Decide the version number (e.g. restart counting from `0.1.0-alpha`) | `VERSION` and `kStudioVersion` (`api.cpp`) agree |
 | 0-3 | Decide the branding: the logo (🍐 for now), the example and default character names (なしこ, なしちゃん, なしゴースト) → **decided** (“Decisions” below). Swapped in stage 2 | the 5 examples and the defaults replaced |
 | 0-4 | Show the original project in an “About this software” screen in the app (**done**) | license section 3 satisfied outside the README too |
 
+> **0-1 is done** (2026-10-22). `main` was pushed to `ukagaka-irono/ukagaka-studio`, and Actions' “ビルドとテスト” (build and test:
+> `.\build.ps1 -Release` and the 9 tests) and “そろい点検” (block coverage) turned green, producing the distribution artifact
+> `ukagaka-studio-<version>-<sha>`. No tag was pushed, so the Release job is skipped.
+>
 > **0-4 is done.** Help now has “About this software”, with the version (from `VERSION`), the notice about the original project
 > (the same 3 lines as in the README and LICENSE; not translated even in the English UI, with an English explanation above it), and a button
 > that opens the original project's page (`ui/js/panels/about.js`). `ui\test\editor.js` checks that the notice matches the README and LICENSE
