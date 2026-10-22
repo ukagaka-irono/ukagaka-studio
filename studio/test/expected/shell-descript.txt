@@ -1,0 +1,20 @@
+== folder: export-test / 22 ファイル
+---- shell/master/descript.txt (419 バイト)
+charset,UTF-8
+type,shell
+name,master
+craftman,ミヤガワ
+seriko.use_self_alpha,1
+seriko.alignmenttodesktop,bottom
+sakura.balloon.offsetx,80
+sakura.balloon.offsety,40
+kero.balloon.offsetx,20
+kero.balloon.offsety,30
+sakura.defaultx,80
+kero.defaultx,-40
+sakura.bindgroup5.name,服,セーラー 服
+sakura.bindgroup5.default,1
+sakura.menuitem0,5
+kero.bindgroup6.name,ぼうし,麦わら
+kero.menuitem0,6
+

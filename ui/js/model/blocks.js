@@ -87,6 +87,7 @@ export const EVENT_REFS = {
 
 const WHO = [[t('さくら'), 0], [t('うにゅう'), 1]];
 const YESNO_NL = [[t('改行する'), 1], [t('改行しない'), 0]];
+const WEAR = [[t('着る'), 1], [t('ぬぐ'), 0]];
 
 // --------------------------------------------------------------- helpers
 const DEFS = {};
@@ -271,6 +272,16 @@ def({
   type: 'anim', cat: 'looks', shape: 'stack',
   spec: t('うごき %id を再生する'),
   args: { id: { kind: 'input', mode: 'number', def: 0 } },
+});
+// 着せ替え（MAYUNA の bind）。種類と名前は、キャラと絵の「うごき」で着せ替えにしたものと同じにします
+def({
+  type: 'dress', cat: 'looks', shape: 'stack',
+  spec: t('着せ替え %category の %part を %on'),
+  args: {
+    category: { kind: 'input', mode: 'text', def: t('服') },
+    part: { kind: 'input', mode: 'text', def: t('セーラー') },
+    on: { kind: 'dropdown', options: WEAR, def: 1 },
+  },
 });
 def({
   type: 'balloon', cat: 'looks', shape: 'stack',
@@ -571,7 +582,7 @@ export const PALETTE = {
     '@event', '@event.touch', '@event.every', '@event.comm', '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
-  looks: ['surface', 'chara', 'anim', 'balloon', 'sound'],
+  looks: ['surface', 'chara', 'anim', 'dress', 'balloon', 'sound'],
   control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'call',
     'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call', 'yaya_call',
     'open_browser', 'end', 'close', 'change_ghost'],

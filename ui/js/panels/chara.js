@@ -5,7 +5,7 @@
  * main.js の renderAll がこの画面の render() を呼んでくれます（見えているときだけ）。
  */
 
-import { Model } from '../model/model.js';
+import { Model, BLEND_METHODS, GROUP_METHODS } from '../model/model.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -164,6 +164,7 @@ const ANIM_INTERVALS = [
   [t('◯秒に一度くらい'), 'random'],
   [t('◯回しゃべるごと'), 'talk'],
   [t('起動時に一度だけ'), 'runonce'],
+  [t('着せ替え（えらばれたら重ねる）'), 'bind'],
 ];
 
 // こまの重ねかた（SERIKO の描画メソッド）。名前は surfaces.txt にそのまま出ます。
@@ -176,12 +177,22 @@ const ANIM_METHODS = [
   [t('すきとおりを無視する'), 'asis'],
   [t('すきとおりをけずる'), 'reduce'],
   [t('位置だけ動かす'), 'move'],
+  [t('大きさを変える'), 'scaling'],
+  [t('着せ替えの部品を重ねる'), 'add'],
   [t('かけあわせ'), 'blend-multiply'],
   [t('スクリーン'), 'blend-screen'],
   [t('オーバーレイ'), 'blend-overlay'],
   [t('足しあわせ'), 'blend-add'],
+  // こまかい混ぜかた（Photoshop と同じ名前）は、surfaces.txt の名前のまま出します
+  ...BLEND_METHODS.filter((m) => !['blend-multiply', 'blend-screen', 'blend-overlay', 'blend-add'].includes(m))
+    .map((m) => [t('混ぜかた: {name}', { name: m.slice(6) }), m]),
   [t('ほかのうごきを動かす'), 'start'],
   [t('ほかのうごきを止める'), 'stop'],
+  [t('いくつかのうちどれか 1 つを動かす'), 'alternativestart'],
+  [t('いくつかのうちどれか 1 つを止める'), 'alternativestop'],
+  [t('いくつかをまとめて動かす'), 'parallelstart'],
+  [t('いくつかをまとめて止める'), 'parallelstop'],
+  [t('着せ替えを描く順の場所'), 'insert'],
   [t('動く絵を差しこむ'), 'import'],
 ];
 
@@ -237,6 +248,19 @@ function frameThumb(p) {
     box.classList.add('is-text');
     box.appendChild(Render.el('span', 'frame-icon', p.method === 'start' ? '▶' : '■'));
     box.appendChild(Render.el('span', null, t('うごき {id}', { id: p.surface })));
+  } else if (GROUP_METHODS.includes(p.method)) {
+    box.classList.add('is-text');
+    box.appendChild(Render.el('span', 'frame-icon', /start$/.test(p.method) ? '▶' : '■'));
+    box.appendChild(Render.el('span', null, (p.ids || []).length
+      ? t('うごき {ids}', { ids: p.ids.join(', ') }) : t('（番号なし）')));
+  } else if (p.method === 'insert') {
+    box.classList.add('is-text');
+    box.appendChild(Render.el('span', 'frame-icon', '👗'));
+    box.appendChild(Render.el('span', null, t('着せ替え {id}', { id: p.surface })));
+  } else if (p.method === 'scaling') {
+    box.classList.add('is-text');
+    box.appendChild(Render.el('span', 'frame-icon', '⤢'));
+    box.appendChild(Render.el('span', null, `${p.x || 100}% × ${p.y || 100}%`));
   } else if (p.method === 'import') {
     box.classList.add('is-text');
     box.appendChild(Render.el('span', 'frame-icon', '🎞'));
@@ -273,6 +297,19 @@ function renderFrames(a) {
     if (p.method === 'start' || p.method === 'stop') {
       card.appendChild(numField(t('うごき番号'), p.surface,
         (v) => { p.surface = Math.max(0, Math.min(127, Number(v) || 0)); }, { min: 0 }));
+    } else if (p.method === 'insert') {
+      card.appendChild(numField(t('着せ替えのうごき番号'), p.surface,
+        (v) => { p.surface = Math.max(0, Math.min(127, Number(v) || 0)); }, { min: 0 }));
+    } else if (GROUP_METHODS.includes(p.method)) {
+      card.appendChild(numField(t('うごき番号（, で区切る）'), (p.ids || []).join(', '), (v) => {
+        p.ids = String(v).split(/[\s,.]+/).filter((s) => s !== '').map((s) => Math.floor(Number(s)))
+          .filter((n, i, all) => Number.isFinite(n) && n >= 0 && n <= 127 && all.indexOf(n) === i);
+      }, { type: 'text', stacked: true }));
+    } else if (p.method === 'scaling') {
+      card.appendChild(numField(t('ミリ秒'), p.wait, (v) => { p.wait = Math.max(0, Number(v) || 0); }, { min: 0 }));
+      // 大きさの倍率（%）。小数も書けます。100 で元の大きさ
+      card.appendChild(numField(t('よこの倍率 %'), p.x || 100, (v) => { p.x = Math.max(1, Math.min(1000, Number(v) || 100)); }));
+      card.appendChild(numField(t('たての倍率 %'), p.y || 100, (v) => { p.y = Math.max(1, Math.min(1000, Number(v) || 100)); }));
     } else {
       if (p.method === 'import') {
         card.appendChild(numField(t('動く絵'), p.file || '', (v) => { p.file = String(v).trim(); },
@@ -359,6 +396,14 @@ function renderAnimList() {
       head.appendChild(numField(a.interval === 'random' ? t('秒') : t('回'), a.every,
         (v) => { a.every = Math.max(1, Number(v) || 1); }, { min: 1 }));
     }
+    if (a.interval === 'bind') {
+      // 着せ替え。種類と名前がシェルの descript.txt のメニューになります（付ける立ち絵が 10 番以上なら相方のもの）
+      if (!a.bind) a.bind = { category: '', part: '', default: false };
+      head.appendChild(numField(t('種類'), a.bind.category, (v) => { a.bind.category = String(v).trim(); }, { type: 'text' }));
+      head.appendChild(numField(t('名前'), a.bind.part, (v) => { a.bind.part = String(v).trim(); }, { type: 'text' }));
+      head.appendChild(pickField(t('はじめから'), [[t('着ない'), '0'], [t('着る'), '1']], a.bind.default ? '1' : '0',
+        (v) => { a.bind.default = v === '1'; }));
+    }
     const del = Render.el('button', 'btn tiny', t('消す'));
     del.addEventListener('click', () => Model.act(() => { Model.project.animations.splice(idx, 1); }));
     head.appendChild(del);
@@ -371,6 +416,9 @@ function renderAnimList() {
 
     if (!a.patterns.length) {
       row.appendChild(Render.div('hint', t('こまが無いので、書き出しても動きません。')));
+    }
+    if (a.interval === 'bind' && (!a.bind || !a.bind.category || !a.bind.part)) {
+      row.appendChild(Render.div('hint', t('着せ替えは、種類と名前を入れると SSP のメニューに出ます（「着せ替える」ブロックでも切りかえられます）。')));
     }
     box.appendChild(row);
   });

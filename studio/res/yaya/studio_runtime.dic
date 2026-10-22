@@ -994,6 +994,17 @@ Studio.Anim : void
 
 Studio.Balloon : void { Studio.Emit('\b[' + _argv[0] + ']') }
 
+// 着せ替え（MAYUNA の bind）。種類か名前が空なら何もしない
+Studio.Dress : void
+{
+	_c = Studio.TagWord(_argv[0])
+	_p = Studio.TagWord(_argv[1])
+	if _c == '' || _p == '' { return }
+	_on = '0'
+	if _argv[2] { _on = '1' }
+	Studio.Emit('\![bind,' + _c + ',' + _p + ',' + _on + ']')
+}
+
 Studio.Sound : void
 {
 	_f = Studio.TagArg(Studio.S(_argv[0]), 0)

@@ -692,12 +692,21 @@ ui/js/
 候補です。どれからやるかは、段階 3 の途中で決めます。
 シェルまわりの「いまあるシェルのフォルダを読みこむ」は、段階 3（3-5d）で済ませました（番号の絵だけ）。
 
-### SERIKO の残り（README の「まだできないこと」）
+### SERIKO の残り（済）
 
-* `alternativestart` などのまとめ操作
-* `scaling` / `insert`
-* `blend-*` のこまかい種類
-* 着せ替え（MAYUNA）の `bind`
+* ~~`alternativestart` などのまとめ操作~~・~~`scaling` / `insert`~~・~~`blend-*` のこまかい種類~~・~~着せ替え（MAYUNA）の `bind`~~
+
+> **SERIKO の残りは済みました。** 書きかたは UKADOC の surfaces.txt・シェルの descript.txt に合わせました。済ませたこと:
+>
+> * こまの重ねかたに、`alternativestart` / `alternativestop` / `parallelstart` / `parallelstop`（番号をならべる。`,(1,2)` で書き出す）、
+>   `scaling`（よこ・たての倍率を %。小数も）、`insert`（着せ替えを描く順の場所）、`add`（着せ替えの部品）と、`blend-*` の 27 種を足しました
+>   （`ui/js/model/model.js` の `ANIM_METHODS`・`studio/src/export_seriko.cpp` の `KnownMethod`）。
+> * 着せ替え: うごきの「いつ動く」に「着せ替え」（`interval,bind`）を足し、種類・名前・はじめから着るかを持たせました。シェルの
+>   `descript.txt` に `sakura.bindgroupN.name` / `.default` と `sakura.menuitemN` を書きます（付ける立ち絵が 10 番以上なら `kero.`。
+>   `BindDescriptLines`）。ゴーストから切りかえるブロック「着せ替え C の P を着る／ぬぐ」（`dress`、`\![bind,…]`）も足しました。
+> * `sakura.bindoptionN.group`（`mustselect` / `multiple`）と `addid` は、まだ書き出しません（README の「まだできないこと」）。
+> * テスト: 書き出しテストの材料に新しい重ねかた・着せ替えを足し、シェルの `descript.txt` も見くらべるようにしました（34 か所）。
+>   一致テストに OnP32（着せ替えのブロック）、エディタのテストに新しい形の整形を足しました（114 か所）。
 
 ### シェルまわり
 

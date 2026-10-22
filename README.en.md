@@ -533,8 +533,9 @@ What you can do:
 * **Adding blocks to a hand-written YAYA ghost**, and **using hand-written YAYA functions and expressions** from blocks
 * **Animations** (SERIKO) — flipping through surfaces, made on the Characters page
   (each frame can be shifted and given a drawing method such as `interpolate` or `blend-*`;
-  animations can also start or stop other animations, insert an APNG, and add hit areas
-  (rectangle, ellipse, circle, polygon) you can touch only while they play)
+  animations can also start or stop other animations (one of several, or several together), change the size, insert an APNG,
+  and add hit areas (rectangle, ellipse, circle, polygon) you can touch only while they play)
+* **Dress-up** (MAYUNA) — make parts as animations and wear / take them off from SSP's dress-up menu or the “dress-up” block
 * **Network updates** (`homeurl`, exporting `updates2.dau`, update events, an update block)
 * **Ask** (an input box) — puts what the user typed straight into a variable
 * **Call in N seconds** (a simple timer), **raising an event yourself**,
@@ -547,8 +548,7 @@ What you can do:
 
 Not there yet (how to add things is in “Adding one block” in [`docs/en/maintenance.md`](docs/en/maintenance.md)):
 
-* The rest of SERIKO (grouped operations such as `alternativestart`, `scaling` / `insert`,
-  the finer kinds of `blend-*`, dress-up (MAYUNA) `bind`)
+* Detailed dress-up rules (`mustselect` / `multiple` of `sakura.bindoptionN.group`, `addid`) are not exported yet
 
 ---
 

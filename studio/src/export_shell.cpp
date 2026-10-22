@@ -213,7 +213,8 @@ void AppendShell(std::vector<OutFile>& files, const JValue& project) {
              DescriptLine("seriko.alignmenttodesktop", "bottom") +
              DescriptLine("sakura.balloon.offsetx", "80") + DescriptLine("sakura.balloon.offsety", "40") +
              DescriptLine("kero.balloon.offsetx", "20") + DescriptLine("kero.balloon.offsety", "30") +
-             DescriptLine("sakura.defaultx", "80") + DescriptLine("kero.defaultx", "-40");
+             DescriptLine("sakura.defaultx", "80") + DescriptLine("kero.defaultx", "-40") +
+             BindDescriptLines(project);      // 着せ替えの名前とメニュー（あれば）
     files.push_back(d);
 
     OutFile s;

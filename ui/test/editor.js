@@ -103,11 +103,33 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
   check('知らない重ねかたは base に倒す', a.patterns.map((x) => x.method),
     ['interpolate', 'base', 'import']);
   check('こまの既定値がうまる', a.patterns[1],
-    { surface: 2, wait: 200, method: 'base', x: 0, y: 0, file: '' });
+    { surface: 2, wait: 200, method: 'base', x: 0, y: 0, file: '', ids: [] });
   check('差しこむファイル名は残る', a.patterns[2].file, 'a.png');
   check('名前のない当たり判定は落とし、知らない形は四角に倒す',
     a.collisions.map((c) => [c.name, c.shape]), [['Wing', 'polygon'], ['Odd', 'rect']]);
   check('多角形のかどはそのまま持つ', a.collisions[0].points, '1,2 3,4 5,6');
+
+  // SERIKO の残り: まとめて動かす番号・大きさの小数・こまかい混ぜかた・着せ替え
+  const q = Model.normalize({
+    format: 'ikaga/1',
+    animations: [{
+      id: 5, interval: 'bind', bind: { category: ' 服 ', part: 'セーラー', default: 1 },
+      patterns: [
+        { method: 'alternativestart', ids: '3, 4.5 3 x 200' },
+        { method: 'parallelstop', ids: [7, '8', 7] },
+        { method: 'scaling', x: 92.5, y: 110 },
+        { method: 'blend-soft-light' },
+        { method: 'add', surface: 500 },
+      ],
+    }],
+  }).animations[0];
+  check('まとめて動かす番号は 0〜127 の数だけ、重ならずに残る',
+    [q.patterns[0].ids, q.patterns[1].ids], [[3, 4, 5], [7, 8]]);
+  check('大きさ（scaling）の倍率は小数のまま', [q.patterns[2].x, q.patterns[2].y], [92.5, 110]);
+  check('こまかい混ぜかたと、着せ替えの部品を重ねる add も通す',
+    q.patterns.map((x) => x.method), ['alternativestart', 'parallelstop', 'scaling', 'blend-soft-light', 'add']);
+  check('着せ替えの種類と名前は前後の空白を落とし、はじめから着るかを持つ',
+    q.bind, { category: '服', part: 'セーラー', default: true });
 }
 
 {

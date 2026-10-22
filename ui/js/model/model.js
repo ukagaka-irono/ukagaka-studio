@@ -5,12 +5,19 @@ import { t } from '../i18n/i18n.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
-// こまの重ねかた（SERIKO の描画メソッド）。書き出しでもこの名前だけ通します。
-// start / stop は別のうごきを動かす／止める、import は APNG などを差しこむ指定です。
+// こまの重ねかた（SERIKO の描画メソッド）。書き出しでもこの名前だけ通します（studio/src/export_seriko.cpp と同じ一覧）。
+// start / stop は別のうごきを動かす／止める、alternative〜 / parallel〜 は ids のどれか 1 つ／全部を動かす／止める、
+// import は APNG などを差しこむ、insert は着せ替え（ids ではなく surface の番号）を描く順の場所、
+// scaling は大きさ（x・y が倍率の %）、add は着せ替えの部品を重ねる指定です。
+export const BLEND_METHODS = ['multiply', 'screen', 'overlay', 'add', 'add-glow', 'soft-light', 'hard-light',
+  'color-dodge', 'color-burn', 'linear-burn', 'linear-light', 'vivid-light', 'pin-light', 'hard-mix',
+  'darken', 'lighten', 'darker-color', 'lighter-color', 'difference', 'exclusion', 'subtract', 'divide',
+  'color', 'luminosity', 'hue', 'saturation', 'dither'].map((m) => 'blend-' + m);
+export const GROUP_METHODS = ['alternativestart', 'alternativestop', 'parallelstart', 'parallelstop'];
 const ANIM_METHODS = ['overlay', 'overlayfast', 'base', 'replace',
-  'interpolate', 'asis', 'reduce', 'move',
-  'blend-multiply', 'blend-screen', 'blend-overlay', 'blend-add',
-  'start', 'stop', 'import'];
+  'interpolate', 'asis', 'reduce', 'move', 'scaling', 'add',
+  ...BLEND_METHODS,
+  'start', 'stop', ...GROUP_METHODS, 'insert', 'import'];
 const ANIM_SHAPES = ['rect', 'ellipse', 'circle', 'polygon'];
 
 // ---------------------------------------------------------- プロジェクトの形の版
@@ -155,7 +162,18 @@ const Model = {
             x: Number(p && p.x) || 0,
             y: Number(p && p.y) || 0,
             file: p && p.file ? String(p.file) : '',
+            // alternativestart などで動かす・止めるうごきの番号（0〜127）
+            ids: (Array.isArray(p && p.ids) ? p.ids : String((p && p.ids) || '').split(/[\s,.]+/))
+              .filter((n) => n !== '' && n != null)
+              .map((n) => Math.floor(Number(n)))
+              .filter((n, i, all) => Number.isFinite(n) && n >= 0 && n <= 127 && all.indexOf(n) === i),
           })),
+        // 着せ替え（interval が bind のとき）。シェルの descript.txt の bindgroup になります
+        bind: {
+          category: String((a && a.bind && a.bind.category) || '').trim(),
+          part: String((a && a.bind && a.bind.part) || '').trim(),
+          default: !!(a && a.bind && a.bind.default),
+        },
         // このうごきの間だけ有効な当たり判定
         collisions: (Array.isArray(a && a.collisions) ? a.collisions : [])
           .filter((c) => c && String(c.name || '').trim())

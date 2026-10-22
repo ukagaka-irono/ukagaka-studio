@@ -418,6 +418,16 @@
         { "type": "say", "who": 0, "nl": 1, "text": { "type": "yaya_expr", "code": { "type": "sys", "key": "commtext" } } },
         { "type": "say", "who": 0, "text": "あと", "nl": 0 }
       ]
+    },
+    {
+      "id": "p32", "kind": "event", "event": "OnP32",
+      "_": "着せ替え。着る・ぬぐ、種類と名前のカンマやかっこは落とす、どちらかが空なら何も出さない",
+      "blocks": [
+        { "type": "dress", "category": "服", "part": "セーラー", "on": 1 },
+        { "type": "dress", "category": "ぼう,し", "part": "[麦わら]", "on": 0 },
+        { "type": "dress", "category": "", "part": "名なし", "on": 1 },
+        { "type": "say", "who": 0, "text": "きがえた", "nl": 0 }
+      ]
     }
   ]
 }

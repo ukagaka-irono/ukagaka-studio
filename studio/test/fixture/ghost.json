@@ -75,6 +75,44 @@
       "interval": "always",
       "patterns": [{ "method": "base", "surface": 1, "wait": 100 }],
       "_": "番号が範囲外なので、書き出されないはず"
+    },
+    {
+      "id": 3,
+      "base": 0,
+      "interval": "sometimes",
+      "_": "SERIKO の残り: まとめて動かす・大きさ・こまかい混ぜかた・着せ替えの描く順",
+      "patterns": [
+        { "method": "alternativestart", "ids": [0, 1, 200] },
+        { "method": "parallelstop", "ids": [] },
+        { "method": "scaling", "surface": 0, "wait": 300, "x": 92.5, "y": 2000 },
+        { "method": "blend-soft-light", "surface": 2, "wait": 50 },
+        { "method": "blend-へん", "surface": 2, "wait": 50 },
+        { "method": "insert", "surface": 5 }
+      ]
+    },
+    {
+      "id": 5,
+      "base": 0,
+      "interval": "bind",
+      "bind": { "category": "服", "part": "セーラー,服", "default": true },
+      "_": "着せ替え（さくら）。名前のカンマは空白になるはず",
+      "patterns": [{ "method": "add", "surface": 1, "wait": 0, "x": 0, "y": 40 }]
+    },
+    {
+      "id": 6,
+      "base": 10,
+      "interval": "bind",
+      "bind": { "category": "ぼうし", "part": "麦わら" },
+      "_": "着せ替え（相方）",
+      "patterns": [{ "method": "add", "surface": 11, "wait": 0 }]
+    },
+    {
+      "id": 7,
+      "base": 0,
+      "interval": "bind",
+      "bind": { "category": "", "part": "名なし" },
+      "_": "種類が空なので、descript.txt には書かれないはず（うごきは書かれる）",
+      "patterns": [{ "method": "add", "surface": 2, "wait": 0 }]
     }
   ],
   "scripts": [

@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <cstdio>
+#include <algorithm>
 #include <cstdlib>
 
 namespace ikaga {
@@ -15,6 +16,35 @@ namespace ikaga {
 // interval は「いつ動きだすか」、pattern は「どの絵を何ミリ秒出すか」です。
 // base は絵をまるごと差しかえる方式で、overlay は上に重ねる方式です。
 // プロジェクトの animations に入っているもののうち、その surface のものだけ書きます。
+//
+// 書きかたは UKADOC の surfaces.txt（SERIKO/2.0 の新しい書式）に合わせています。
+//   start / stop / insert,ID            … 番号だけ（ウェイトは見られない）
+//   alternativestart など,(ID1,ID2,…)  … まとめて動かす・止める
+//   scaling,絵,ウェイト,X,Y             … X・Y は倍率（%。小数も書ける）
+//   interval,bind と add                … 着せ替え（名前とメニューはシェルの descript.txt。BindDescriptLines）
+
+// 知っている重ねかた（ui/js/model/model.js の ANIM_METHODS と同じ）
+static bool KnownMethod(const std::string& m) {
+    static const char* kMethods[] = {
+        "overlay", "overlayfast", "base", "replace", "interpolate", "asis", "reduce", "move", "scaling", "add",
+        "start", "stop", "alternativestart", "alternativestop", "parallelstart", "parallelstop", "insert", "import",
+    };
+    static const char* kBlends[] = {
+        "multiply", "screen", "overlay", "add", "add-glow", "soft-light", "hard-light",
+        "color-dodge", "color-burn", "linear-burn", "linear-light", "vivid-light", "pin-light", "hard-mix",
+        "darken", "lighten", "darker-color", "lighter-color", "difference", "exclusion", "subtract", "divide",
+        "color", "luminosity", "hue", "saturation", "dither",
+    };
+    for (size_t i = 0; i < sizeof(kMethods) / sizeof(kMethods[0]); i++) if (m == kMethods[i]) return true;
+    if (m.compare(0, 6, "blend-") == 0) {
+        for (size_t i = 0; i < sizeof(kBlends) / sizeof(kBlends[0]); i++) if (m.substr(6) == kBlends[i]) return true;
+    }
+    return false;
+}
+
+static bool IsGroupMethod(const std::string& m) {
+    return m == "alternativestart" || m == "alternativestop" || m == "parallelstart" || m == "parallelstop";
+}
 std::string AnimationLines(const JValue& project, int surfaceId) {
     const JValue& anims = project["animations"];
     if (!anims.isArr()) return std::string();
@@ -44,18 +74,8 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
             const JValue& p = pats.at(k);
             if (!p.isObj()) continue;
             // 重ねかた（SERIKO の描画メソッド）。知らない名前は base に倒す。
-            static const char* kMethods[] = {
-                "overlay", "overlayfast", "base", "replace",
-                "interpolate", "asis", "reduce", "move",
-                "blend-multiply", "blend-screen", "blend-overlay", "blend-add",
-                "start", "stop", "import",
-            };
             std::string method = p["method"].asStr("base");
-            bool known = false;
-            for (size_t mi = 0; mi < sizeof(kMethods) / sizeof(kMethods[0]); mi++) {
-                if (method == kMethods[mi]) { known = true; break; }
-            }
-            if (!known) method = "base";
+            if (!KnownMethod(method)) method = "base";
             int surf = p["surface"].asInt(0);
             int wait = p["wait"].asInt(200);
             if (wait < 0) wait = 0;
@@ -65,11 +85,34 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
             if (py < -9999) py = -9999; if (py > 9999) py = 9999;
             char buf[320];
 
-            if (method == "start" || method == "stop") {
-                // 別のうごきを動かす／止める。番号だけを書く（ウェイトは見られない）
+            if (method == "start" || method == "stop" || method == "insert") {
+                // 別のうごきを動かす／止める、着せ替えを描く順の場所。番号だけを書く（ウェイトは見られない）
                 if (surf < 0 || surf > 127) continue;
                 sprintf_s(buf, "animation%d.pattern%d,%s,%d\r\n", id, m++, method.c_str(), surf);
                 body += buf;
+                continue;
+            }
+            if (IsGroupMethod(method)) {
+                // いくつかのうごきの、どれか 1 つ（alternative）／ぜんぶ（parallel）を動かす・止める
+                std::string ids;
+                const JValue& list = p["ids"];
+                for (size_t n = 0; n < list.size(); n++) {
+                    int v = list.at(n).asInt(-1);
+                    if (v < 0 || v > 127) continue;
+                    if (!ids.empty()) ids += ",";
+                    ids += NumToStr(v);
+                }
+                if (ids.empty()) continue;
+                body += "animation" + NumToStr(id) + ".pattern" + NumToStr(m++) + "," + method + ",(" + ids + ")\r\n";
+                continue;
+            }
+            if (method == "scaling") {
+                // 大きさ。X・Y は倍率（%）で、小数も書ける（1〜1000 に収める）
+                double sx = p["x"].asNum(100), sy = p["y"].asNum(100);
+                if (!(sx >= 1)) sx = 1; if (sx > 1000) sx = 1000;
+                if (!(sy >= 1)) sy = 1; if (sy > 1000) sy = 1000;
+                body += "animation" + NumToStr(id) + ".pattern" + NumToStr(m++) + ",scaling," + NumToStr(surf) + "," +
+                        NumToStr(wait) + "," + NumToStr(sx) + "," + NumToStr(sy) + "\r\n";
                 continue;
             }
             if (method == "import") {
@@ -152,6 +195,50 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
         out += interval;
         out += "\r\n";
         out += body;
+    }
+    return out;
+}
+
+// 着せ替え（interval が bind のうごき）の名前とメニューを、シェルの descript.txt の行にする。
+//   sakura.bindgroup<番号>.name,<種類>,<名前>   sakura.bindgroup<番号>.default,1   sakura.menuitem<順>,<番号>
+// 付ける立ち絵が 10 番以上なら相方（kero.）のもの。種類か名前が空なら、SSP のメニューに出せないので書きません。
+std::string BindDescriptLines(const JValue& project) {
+    const JValue& anims = project["animations"];
+    if (!anims.isArr()) return std::string();
+    struct One { int id; bool kero; std::string category, part; bool def; };
+    std::vector<One> list;
+    for (size_t i = 0; i < anims.size(); i++) {
+        const JValue& a = anims.at(i);
+        if (!a.isObj() || a["disabled"].asBool(false)) continue;
+        if (a["interval"].asStr() != "bind") continue;
+        int id = a["id"].asInt((int)i);
+        if (id < 0 || id > 127) continue;
+        One o;
+        o.id = id;
+        o.kero = a["base"].asInt(0) >= 10;
+        o.category = Trim(a["bind"]["category"].asStr());
+        o.part = Trim(a["bind"]["part"].asStr());
+        o.def = a["bind"]["default"].asBool(false);
+        for (std::string* f : { &o.category, &o.part }) {      // 1 行に収める
+            for (size_t n = 0; n < f->size(); n++) {
+                if ((*f)[n] == ',' || (*f)[n] == '\r' || (*f)[n] == '\n') (*f)[n] = ' ';
+            }
+        }
+        if (o.category.empty() || o.part.empty()) continue;
+        list.push_back(o);
+    }
+    std::sort(list.begin(), list.end(), [](const One& a, const One& b) { return a.id < b.id; });
+    std::string out;
+    for (int kero = 0; kero <= 1; kero++) {
+        const char* who = kero ? "kero" : "sakura";
+        int menu = 0;
+        for (const One& o : list) {
+            if (o.kero != (kero == 1)) continue;
+            std::string key = std::string(who) + ".bindgroup" + NumToStr(o.id);
+            out += DescriptLine((key + ".name").c_str(), o.category + "," + o.part);
+            if (o.def) out += DescriptLine((key + ".default").c_str(), "1");
+            out += DescriptLine((std::string(who) + ".menuitem" + NumToStr(menu++)).c_str(), NumToStr(o.id));
+        }
     }
     return out;
 }

@@ -173,6 +173,12 @@ Lint.run = function (project, ctx = {}) {
               t('文章を入れるか、ブロックを削除してください。'), s, b);
           }
           break;
+        case 'dress':
+          if (isEmptyText(b.category) || isEmptyText(b.part)) {
+            issue(out, 'warn', t('{title}に、種類か名前が空の「着せ替え」ブロックがあります', { title }),
+              t('キャラと絵の「うごき」で着せ替えにしたものの、種類と名前を入れてください。'), s, b);
+          }
+          break;
         case 'raw':
           if (isEmptyText(b.text)) {
             issue(out, 'warn', t('{title}に、からっぽのさくらスクリプトがあります', { title }), '', s, b);

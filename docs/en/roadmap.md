@@ -701,12 +701,21 @@ Done when: `.\build.ps1 -Release` is green and the zip contains no ikaga SHIORI.
 Candidates. Which comes first is decided along the way through stage 3.
 The shell feature “Import an existing shell folder” was done in stage 3 (3-5d; numbered images only).
 
-### The rest of SERIKO (“Not there yet” in the README)
+### The rest of SERIKO (done)
 
-* Grouped operations such as `alternativestart`
-* `scaling` / `insert`
-* The finer kinds of `blend-*`
-* Dress-up (MAYUNA) `bind`
+* ~~Grouped operations such as `alternativestart`~~, ~~`scaling` / `insert`~~, ~~the finer kinds of `blend-*`~~, ~~dress-up (MAYUNA) `bind`~~
+
+> **The rest of SERIKO is done.** The syntax follows UKADOC's surfaces.txt and shell descript.txt. What was done:
+>
+> * Frame drawing methods gained `alternativestart` / `alternativestop` / `parallelstart` / `parallelstop` (a list of numbers, written as `,(1,2)`),
+>   `scaling` (width and height as %; decimals allowed), `insert` (drawing position for a dress-up), `add` (a dress-up part), and 27 `blend-*` modes
+>   (`ANIM_METHODS` in `ui/js/model/model.js`, `KnownMethod` in `studio/src/export_seriko.cpp`).
+> * Dress-up: an animation's “when” can be “dress-up” (`interval,bind`), with a category, a name and whether it is worn at start. The shell's
+>   `descript.txt` gets `sakura.bindgroupN.name` / `.default` and `sakura.menuitemN` (`kero.` when the base surface is 10 or higher;
+>   `BindDescriptLines`). A block to switch it from the ghost, “dress-up C: wear / take off P” (`dress`, `\![bind,…]`), was added too.
+> * `sakura.bindoptionN.group` (`mustselect` / `multiple`) and `addid` are not exported yet (“Not there yet” in the README).
+> * Tests: the export test's input has the new methods and dress-ups, and the shell's `descript.txt` is compared too (34 checks).
+>   The parity test gained OnP32 (the dress-up block) and the editor test the normalizing of the new shapes (114 checks).
 
 ### Shell features
 

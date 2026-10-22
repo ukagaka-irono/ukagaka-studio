@@ -313,6 +313,7 @@ function stmtOf(b, ind, ctx) {
     case 'clear': return [L('Studio.Clear')];
     case 'raw': return [L(`Studio.Raw(${expr(b.text)})`)];
     case 'anim': return [L(`Studio.Anim(${intArg(b.id, 0)})`)];
+    case 'dress': return [L(`Studio.Dress(${expr(b.category)}, ${expr(b.part)}, ${asInt(b.on, 1) ? '1' : '0'})`)];
     case 'balloon': return [L(`Studio.Balloon(${intArg(b.id, 0)})`)];
     case 'sound': return [L(`Studio.Sound(${expr(b.file)})`)];
     case 'link': return [L(`Studio.Link(${expr(b.url)}, ${expr(b.label)})`)];

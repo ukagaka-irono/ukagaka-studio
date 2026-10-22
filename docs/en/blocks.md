@@ -118,6 +118,7 @@ so check in SSP whether it really arrives.
 | change surface of ◯ to N | `{"type":"surface","who":0,"id":0}` | `\0\s[0]` |
 | from now on, character N speaks | `{"type":"chara","id":2}` | `\p[2]` (0 and 1 are `\0` `\1`) |
 | play animation N | `{"type":"anim","id":0}` | `\i[0]` |
+| dress-up C: wear / take off P | `{"type":"dress","category":"服","part":"セーラー","on":1}` | `\![bind,服,セーラー,1]` |
 | switch balloon to N | `{"type":"balloon","id":0}` | `\b[0]` |
 | play sound F | `{"type":"sound","file":"a.wav"}` | `\_v[a.wav]` |
 
@@ -140,13 +141,28 @@ The **method** (SERIKO's drawing method) can be chosen per frame too.
 | ignore transparency | `asis` | does not use the transparency information |
 | cut out (reduce) | `reduce` | makes what it covers transparent |
 | move only | `move` | shifts the display position without changing the picture |
+| change the size (scaling) | `scaling` | changes the display size (width and height as %; decimals allowed; set it back to 100 at the end) |
+| add a dress-up part | `add` | overlays it as a dress-up part (see “Dress-up” below) |
 | blend: multiply / screen / overlay / add | `blend-multiply` and others | blends the colors differently |
+| blend: soft-light and others | `blend-soft-light` and others | finer blend modes named as in Photoshop (27 kinds such as `add-glow`, `hard-light`, `color-dodge`, `difference`, `hue`) |
 | start another animation | `start` | starts the animation with the chosen number (no picture or wait needed) |
 | stop another animation | `stop` | stops the animation with the chosen number |
+| start / stop one of several animations | `alternativestart` / `alternativestop` | starts / stops one of the listed animations |
+| start / stop several animations together | `parallelstart` / `parallelstop` | starts / stops all the listed animations |
+| drawing position for a dress-up | `insert` | draws the dress-up with the chosen number at this point in the order (not drawn unless worn) |
 | insert an animated image | `import` | plays an APNG / GIF / WebP as is (a file name instead of a surface) |
 
-`start` / `stop` write only the “animation #” (`animation0.pattern0,start,5`).
+`start` / `stop` / `insert` write only the “animation #” (`animation0.pattern0,start,5`).
+Grouped ones write the numbers in parentheses (`animation0.pattern0,alternativestart,(1,2)`; numbers outside 0–127 are dropped).
+`scaling` percentages are kept within 1–1000 %.
 `import` is not written if the file name contains a comma or `..` (it would break the line).
+
+**Dress-up** (MAYUNA) is made by setting an animation's “when” to **dress-up (shown when selected)** (`interval,bind`).
+Its frames use “add a dress-up part” (`add`) with the number of the part's picture. Give the animation a **category** (clothes, hat, …)
+and a **name**, and the shell's `descript.txt` gets `sakura.bindgroupN.name,category,name` and a dress-up menu entry (`sakura.menuitemN`),
+so the dress-up can be worn or taken off from SSP's right-click dress-up menu (`kero.` when the base surface is 10 or higher).
+“At start: worn” also writes `sakura.bindgroupN.default,1`. To switch it from the ghost, use the “**dress-up C: wear / take off P**”
+(`dress`) block. A dress-up with an empty category or name cannot appear in the menu, so it is not written to descript.txt.
 
 You can also **swap hit areas**. “Add hit area” on an animation creates a place you can touch
 **only while that animation plays**.

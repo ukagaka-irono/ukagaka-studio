@@ -107,6 +107,8 @@ function showDiff(want, got) {
 // ------------------------------------------------- 書き出したファイルの中身
 const cases = [
   ['ghost.json', 'shell/master/surfaces.txt', 'surfaces.txt'],
+  // シェルの descript.txt（着せ替えの名前とメニュー。sakura.bindgroupN / sakura.menuitemN）
+  ['ghost.json', 'shell/master/descript.txt', 'shell-descript.txt'],
   ['ghost.json', 'ghost/master/descript.txt', 'descript.txt'],
   ['ghost.json', 'ghost/master/ghost.json', 'program.json'],
   ['ghost.json', 'install.txt', 'install.txt'],

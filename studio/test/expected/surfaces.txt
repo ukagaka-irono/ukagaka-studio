@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- shell/master/surfaces.txt (1826 バイト)
+---- shell/master/surfaces.txt (2237 バイト)
 charset,UTF-8
 
 descript
@@ -26,6 +26,16 @@ animation0.collision0,10,20,90,120,Wing
 animation0.collisionex0,Tail,ellipse,0,0,40,60
 animation0.collisionex1,Bell,circle,50,60,12
 animation0.collisionex2,Hair,polygon,100,100,200,300,50,200
+animation3.interval,sometimes
+animation3.pattern0,alternativestart,(0,1)
+animation3.pattern1,scaling,0,300,92.5,1000
+animation3.pattern2,blend-soft-light,2,50,0,0
+animation3.pattern3,base,2,50,0,0
+animation3.pattern4,insert,5
+animation5.interval,bind
+animation5.pattern0,add,1,0,0,40
+animation7.interval,bind
+animation7.pattern0,add,2,0,0,0
 }
 
 surface1
@@ -58,6 +68,8 @@ collision4,25,134,42,171,Hand
 collision5,98,134,114,171,Hand
 animation1.interval,talk,3
 animation1.pattern0,base,11,200,0,0
+animation6.interval,bind
+animation6.pattern0,add,11,0,0,0
 }
 
 surface11

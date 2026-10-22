@@ -18,6 +18,9 @@ void AppendShell(std::vector<OutFile>& files, const JValue& project);
 // その surface の SERIKO のうごき（animationN.*）の行（export_seriko.cpp）
 std::string AnimationLines(const JValue& project, int surfaceId);
 
+// 着せ替え（interval が bind のうごき）の名前とメニュー。シェルの descript.txt に足す行（export_seriko.cpp）
+std::string BindDescriptLines(const JValue& project);
+
 // balloon/ の絵と descript.txt を足す（export_balloon.cpp）
 void AppendBalloon(std::vector<OutFile>& files, const JValue& project);
 
