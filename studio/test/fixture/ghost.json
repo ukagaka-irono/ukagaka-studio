@@ -80,7 +80,9 @@
   "scripts": [
     {
       "id": "s_boot", "kind": "event", "event": "OnBoot",
-      "blocks": [{ "type": "say", "who": 0, "text": "おはよう。", "nl": 1 }]
+      "note": "起動のあいさつ\n2 行目",
+      "_": "メモはかたまりにもブロックにも付き、ghost.json にそのまま入って、辞書には // のコメントで入るはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "おはよう。", "nl": 1, "note": "朝でも夜でも、おはよう" }]
     },
     {
       "id": "s_head", "kind": "event", "event": "OnNadeNade",

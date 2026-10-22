@@ -29,6 +29,9 @@
   --canvas:         light-dark(#eef2f7, #11151a);   /* ブロックを置くところ */
   --canvas-dot:     light-dark(rgba(120,140,165,.28), rgba(150,170,195,.14));
   --code-bg:        light-dark(#f1f5fa, #262e39);
+  --note-bg:        light-dark(#fff8c5, #3a3520);   /* ブロックのメモ（付せん） */
+  --note-line:      light-dark(#e6d77a, #6b6235);
+  --note-text:      light-dark(#4a4320, #ece3b8);
 
   /* ---- 線 */
   --line:        light-dark(#d4dbe4, #333d4b);
@@ -288,6 +291,23 @@ button, input, select, textarea { font-family: inherit; }
 .blk.is-dragging { opacity: .35; }
 .blk.selected > .row { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px rgba(255,255,255,.9)) drop-shadow(0 1px 0 rgba(0,0,0,.2)); }
 .blk.disabled > .row { opacity: .45; }
+/* メモ（editor/notes.js）。かたまりの右に、付せんのように出す */
+.blk-note {
+  position: absolute; left: calc(100% + 18px); top: 2px; z-index: 2;
+  width: 190px; padding: 5px 7px; border-radius: 4px;
+  background: var(--note-bg); border: 1px solid var(--note-line);
+  box-shadow: 0 1px 3px var(--shadow-color); cursor: default;
+}
+.blk-note::before {   /* ブロックとのつなぎの線 */
+  content: ''; position: absolute; left: -18px; top: 13px; width: 18px; border-top: 1px dashed var(--note-line);
+}
+.blk-note textarea {
+  display: block; width: 100%; min-height: 18px; resize: none; overflow: hidden;
+  border: 0; padding: 0; background: transparent; color: var(--note-text);
+  font: 12px/1.5 "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif;
+}
+.blk-note textarea:focus { outline: none; }
+.blk-note:focus-within { border-color: var(--accent); }
 
 .cat-events    { --blk: var(--cat-events); }
 .cat-talk      { --blk: var(--cat-talk); }

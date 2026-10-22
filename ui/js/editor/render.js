@@ -5,6 +5,7 @@ import { Model } from '../model/model.js';
 import { Commands } from '../core/commands.js';
 import { updateTitle } from '../core/title.js';
 import { Scripts } from './scripts.js';
+import { Notes } from './notes.js';
 import { t } from '../i18n/i18n.js';
 
 const INPUT_FONT = '600 12.5px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif';
@@ -278,6 +279,8 @@ function buildBlockEl(block, project) {
     }
     wrap.appendChild(bottom);
   }
+  const note = Notes.build(block);   // メモ（かたまりの右に、付せんのように出す）
+  if (note) wrap.appendChild(note);
   return wrap;
 }
 
@@ -339,6 +342,8 @@ function buildScriptEl(script, project, options) {
     const row = div('row sh-hat');
     fillRow(row, script, def, project, hat);
     hat.appendChild(row);
+    const note = opts.noTools ? null : Notes.build(script);   // かたまりのメモ
+    if (note) hat.appendChild(note);
     wrap.appendChild(hat);
   }
 

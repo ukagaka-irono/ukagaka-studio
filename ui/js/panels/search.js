@@ -96,6 +96,11 @@ function walkBlocks(script, visit) {
   stack(script.blocks);
 }
 
+/** メモ（block.note・script.note）に、さがす言葉があるか */
+function noteHit(owner, q) {
+  return typeof owner.note === 'string' && owner.note.toLowerCase().includes(q);
+}
+
 function renderSearch() {
   const list = $('#search-list');
   if (!list) return;
@@ -110,10 +115,12 @@ function renderSearch() {
   for (const s of Model.project.scripts) {
     const title = Model.scriptTitle(s);
     if (title.toLowerCase().includes(q)) hits.push({ script: s, block: null, text: title });
+    if (noteHit(s, q)) hits.push({ script: s, block: null, text: s.note, title, note: true });
     walkBlocks(s, (b) => {
       if (hits.length > 200) return;
       const text = blockSummary(b);
       if (text.toLowerCase().includes(q)) hits.push({ script: s, block: b, text, title });
+      if (noteHit(b, q)) hits.push({ script: s, block: b, text: b.note, title, note: true });
     });
   }
 
@@ -123,10 +130,10 @@ function renderSearch() {
   }
   for (const h of hits) {
     const item = Render.el('button', 'check-item');
-    item.appendChild(Render.el('span', 'mark', h.block ? '🔎' : '📄'));
+    item.appendChild(Render.el('span', 'mark', h.note ? '📝' : h.block ? '🔎' : '📄'));
     const msg = Render.div('msg');
     msg.appendChild(document.createTextNode(h.text));
-    if (h.block) msg.appendChild(Render.el('span', 'why', h.title));
+    if (h.block || h.note) msg.appendChild(Render.el('span', 'why', h.title));
     item.appendChild(msg);
     item.title = t('クリックでその場所へ移動します');
     item.addEventListener('click', () => jumpTo(h));

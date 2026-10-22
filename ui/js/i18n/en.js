@@ -115,6 +115,13 @@ export const en = {
   '一時的に無効にする': 'Disable for now',
   'このブロックを削除': 'Delete this block',
   'ここから下をすべて削除': 'Delete this and everything below',
+  'メモを付ける': 'Add a note',
+  'メモを書きなおす': 'Edit the note',
+  'メモを消す': 'Delete the note',
+
+  // ---- ui\js\editor\notes.js
+  'メモ（動きには関係しません）': 'Note (does not affect how the ghost behaves)',
+  'メモを書く': 'Write a note',
 
   // ---- ui\js\editor\drag.js
   'トーク': 'Talk',
@@ -840,10 +847,10 @@ export const en = {
     'Ctrl+V pastes right below the selected block (at the top of the script when a hat is selected).',
   '右クリックのメニュー': 'Right-click menus',
   'ブロックの上': 'On a block',
-  'コピー・切り取り・すぐ下にはりつけ・複製・一時的に無効にする・削除・ここから下をすべて削除':
-    'Copy, cut, paste below, duplicate, disable for now, delete, delete this and everything below',
+  'コピー・切り取り・すぐ下にはりつけ・複製・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
+    'Copy, cut, paste below, duplicate, disable for now, add a note, delete, delete this and everything below',
   'かたまりの帽子の上': "On a script's hat",
-  '実行してみる・複製・削除': 'Run, duplicate, delete',
+  '実行してみる・複製・メモを付ける・削除': 'Run, duplicate, add a note, delete',
   '何もないところ': 'On empty space',
   'ここにブロックを探して置く・ここにはりつけ・整列': 'Find and place a block here, paste here, tidy up',
   'ブロックの色': 'Block colors',

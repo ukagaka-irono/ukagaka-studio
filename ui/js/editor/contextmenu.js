@@ -1,8 +1,8 @@
 /* 伺かスタジオ - キャンバスの右クリックメニュー
  *
  * 3 つあります。どれも、キーボードで同じことができるものは右にキーを出します。
- *   ・かたまり（帽子）の上 … 実行・複製・削除
- *   ・ブロックの上         … コピー・切り取り・複製・無効にする・削除
+ *   ・かたまり（帽子）の上 … 実行・複製・メモ・削除
+ *   ・ブロックの上         … コピー・切り取り・複製・無効にする・メモ・削除
  *   ・何もないところ       … ブロックを探して置く・はりつけ・整列
  */
 
@@ -15,6 +15,7 @@ import { Render } from './render.js';
 import { Scripts } from './scripts.js';
 import { Clipboard } from './clipboard.js';
 import { Picker } from './picker.js';
+import { Notes } from './notes.js';
 
 function close() {
   $('#ctx-menu').classList.remove('open');
@@ -35,6 +36,15 @@ function open(x, y, items) {
   menu.style.left = Math.min(x, window.innerWidth - 220) + 'px';
   menu.style.top = Math.min(y, window.innerHeight - menu.childElementCount * 34 - 20) + 'px';
   menu.classList.add('open');
+}
+
+/** メモを付ける・消す（owner はブロックかかたまり） */
+function noteItems(owner) {
+  if (typeof owner.note !== 'string') return [{ label: t('メモを付ける'), run: () => Notes.add(owner) }];
+  return [
+    { label: t('メモを書きなおす'), run: () => Notes.add(owner) },
+    { label: t('メモを消す'), run: () => Notes.remove(owner) },
+  ];
 }
 
 /** 画面の位置を、キャンバスの位置に（拡大・縮小とスクロールの分をもどす） */
@@ -73,6 +83,7 @@ function init() {
       open(e.clientX, e.clientY, [
         { label: t('▶ 実行してみる'), run: () => Commands.runScript(script) },
         { label: t('複製する'), run: () => Scripts.duplicateScript(script) },
+        ...noteItems(script),
         '-',
         { label: t('削除する'), danger: true, run: () => Scripts.deleteScript(script) },
       ]);
@@ -92,6 +103,7 @@ function init() {
       );
     }
     items.push({ label: block.disabled ? t('有効にする') : t('一時的に無効にする'), run: () => Clipboard.toggleDisabled(block) });
+    items.push(...noteItems(block));
     if (inStack) {
       items.push(
         '-',

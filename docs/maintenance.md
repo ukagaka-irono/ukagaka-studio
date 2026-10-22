@@ -157,7 +157,7 @@ ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
 ├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
-├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
+├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
 └── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya
 ```
@@ -311,6 +311,10 @@ ui/js/
   （`index.html` の「キーボードとマウス」）**にも足してください。** 文字を打っている欄の中では、
   `Ctrl+S` などの一部を除いて動きません。ブロックの操作は、トークの画面が見えているときだけです。
 * 右クリックのメニューは `editor/contextmenu.js` です。項目に `key: 'Ctrl+C'` のように書くと、右にキーが出ます。
+* メモ（`block.note`・`script.note`）は `editor/notes.js` です。ブロックの `.blk` の中に、右へはみ出す付せんとして描くので、
+  ブロックの大きさ（ドラッグの当たり）は変わりません。「整列」は、はみ出したメモの分も幅に入れます。
+  辞書へのコメントは `model/yaya.js` の `noteLines`、ghost.json の写しでは、かたまりの `note` を `programOf` と exe の
+  `export_program.cpp` の両方で同じように書きます（`shiori\test\yaya\yaya.js` が、両方の形が同じことと、メモで動きが変わらないことを見ます）。
 * ブロックのコピー・切り取り・はりつけ・複製・削除は `editor/clipboard.js` にあり、メニューとキーの両方がそれを呼びます。
   片方だけ直すと、メニューとキーで動きがずれるので、ここを直してください。
 

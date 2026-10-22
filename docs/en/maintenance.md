@@ -161,7 +161,7 @@ ui/js/
 ├── main.js        assembly (calls each part's init(), redraws everything)
 ├── shortcuts.js   keyboard (calls into many layers, so it sits with the assembly)
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
-├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard
+├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
 └── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya
 ```
@@ -322,6 +322,10 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
   (“キーボードとマウス” in `index.html`) **too.** Inside text fields, only a few such as
   `Ctrl+S` work. Block operations work only while the Talk page is shown.
 * Right-click menus are in `editor/contextmenu.js`. Write `key: 'Ctrl+C'` on an item to show the key on the right.
+* Notes (`block.note`, `script.note`) are in `editor/notes.js`. They are drawn inside the block's `.blk` as a sticky note sticking out
+  to the right, so the block's size (its drag hit box) does not change. “Tidy up” counts the overhanging note in the width.
+  The dictionary comments come from `noteLines` in `model/yaya.js`; in the ghost.json copy, a script's `note` is written the same way by
+  both `programOf` and the exe's `export_program.cpp` (`shiori\test\yaya\yaya.js` checks that both shapes match and that notes do not change behavior).
 * Copy, cut, paste, duplicate and delete for blocks are in `editor/clipboard.js`, which both the menus and the keys call.
   Change them there; changing only one side makes the menus and the keys behave differently.
 

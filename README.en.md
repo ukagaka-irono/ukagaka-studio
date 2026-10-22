@@ -132,9 +132,14 @@ the block search, type part of a name such as “says” or “petted”, and pr
 below the selected block, and you can type straight into the new block's text field. Press Enter to confirm, then **/** again
 to keep building downward.
 
-**Right-click** a block for copy, cut, paste, duplicate, disable and delete; a script's hat for run, duplicate
-and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
+**Right-click** a block for copy, cut, paste, duplicate, disable, note and delete; a script's hat for run, duplicate,
+note and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
 The list of keys is on the How to use page, opened with **?** or **F1**.
+
+A **note** is a memo you can attach to a block or a script with “Add a note” in the right-click menu. It appears like a sticky
+note to the right of the script and can be edited right there (erasing all its text removes it). It does not affect how the ghost
+behaves. When you export, it goes into the YAYA dictionary as a `// Note: …` comment just before its block, so it also helps when
+reading the YAYA by hand. The **Search** tab searches notes too.
 
 ### 3. Run it in SSP
 
@@ -400,7 +405,7 @@ ukagaka-studio/
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   └── sample.js   the template for “New”
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
-│       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy)
+│       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes)
 │       └── panels/         pages (Talk, Characters, Ghost info, Export, Help)
 │           ├── pages.js    switching pages (right below the top bar)
 │           ├── guide.js    the first-steps guide (the card at the top right of the canvas)

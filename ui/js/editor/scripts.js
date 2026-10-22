@@ -106,7 +106,8 @@ function promptNewFunction() {
 function tidy() {
   const sizes = new Map();
   for (const el of document.querySelectorAll('#canvas > .script')) {
-    if (el._script && el.offsetWidth) sizes.set(el._script, { w: el.offsetWidth, h: el.offsetHeight });
+    // scrollWidth は、右にはみ出したメモ（editor/notes.js）の分もふくみます
+    if (el._script && el.offsetWidth) sizes.set(el._script, { w: Math.max(el.offsetWidth, el.scrollWidth), h: el.offsetHeight });
   }
   const ws = $('#workspace');
   const limit = Math.max(900, ws && ws.clientHeight ? ws.clientHeight / Session.zoom - 40 : 0);

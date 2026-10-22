@@ -21,6 +21,9 @@ The right-hand columns below show the shape in `ghost.json` (the copy of the blo
 Slots that take a number or text (the `%` parts) **accept blocks from the Operators and Info categories**.
 When you drop one in, the slot's value becomes a block (an object) instead of a string or number.
 
+Any block can carry **`"note": "…"`** (a note; for a script, `note` in `scripts`). It does not affect behavior, and in the
+translated YAYA dictionary it becomes a `// メモ: …` comment just before its block (`// Note: …` for English ghosts).
+
 ---
 
 ## Events (script hats)

@@ -393,6 +393,10 @@ function onPointerDown(e) {
   const inPalette = !!(e.target.closest && e.target.closest('#palette'));
   const inCanvas = !!(e.target.closest && e.target.closest('#canvas'));
   if (!inPalette && !inCanvas) return;
+  // 打っている欄（ブロックの文字の欄・メモ）の外を押したら、打つのを終える（元にもどす記録もそこで積まれます）。
+  // 下で preventDefault するので、何もしないと欄からフォーカスが外れません
+  const active = document.activeElement;
+  if (active && active !== document.body && isFormTarget(active) && !active.contains(e.target)) active.blur();
   if (isFormTarget(e.target)) return;
 
   if (e.button === 1 || (!e.target.closest('.blk') && inCanvas)) {

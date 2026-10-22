@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/studio_program.dic (3762 バイト)
+---- ghost/master/studio_program.dic (3864 バイト)
 // ukagaka-studio: generated
 //==============================================================================
 // 伺かスタジオが、ブロックから書き出した辞書です（studio_program.dic）。
@@ -108,8 +108,11 @@ OnCommunicate
 //------------------------------------------------------------------------------
 
 // OnBoot  (s_boot)
+// メモ: 起動のあいさつ
+// メモ: 2 行目
 Studio.Script.s_boot : void
 {
+	// メモ: 朝でも夜でも、おはよう
 	Studio.Say(0, 'おはよう。', 1)
 }
 

@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/ghost.json (2346 バイト)
+---- ghost/master/ghost.json (2450 バイト)
 {
   "format": "ikaga/1",
   "meta": {
@@ -30,12 +30,14 @@
       "id": "s_boot",
       "kind": "event",
       "event": "OnBoot",
+      "note": "起動のあいさつ\n2 行目",
       "blocks": [
         {
           "type": "say",
           "who": 0,
           "text": "おはよう。",
-          "nl": 1
+          "nl": 1,
+          "note": "朝でも夜でも、おはよう"
         }
       ]
     },

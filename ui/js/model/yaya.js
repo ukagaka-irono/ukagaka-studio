@@ -279,9 +279,23 @@ function stmts(blocks, ind, ctx) {
   return out;
 }
 
+/**
+ * メモ（block.note・script.note）を、YAYA の // コメントの行にする（1 行ずつ）。
+ * 行の終わりが / でも、YAYA はコメントの行をつぎの行につなげません（shiori\test\yaya\yaya.js の 5. が見ます）。
+ */
+function noteLines(note, ind, label) {
+  const text = asStr(note).trim();
+  if (!text) return [];
+  return text.split(/\r\n|\r|\n/).map((line) => `${ind}// ${label}${line}`.replace(/\s+$/, ''));
+}
+
 function stmt(b, ind, ctx) {
   if (!isObj(b)) return [];
   if (asBool(b.disabled, false)) return [];
+  return [...noteLines(b.note, ind, ctx.note || ''), ...stmtOf(b, ind, ctx)];
+}
+
+function stmtOf(b, ind, ctx) {
   const type = blockType(b);
   const L = (s) => ind + s;
   const stop = [L('if Studio.stop { return }')];
@@ -457,6 +471,8 @@ export function programOf(project) {
       if (group) one.group = group;
     }
     if (asBool(src.disabled, false)) one.disabled = true;
+    // かたまりのメモ（空なら書かない）。ブロックのメモは blocks の中にそのまま入ります
+    if (trimC(asStr(src.note))) one.note = asStr(src.note);
     one.blocks = Array.isArray(src.blocks) ? src.blocks : [];
     scripts.push(one);
   }
@@ -494,6 +510,7 @@ const TEXT = {
     talk: (n) => `ランダムトーク「${n}」`, // i18n-ignore
     fn: (n) => `トーク「${n}」`, // i18n-ignore
     off: '（無効）', // i18n-ignore
+    note: 'メモ: ', // i18n-ignore
   },
   en: {
     head: [
@@ -512,6 +529,7 @@ const TEXT = {
     talk: (n) => `random talk "${n}"`,
     fn: (n) => `talk "${n}"`,
     off: ' (disabled)',
+    note: 'Note: ',
   },
 };
 
@@ -613,8 +631,9 @@ export function toYaya(program, options = {}) {
     else if (kind === 'function') title = T.fn(asStr(s.name));
     else title = asStr(s.event);
     if (asBool(s.disabled, false)) title += T.off;
-    const body = stmts(s.blocks, '\t', { n: 0 });
-    lines.push('', `// ${oneLine(title)}  (${oneLine(asStr(s.id))})`, `${fnOf[i]} : void`, '{', ...body, '}');
+    const body = stmts(s.blocks, '\t', { n: 0, note: T.note });
+    lines.push('', `// ${oneLine(title)}  (${oneLine(asStr(s.id))})`, ...noteLines(s.note, '', T.note),
+      `${fnOf[i]} : void`, '{', ...body, '}');
   });
   lines.push('');
   return lines.join('\r\n');

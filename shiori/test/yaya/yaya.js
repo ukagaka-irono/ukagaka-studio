@@ -11,6 +11,7 @@
  *   4. 「ためす」の入り口が、初期値の上に続きの変数をかさね、無い id にエラーを返すか
  *      画面で作る書き出しの形が exe と同じか、exe の書き出したゴーストがそのまま動くか
  *      手書きの YAYA ゴーストにつないで書き出しても、手書きのファイルがバイトのままか
+ *   5. ブロックとかたまりのメモ（// のコメントになる）が、動きを変えないか
  *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか。記録（studio_debug.txt）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
@@ -248,6 +249,44 @@ async function main() {
       }
     }
     if (stopped === cases.length) ok('スタジオが動けない手書きのゴーストには、書き出す前に止めます', `${cases.length} 通り`);
+  }
+
+  // ---- 5. メモは動きを変えないか -----------------------------------------------
+  // 一致テストのゴーストの、すべてのかたまりとブロックにメモを付けて、付けないときと同じ答えになるかを見ます。
+  // メモは // のコメントとして訳されるので、行の終わりの / （YAYA のふつうの行なら「つぎの行につづく」）や
+  // #globaldefine の名前・*/ が入っていても、つぎの行のブロックをのみこまないことを確かめます。
+  {
+    const { toYaya, programOf } = await host.yayaTranslator();
+    const raw = readJson(path.join(PARITY, 'ghost.json'));   // refs（イベントの情報）は raw のほうにだけあります
+    const plain = programOf(raw);
+    const noted = JSON.parse(JSON.stringify(plain));
+    const NOTE = 'メモ /\n  TALK_INTERVAL のあと */ /* も /\n\n3 行目 //';
+    let count = 0;
+    (function walk(v) {
+      if (Array.isArray(v)) {
+        for (const x of v) {
+          if (x && typeof x === 'object' && !Array.isArray(x) && typeof x.type === 'string') { x.note = NOTE; count++; }
+          walk(x);
+        }
+        return;
+      }
+      if (v && typeof v === 'object') for (const k in v) walk(v[k]);
+    })(noted.scripts.map((s) => s.blocks));
+    for (const s of noted.scripts) s.note = NOTE;
+    const cases = raw.scripts.filter((s) => /^OnP\d+$/.test(s.event || '') && s.event !== 'OnP25');   // OnP25 は時計で変わる
+    const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
+    const a = await host.runYayaProgram('notes-plain', plain, specs);
+    const b = await host.runYayaProgram('notes', noted, specs);
+    const dic = toYaya(noted);
+    checks++;
+    const diff = cases.filter((s, i) => JSON.stringify(a[i]) !== JSON.stringify(b[i])).map((s) => s.event);
+    if (a.length !== cases.length || b.length !== cases.length || diff.length) {
+      fails.push(`メモを付けると答えが変わりました: ${diff.join(', ') || `${a.length} / ${b.length} 件`}（shiori\\test\\yaya\\work\\notes\\）`);
+    } else if (!dic.includes('\n// メモ: メモ /\r') || !dic.includes('\t// メモ: 3 行目 //\r')) {
+      fails.push('メモが、訳した辞書に // のコメントとして入っていません');
+    } else {
+      ok('メモは YAYA のコメントになり、動きを変えません', `${count} ブロック・${cases.length} 件`);
+    }
   }
 
   // ---- 6. 保存して、次の起動に残るか -------------------------------------------

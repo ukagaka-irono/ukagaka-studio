@@ -84,6 +84,8 @@ std::string RuntimeProgramJson(const JValue& project) {
             if (!group.empty()) one.set("group", JValue::makeStr(group));
         }
         if (src["disabled"].asBool(false)) one.set("disabled", JValue::makeBool(true));
+        // かたまりのメモ（空なら書かない）。ブロックのメモは blocks の中にそのまま入ります
+        if (!Trim(src["note"].asStr()).empty()) one.set("note", JValue::makeStr(src["note"].asStr()));
         one.set("blocks", src["blocks"].isArr() ? src["blocks"] : JValue::makeArr());
         scripts.arr.push_back(one);
     }

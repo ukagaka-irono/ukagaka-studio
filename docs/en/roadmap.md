@@ -708,10 +708,22 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 
 ### Editor
 
-* **Notes (comments)** on blocks
+* ~~**Notes (comments)** on blocks~~ (done; see “What was done” below)
 * Copy and paste between projects
 * Autosave and going back to an earlier version
 * Saving a frequently used arrangement as a “part”
+
+> **Notes are done.** What was done:
+>
+> * Blocks and scripts can carry a note (`note`), added with “Add a note” in the right-click menu. It appears like a sticky note to the
+>   right of the script, can be edited right there, and disappears when all its text is erased (`ui/js/editor/notes.js`). Closing it
+>   without writing anything leaves no undo entry.
+> * Notes do not affect behavior. They go into the exported `ghost.json` as they are, and into the YAYA dictionary as a `// メモ: …` comment
+>   just before their block (`// Note: …` for English ghosts), which also helps people reading the YAYA by hand.
+> * The Search tab searches notes too. “Tidy up” counts notes overhanging to the right in the width.
+> * Tests: the YAYA test now checks that adding notes to all 176 blocks and every script of the parity ghost leaves all 30 answers unchanged
+>   (with notes containing a trailing `/`, `*/`, a `#globaldefine` name and an empty line; this also confirmed that YAYA does not join the next
+>   line onto a comment line ending in `/`). The export test's input got a note too (the copy's shape matches between the UI and the exe).
 
 ---
 
