@@ -61,10 +61,14 @@ Small features (a single block and the like) may go in during stages 1 and 2.
 | | What | Done when |
 |---|---|---|
 | 0-1 | Push to GitHub and confirm Actions (`build.yml`) is green in the fork too (**done**) | a green badge |
-| 0-2 | Decide the version number (e.g. restart counting from `0.1.0-alpha`) | `VERSION` and `kStudioVersion` (`api.cpp`) agree |
+| 0-2 | Decide the version number (e.g. restart counting from `0.1.0-alpha`) (**done**) | `VERSION` and the version the exe reports to the UI agree |
 | 0-3 | Decide the branding: the logo (🍐 for now), the example and default character names (なしこ, なしちゃん, なしゴースト) → **decided** (“Decisions” below). Swapped in stage 2 | the 5 examples and the defaults replaced |
 | 0-4 | Show the original project in an “About this software” screen in the app (**done**) | license section 3 satisfied outside the README too |
 
+> **0-2 is done** (2026-10-22). **Versions count on from 2.0.0-alpha with ordinary semver** (see Decisions). 2.0.0 was chosen when
+> ikaga SHIORI was removed, so counting does not restart. The version the exe reports to the UI is also made from `VERSION`
+> (`version_gen.h`), so changing that one file keeps them in step. The rules are in “Releasing a version” in the maintenance guide.
+>
 > **0-1 is done** (2026-10-22). `main` was pushed to `ukagaka-irono/ukagaka-studio`, and Actions' “ビルドとテスト” (build and test:
 > `.\build.ps1 -Release` and the 9 tests) and “そろい点検” (block coverage) turned green, producing the distribution artifact
 > `ukagaka-studio-<version>-<sha>`. No tag was pushed, so the Release job is skipped.
@@ -754,10 +758,10 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 | 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
 | 2026-10-22 | The exported **`ghost.json` stays, as a copy of the blocks** (YAYA does not read it; it is there so “Open” can load it; 3-6) |
 | 2026-10-22 | The version without ikaga SHIORI is **2.0.0-alpha** (3-6) |
+| 2026-10-22 | Versions **count on from 2.0.0-alpha with ordinary semver** (major for big changes, minor for new features, patch for fixes; `-alpha` / `-beta` mark trial versions). Counting does not restart (0-2) |
+| 2026-10-22 | Variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) **are not carried over to YAYA**. After exporting again, variables start from the project's initial values (“Clear the ghost's memory” also deletes a leftover `ikaga_save.json`) (stage 3) |
+| 2026-10-22 | The name “如何栞 (ikaga SHIORI)” and the `ikaga` names in the code (the project format `ikaga/1`, the input box ID `ikaga:<variable>`, the `ikaga.lang` setting and so on) **stay as they are**, for compatibility with earlier projects and exported ghosts; the docs call them “a leftover from the 1.x SHIORI's name” (stage 3) |
 
 ## Not decided yet
 
-* How to count version numbers (stage 0-2)
-* Details of stage 3:
-  * Whether variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) carry over to YAYA
-  * What to do with the name “如何栞 (ikaga SHIORI)” and the name `ikaga` in the code (including the project format `ikaga/1`)
+* Nothing right now (decisions go into the table above).

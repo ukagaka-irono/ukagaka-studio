@@ -491,7 +491,7 @@ and **values such as the uptime and boot count come from the UI**. The parity te
 > built to behave the same. Where it differs on purpose, or because YAYA cannot do the same, is listed in step 3-3 of
 > [`docs/en/roadmap.md`](docs/en/roadmap.md).
 > A ghost exported earlier with ikaga SHIORI becomes a YAYA ghost when you open the project and export it again
-> (for now, ikaga SHIORI's saved variables `ikaga_save.json` are not carried over).
+> (ikaga SHIORI's saved variables `ikaga_save.json` are not carried over; variables start from the project's initial values).
 
 ### Trying it without SSP
 

@@ -467,7 +467,10 @@ the UI, but saving, exporting and “Try” do not work (they all call into the 
 
 ## Releasing a version
 
-1. Edit `VERSION` (one line at the root). The zip name and the exe properties read only this.
+1. Edit `VERSION` (one line at the root). The zip name, the exe properties and the version the exe reports to the UI (`version_gen.h`)
+   read only this. Versions follow **ordinary semver** (from 2.0.0-alpha): raise the major number for big changes that break compatibility,
+   the minor number for new features, and the patch number for fixes only. Add `-alpha` / `-beta` while it is a trial version
+   (a tag with a `-` also makes the Release a pre-release).
 2. Add what changed to `CHANGELOG.md`.
 3. `.\build.ps1 -Release` — clean rebuild, tests, and `dist\ukagaka-studio-<version>.zip`.
    (This one is for looking at locally; what is distributed is the one Actions makes.)
