@@ -696,10 +696,9 @@ Done when: `.\build.ps1 -Release` is green and the zip contains no ikaga SHIORI.
 
 ---
 
-## Stage 4 — New features
+## Stage 4 — New features (done)
 
-Candidates. Which comes first is decided along the way through stage 3.
-The shell feature “Import an existing shell folder” was done in stage 3 (3-5d; numbered images only).
+Every candidate listed here is done (2026-10-22). New ideas will be added here as they come up.
 
 ### The rest of SERIKO (done)
 
@@ -713,7 +712,8 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 > * Dress-up: an animation's “when” can be “dress-up” (`interval,bind`), with a category, a name and whether it is worn at start. The shell's
 >   `descript.txt` gets `sakura.bindgroupN.name` / `.default` and `sakura.menuitemN` (`kero.` when the base surface is 10 or higher;
 >   `BindDescriptLines`). A block to switch it from the ghost, “dress-up C: wear / take off P” (`dress`, `\![bind,…]`), was added too.
-> * `sakura.bindoptionN.group` (`mustselect` / `multiple`) and `addid` are not exported yet (“Not there yet” in the README).
+> * The per-category selection rule (`mustselect` / `multiple` of `sakura.bindoptionN.group`) and `addid` (also wear) were added afterwards
+>   (both exporting and importing from an existing shell).
 > * Tests: the export test's input has the new methods and dress-ups, and the shell's `descript.txt` is compared too (34 checks).
 >   The parity test gained OnP32 (the dress-up block) and the editor test the normalizing of the new shapes (114 checks).
 

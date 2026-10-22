@@ -129,7 +129,13 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
   check('こまかい混ぜかたと、着せ替えの部品を重ねる add も通す',
     q.patterns.map((x) => x.method), ['alternativestart', 'parallelstop', 'scaling', 'blend-soft-light', 'add']);
   check('着せ替えの種類と名前は前後の空白を落とし、はじめから着るかを持つ',
-    q.bind, { category: '服', part: 'セーラー', default: true });
+    q.bind, { category: '服', part: 'セーラー', default: true, option: '', addid: [] });
+  const b2 = Model.normalize({ format: 'ikaga/1', animations: [
+    { id: 1, interval: 'bind', bind: { option: 'multiple', addid: [6, '7', 200, 6] } },
+    { id: 2, interval: 'bind', bind: { option: 'へん' } },
+  ] }).animations.map((x) => [x.bind.option, x.bind.addid]);
+  check('着せ替えのえらびかたは決まった名前だけ、いっしょに着る番号は 0〜127 で重ならずに残る',
+    b2, [['multiple', [6, 7]], ['', []]]);
 
   // 絵の上で描いた当たり判定（shell.areas）: 番号ごとの四角。名前の無いもの・番号でないキーは落とし、座標は整数に
   const areas = Model.normalize({

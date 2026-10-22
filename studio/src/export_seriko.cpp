@@ -201,11 +201,12 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
 
 // 着せ替え（interval が bind のうごき）の名前とメニューを、シェルの descript.txt の行にする。
 //   sakura.bindgroup<番号>.name,<種類>,<名前>   sakura.bindgroup<番号>.default,1   sakura.menuitem<順>,<番号>
+//   sakura.bindgroup<番号>.addid,<番号>,…（いっしょに着る）   sakura.bindoption<順>.group,<種類>,<えらびかた>
 // 付ける立ち絵が 10 番以上なら相方（kero.）のもの。種類か名前が空なら、SSP のメニューに出せないので書きません。
 std::string BindDescriptLines(const JValue& project) {
     const JValue& anims = project["animations"];
     if (!anims.isArr()) return std::string();
-    struct One { int id; bool kero; std::string category, part; bool def; };
+    struct One { int id; bool kero; std::string category, part; bool def; std::string option, addid; };
     std::vector<One> list;
     for (size_t i = 0; i < anims.size(); i++) {
         const JValue& a = anims.at(i);
@@ -219,6 +220,15 @@ std::string BindDescriptLines(const JValue& project) {
         o.category = Trim(a["bind"]["category"].asStr());
         o.part = Trim(a["bind"]["part"].asStr());
         o.def = a["bind"]["default"].asBool(false);
+        o.option = a["bind"]["option"].asStr();
+        if (o.option != "mustselect" && o.option != "multiple" && o.option != "mustselect+multiple") o.option.clear();
+        const JValue& add = a["bind"]["addid"];
+        for (size_t n = 0; n < add.size(); n++) {
+            int v = add.at(n).asInt(-1);
+            if (v < 0 || v > 127 || v == id) continue;
+            if (!o.addid.empty()) o.addid += ",";
+            o.addid += NumToStr(v);
+        }
         for (std::string* f : { &o.category, &o.part }) {      // 1 行に収める
             for (size_t n = 0; n < f->size(); n++) {
                 if ((*f)[n] == ',' || (*f)[n] == '\r' || (*f)[n] == '\n') (*f)[n] = ' ';
@@ -237,7 +247,17 @@ std::string BindDescriptLines(const JValue& project) {
             std::string key = std::string(who) + ".bindgroup" + NumToStr(o.id);
             out += DescriptLine((key + ".name").c_str(), o.category + "," + o.part);
             if (o.def) out += DescriptLine((key + ".default").c_str(), "1");
+            if (!o.addid.empty()) out += DescriptLine((key + ".addid").c_str(), o.addid);
             out += DescriptLine((std::string(who) + ".menuitem" + NumToStr(menu++)).c_str(), NumToStr(o.id));
+        }
+        // 種類ごとのえらびかた（その種類で、最初にえらびかたを決めたものに合わせる）
+        std::vector<std::string> done;
+        int opt = 0;
+        for (const One& o : list) {
+            if (o.kero != (kero == 1) || o.option.empty()) continue;
+            if (std::find(done.begin(), done.end(), o.category) != done.end()) continue;
+            done.push_back(o.category);
+            out += DescriptLine((std::string(who) + ".bindoption" + NumToStr(opt++) + ".group").c_str(), o.category + "," + o.option);
         }
     }
     return out;

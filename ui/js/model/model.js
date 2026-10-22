@@ -14,6 +14,8 @@ export const BLEND_METHODS = ['multiply', 'screen', 'overlay', 'add', 'add-glow'
   'darken', 'lighten', 'darker-color', 'lighter-color', 'difference', 'exclusion', 'subtract', 'divide',
   'color', 'luminosity', 'hue', 'saturation', 'dither'].map((m) => 'blend-' + m);
 export const GROUP_METHODS = ['alternativestart', 'alternativestop', 'parallelstart', 'parallelstop'];
+// 着せ替えの種類ごとのえらびかた（mustselect … かならず 1 つ、multiple … いくつでも）
+export const BIND_OPTIONS = ['mustselect', 'multiple', 'mustselect+multiple'];
 const ANIM_METHODS = ['overlay', 'overlayfast', 'base', 'replace',
   'interpolate', 'asis', 'reduce', 'move', 'scaling', 'add',
   ...BLEND_METHODS,
@@ -191,6 +193,12 @@ const Model = {
           category: String((a && a.bind && a.bind.category) || '').trim(),
           part: String((a && a.bind && a.bind.part) || '').trim(),
           default: !!(a && a.bind && a.bind.default),
+          // その種類のえらびかた（descript.txt の bindoptionN.group）。'' はふつう（1 つだけ・外せる）
+          option: BIND_OPTIONS.includes(a && a.bind && a.bind.option) ? a.bind.option : '',
+          // これを着たときに、いっしょに着る着せ替えのうごき番号（addid）
+          addid: (Array.isArray(a && a.bind && a.bind.addid) ? a.bind.addid : [])
+            .map((n) => Math.floor(Number(n)))
+            .filter((n, i, all) => Number.isFinite(n) && n >= 0 && n <= 127 && all.indexOf(n) === i),
         },
         // このうごきの間だけ有効な当たり判定
         collisions: (Array.isArray(a && a.collisions) ? a.collisions : [])

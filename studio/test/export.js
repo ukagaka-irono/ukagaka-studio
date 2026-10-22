@@ -297,7 +297,8 @@ console.log('  ---- いまあるシェルのフォルダの読みこみ');
       '}',
     ].join('\r\n'));
     fs.writeFileSync(path.join(dir2, 'descript.txt'),
-      'charset,UTF-8\r\nsakura.bindgroup3.name,服,セーラー,thumb.png\r\nsakura.bindgroup3.default,1\r\nkero.bindgroup3.name,ぼうし,麦わら\r\n');
+      'charset,UTF-8\r\nsakura.bindgroup3.name,服,セーラー,thumb.png\r\nsakura.bindgroup3.default,1\r\nsakura.bindgroup3.addid,4,5\r\n' +
+      'sakura.bindoption0.group,服,multiple\r\nkero.bindgroup3.name,ぼうし,麦わら\r\n');
     checked++;
     const got2 = run(['--shell', dir2]).toString('utf8').split(/\r?\n/).filter((s) => s);
     const pick = (prefix) => got2.filter((l) => l.startsWith(prefix)).map((l) => l.slice(prefix.length));
@@ -314,7 +315,7 @@ console.log('  ---- いまあるシェルのフォルダの読みこみ');
           { name: 'Tail', shape: 'circle', x1: 5, y1: 6, x2: 7 },
         ] },
         { id: 3, base: 0, interval: 'bind', every: 4, patterns: [{ method: 'add', surface: 500, wait: 0, x: 0, y: 40 }], collisions: [],
-          bind: { category: '服', part: 'セーラー', default: true } },
+          bind: { category: '服', part: 'セーラー', default: true, addid: [4, 5], option: 'multiple' } },
         { id: 3, base: 10, interval: 'bind', every: 4, patterns: [{ method: 'add', surface: 510, wait: 0, x: 0, y: 0 }], collisions: [],
           bind: { category: 'ぼうし', part: '麦わら' } },
       ],

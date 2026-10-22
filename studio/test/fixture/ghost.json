@@ -105,7 +105,7 @@
       "id": 5,
       "base": 0,
       "interval": "bind",
-      "bind": { "category": "服", "part": "セーラー,服", "default": true },
+      "bind": { "category": "服", "part": "セーラー,服", "default": true, "option": "mustselect", "addid": [6, 5, 300] },
       "_": "着せ替え（さくら）。名前のカンマは空白になるはず",
       "patterns": [{ "method": "add", "surface": 1, "wait": 0, "x": 0, "y": 40 }]
     },

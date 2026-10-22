@@ -163,6 +163,8 @@ and a **name**, and the shell's `descript.txt` gets `sakura.bindgroupN.name,cate
 so the dress-up can be worn or taken off from SSP's right-click dress-up menu (`kero.` when the base surface is 10 or higher).
 “At start: worn” also writes `sakura.bindgroupN.default,1`. To switch it from the ghost, use the “**dress-up C: wear / take off P**”
 (`dress`) block. A dress-up with an empty category or name cannot appear in the menu, so it is not written to descript.txt.
+You can also set a **selection rule** per category (exactly one, any number; `sakura.bindoptionN.group,category,mustselect` and so on)
+and the numbers of dress-ups to **also wear** with it (`sakura.bindgroupN.addid`).
 
 You can also **swap hit areas**. “Add hit area” on an animation creates a place you can touch
 **only while that animation plays**.

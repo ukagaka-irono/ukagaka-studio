@@ -542,9 +542,8 @@ ukagaka-studio/
 * ランダムトークの**まとまり**（朝のトーク、季節のトーク…）と、そこから 1 つよぶブロック
 * どうしても必要なときの「さくらスクリプトをそのまま出す」ブロック
 
-まだできないこと（足しかたは [`docs/maintenance.md`](docs/maintenance.md) の「ブロックを 1 つ足す」にあります）:
-
-* 着せ替えのくわしい決まり（`sakura.bindoptionN.group` の `mustselect` / `multiple`、`addid`）は、まだ書き出しません
+まだできないことは、いまのところ挙がっていません。足したいものがあれば、[`docs/maintenance.md`](docs/maintenance.md) の
+「ブロックを 1 つ足す」を見てください。
 
 ---
 

@@ -5,7 +5,7 @@
  * main.js の renderAll がこの画面の render() を呼んでくれます（見えているときだけ）。
  */
 
-import { Model, BLEND_METHODS, GROUP_METHODS } from '../model/model.js';
+import { Model, BLEND_METHODS, GROUP_METHODS, BIND_OPTIONS } from '../model/model.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -426,6 +426,15 @@ function renderAnimList() {
       head.appendChild(numField(t('名前'), a.bind.part, (v) => { a.bind.part = String(v).trim(); }, { type: 'text' }));
       head.appendChild(pickField(t('はじめから'), [[t('着ない'), '0'], [t('着る'), '1']], a.bind.default ? '1' : '0',
         (v) => { a.bind.default = v === '1'; }));
+      // この種類のえらびかた（同じ種類の着せ替えで 1 つ決めれば、その種類ぜんぶに効きます）
+      head.appendChild(pickField(t('えらびかた'), [
+        [t('1 つだけ（外せる）'), ''], [t('かならず 1 つ'), 'mustselect'],
+        [t('いくつでも'), 'multiple'], [t('1 つ以上いくつでも'), 'mustselect+multiple'],
+      ].filter(([, v]) => !v || BIND_OPTIONS.includes(v)), a.bind.option || '', (v) => { a.bind.option = v; }));
+      head.appendChild(numField(t('いっしょに着る（番号）'), (a.bind.addid || []).join(', '), (v) => {
+        a.bind.addid = String(v).split(/[\s,.]+/).filter((s) => s !== '').map((s) => Math.floor(Number(s)))
+          .filter((n, i, all) => Number.isFinite(n) && n >= 0 && n <= 127 && all.indexOf(n) === i);
+      }, { type: 'text' }));
     }
     const del = Render.el('button', 'btn tiny', t('消す'));
     del.addEventListener('click', () => Model.act(() => { Model.project.animations.splice(idx, 1); }));

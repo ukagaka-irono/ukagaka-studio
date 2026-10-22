@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- shell/master/descript.txt (419 バイト)
+---- shell/master/descript.txt (487 バイト)
 charset,UTF-8
 type,shell
 name,master
@@ -14,7 +14,9 @@ sakura.defaultx,80
 kero.defaultx,-40
 sakura.bindgroup5.name,服,セーラー 服
 sakura.bindgroup5.default,1
+sakura.bindgroup5.addid,6
 sakura.menuitem0,5
+sakura.bindoption0.group,服,mustselect
 kero.bindgroup6.name,ぼうし,麦わら
 kero.menuitem0,6
 

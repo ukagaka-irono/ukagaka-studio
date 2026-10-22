@@ -319,7 +319,29 @@ static void ReadBindNames(const std::string& text, ShellImport& r) {
                 bind.set("part", JValue::makeStr(f[1]));
             } else if (key == "default") {
                 bind.set("default", JValue::makeBool(atoi(f[0].c_str()) != 0));
+            } else if (key == "addid") {
+                JValue ids = JValue::makeArr();
+                for (const std::string& s : f) if (!s.empty()) ids.arr.push_back(JValue::makeNum(atoi(s.c_str())));
+                bind.set("addid", ids);
             }
+            a.set("bind", bind);
+        }
+    }
+    // 種類ごとのえらびかた（sakura.bindoptionN.group,種類,mustselect+multiple）を、その種類の着せ替えに付ける
+    for (const std::string& line : SplitLines(text)) {
+        std::string low = Lower(line);
+        bool kero = low.compare(0, 15, "kero.bindoption") == 0;
+        if (!kero && low.compare(0, 17, "sakura.bindoption") != 0) continue;
+        size_t comma = low.find(',');
+        if (comma == std::string::npos || low.find(".group") == std::string::npos) continue;
+        std::vector<std::string> f = SplitComma(line.substr(comma + 1));
+        if (f.size() < 2) continue;
+        std::string option = Lower(f[1]);
+        for (JValue& a : r.animations.arr) {
+            if ((a["base"].asInt(0) >= 10) != kero || !a["bind"].isObj()) continue;
+            if (a["bind"]["category"].asStr() != f[0]) continue;
+            JValue bind = a["bind"];
+            bind.set("option", JValue::makeStr(option));
             a.set("bind", bind);
         }
     }

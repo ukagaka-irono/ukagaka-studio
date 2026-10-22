@@ -550,9 +550,8 @@ What you can do:
 * **Groups** of random talks (morning talks, season talks, …) and a block that calls one of them
 * For when you really need it, a block that “outputs Sakura Script as is”
 
-Not there yet (how to add things is in “Adding one block” in [`docs/en/maintenance.md`](docs/en/maintenance.md)):
-
-* Detailed dress-up rules (`mustselect` / `multiple` of `sakura.bindoptionN.group`, `addid`) are not exported yet
+Nothing is listed as missing right now. To add something, see “Adding one block” in
+[`docs/en/maintenance.md`](docs/en/maintenance.md).
 
 ---
 

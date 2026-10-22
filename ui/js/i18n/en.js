@@ -559,6 +559,12 @@ export const en = {
   'よこの倍率 %': 'width %',
   'たての倍率 %': 'height %',
   'はじめから': 'at start',
+  'えらびかた': 'selection',
+  '1 つだけ（外せる）': 'one at most (can be removed)',
+  'かならず 1 つ': 'exactly one',
+  'いくつでも': 'any number',
+  '1 つ以上いくつでも': 'one or more',
+  'いっしょに着る（番号）': 'also wear (numbers)',
   '着ない': 'not worn',
   '着る': 'worn',
   '着せ替えは、種類と名前を入れると SSP のメニューに出ます（「着せ替える」ブロックでも切りかえられます）。':
