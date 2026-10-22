@@ -1,4 +1,4 @@
-// 伺かスタジオ - ためす・書き出したゴーストの記憶（ikaga_save.json）と記録（ikaga_debug.txt）
+// 伺かスタジオ - ためす・書き出したゴーストの記憶（yaya_variable.cfg）と記録（studio_debug.txt）
 #include "api.h"
 #include "api_util.h"
 #include "exporter.h"
@@ -46,7 +46,8 @@ void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     Json(res, 200, o);
 }
 
-// POST /api/save/reset … 書き出したゴーストが覚えている変数（ikaga_save.json）を消す。
+// POST /api/save/reset … 書き出したゴーストが覚えている変数（YAYA の yaya_variable.cfg）を消す。
+// 前に如何栞で書き出したものの ikaga_save.json も、あれば消します。
 // 好感度などが変な値で固まったとき、手でファイルを消さずにやり直せるように。
 void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
     JValue body;
@@ -66,8 +67,9 @@ void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
 
     JValue deleted = JValue::makeArr();
     for (size_t i = 0; i < roots.size(); i++) {
-        std::wstring p = PathJoin(PathJoin(PathJoin(PathJoin(roots[i], wfolder),
-                                                   L"ghost"), L"master"), L"ikaga_save.json");
+        std::wstring master = PathJoin(PathJoin(PathJoin(roots[i], wfolder), L"ghost"), L"master");
+        DeleteFileIfExists(PathJoin(master, L"ikaga_save.json"));
+        std::wstring p = PathJoin(master, L"yaya_variable.cfg");
         bool dup = false;
         for (size_t k = 0; k < deleted.size(); k++) {
             if (deleted.at(k).asStr() == WideToUtf8(p)) { dup = true; break; }
@@ -82,7 +84,8 @@ void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
     Json(res, 200, o);
 }
 
-// POST /api/ghost/log … 栞の記録（ikaga_debug.txt）。栞は「そのファイルがあるときだけ」書きます。
+// POST /api/ghost/log … ゴーストの記録（studio_debug.txt）。しくみの辞書（studio_runtime.dic）は
+// 「そのファイルがあるときだけ」書きます。
 //   action 無し … 読む   "start" … 空のファイルを作って記録を始める   "clear" … 消す
 void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
     JValue body;
@@ -110,8 +113,8 @@ void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
 
     for (size_t i = 0; i < roots.size(); i++) {
         std::wstring dir = PathJoin(PathJoin(PathJoin(roots[i], wfolder), L"ghost"), L"master");
-        if (!PathExists(PathJoin(dir, L"ikaga.dll"))) continue;   // 書き出していない場所
-        std::wstring p = PathJoin(dir, L"ikaga_debug.txt");
+        if (!PathExists(PathJoin(dir, L"yaya.dll"))) continue;   // 書き出していない場所
+        std::wstring p = PathJoin(dir, L"studio_debug.txt");
         places.arr.push_back(JValue::makeStr(WideToUtf8(p)));
 
         if (action == "start") {

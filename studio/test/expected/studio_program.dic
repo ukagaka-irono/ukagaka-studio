@@ -1,0 +1,150 @@
+== folder: export-test / 22 ファイル
+---- ghost/master/studio_program.dic (3732 バイト)
+//==============================================================================
+// 伺かスタジオが、ブロックから書き出した辞書です（studio_program.dic）。
+// 書き出すたびに作りなおすので、手で直さないでください。手で書くものは、べつの辞書に。
+// ブロックが使う Studio.〜 の関数は、studio_runtime.dic にあります。
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// ゴーストの情報・設定・かたまりの一覧・変数の初期値
+//------------------------------------------------------------------------------
+Studio.Program.Init : void
+{
+	Studio.meta.name = '書き出しテスト'
+	Studio.meta.sakuraName = 'なしこ'
+	Studio.meta.lang = ''
+	Studio.set.interval = 120
+	Studio.set.enabled = 1
+	Studio.set.noRepeat = 3
+	Studio.Def('s_boot', 'Studio.Script.s_boot', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
+	Studio.Def('s_head', 'Studio.Script.s_head', 'event', 'OnNadeNade', '', '', 1.0, 0, 'Head', 0, '', '', 0)
+	Studio.Def('s_comm', 'Studio.Script.s_comm', 'event', 'OnCommunicate', '', '', 1.0, 0, '', (-1), 'みかん', 'ねえ', 0)
+	Studio.Def('s_mixed', 'Studio.Script.s_mixed', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
+	Studio.Def('s_talk', 'Studio.Script.s_talk', 'talk', '', 'ひとりごと', '', 3.0, 0, '', (-1), '', '', 0)
+	Studio.Def('s_off', 'Studio.Script.s_off', 'talk', '', 'つかわない', '', 1.0, 0, '', (-1), '', '', 1)
+	Studio.Def('s_func', 'Studio.Script.s_func', 'function', '', 'こたえる', '', 1.0, 0, '', (-1), '', '', 0)
+	Studio.InitVar('好感度', 5.0)
+	Studio.InitVar('こたえ', '')
+}
+
+//------------------------------------------------------------------------------
+// イベント（SSP から呼ばれる入り口）
+//------------------------------------------------------------------------------
+
+OnBoot
+{
+	Studio.Event('OnBoot')
+}
+
+OnFirstBoot
+{
+	Studio.Event('OnFirstBoot')
+}
+
+OnClose
+{
+	Studio.Event('OnClose')
+}
+
+OnCloseAll
+{
+	Studio.Event('OnCloseAll')
+}
+
+OnMouseDoubleClick
+{
+	Studio.Event('OnMouseDoubleClick')
+}
+
+OnNadeNade
+{
+	Studio.Event('OnNadeNade')
+}
+
+OnMouseMove
+{
+	Studio.Event('OnMouseMove')
+}
+
+OnSecondChange
+{
+	Studio.Event('OnSecondChange')
+}
+
+OnUserInput
+{
+	Studio.Event('OnUserInput')
+}
+
+OnChoiceSelect
+{
+	Studio.Event('OnChoiceSelect')
+}
+
+OnAnchorSelect
+{
+	Studio.Event('OnAnchorSelect')
+}
+
+OnUpdateComplete
+{
+	Studio.Event('OnUpdateComplete')
+}
+
+OnUpdateFailure
+{
+	Studio.Event('OnUpdateFailure')
+}
+
+OnCommunicate
+{
+	Studio.Event('OnCommunicate')
+}
+
+//------------------------------------------------------------------------------
+// かたまり
+//------------------------------------------------------------------------------
+
+// OnBoot  (s_boot)
+Studio.Script.s_boot : void
+{
+	Studio.Say(0, 'おはよう。', 1)
+}
+
+// OnNadeNade  (s_head)
+Studio.Script.s_head : void
+{
+	Studio.Say(0, 'えへへ。', 1)
+}
+
+// OnCommunicate  (s_comm)
+Studio.Script.s_comm : void
+{
+	Studio.Say(0, 'みかんだ。', 1)
+}
+
+// OnBoot  (s_mixed)
+Studio.Script.s_mixed : void
+{
+	Studio.Say(0, 'しぼり込みなし。', 1)
+}
+
+// ランダムトーク「ひとりごと」  (s_talk)
+Studio.Script.s_talk : void
+{
+	Studio.Say(0, 'ひまだなあ。', 1)
+}
+
+// ランダムトーク「つかわない」（無効）  (s_off)
+Studio.Script.s_off : void
+{
+	Studio.Say(0, 'でない。', 1)
+}
+
+// トーク「こたえる」  (s_func)
+Studio.Script.s_func : void
+{
+	Studio.Say(0, 'はい。', 1)
+}
+

@@ -13,6 +13,7 @@
 #include "webreq.h"
 #include "json.h"
 #include "sstp.h"
+#include "exporter.h"
 
 #include <string>
 
@@ -39,7 +40,8 @@ private:
     static const Route kRoutes[];
 
     void HandleApi(const HttpRequest& req, HttpResponse& res);
-    std::string DllBytes() const;
+    // 書き出すゴーストの ghost/master/ に置く YAYA 一式（exe に埋めこんだもの）。無ければ空
+    std::vector<OutFile> YayaKitFiles() const;
     std::wstring DefaultOutDir() const;
     SspInfo Ssp() const;
 

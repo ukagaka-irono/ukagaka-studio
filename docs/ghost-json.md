@@ -2,6 +2,11 @@
 
 English: [en/ghost-json.md](en/ghost-json.md)（英語版。こちらの日本語版が正です）
 
+> **段階 3-5a から、書き出すゴーストは YAYA で動きます。** `ghost.json` は、YAYA の辞書（`studio_program.dic`）に
+> 訳したもとのブロックの写しとして、いまも書き出します（伺かスタジオの「読み込み」で開けます。YAYA は読みません）。
+> 下の「栞」の説明は如何栞のもので、YAYA でも同じ動きになるように作ってあります。保存は `yaya_variable.cfg`、
+> 記録は `studio_debug.txt` です。
+
 如何栞（`ikaga.dll`）は、自分と同じフォルダにある **`ghost.json`** を読んで動きます
 （`ikaga.json` でも可）。エディタを使わず手で書いても構いません。
 

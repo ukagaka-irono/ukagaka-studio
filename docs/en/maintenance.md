@@ -29,7 +29,7 @@ Inside `build.ps1 -Test` it also runs before the build (you learn about a forgot
 
 | Where it runs | Who runs it |
 |---|---|
-| A ghost installed in SSP | for now still `interp.cpp` in `ikaga.dll` (32-bit); replaced by YAYA in 3-6 |
+| A ghost installed in SSP | **YAYA** (exported ghosts carry `yaya.dll` with the translated and runtime dictionaries, from 3-5a) |
 | The editor's “Try” | **YAYA** (the same 32-bit `yaya.dll` that goes into SSP, run by `yaya_host.exe` embedded in the exe) |
 
 The UI (`ui/js/`) does not interpret blocks. It translates them into a YAYA dictionary (`ui/js/model/yaya.js`),

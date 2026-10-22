@@ -23,7 +23,8 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 
 | | |
 |---|---|
-| **如何栞 `ikaga.dll`** | SHIORI/3.0 の DLL（32bit）。**SSP と同じく Windows 2000 から**動きます。会話は C++ ではなく `ghost.json` に入ったブロックで書く。 |
+| **如何栞 `ikaga.dll`** | SHIORI/3.0 の DLL（32bit）。**SSP と同じく Windows 2000 から**動きます。会話は C++ ではなく `ghost.json` に入ったブロックで書く。**段階 3 で YAYA に置きかえ中**で、書き出すゴーストはもう YAYA で動きます（[`docs/roadmap.md`](docs/roadmap.md)） |
+| **栞 YAYA `yaya.dll`** | 書き出すゴーストが使う栞（公式ビルド。Windows 2000 から動きます）。ブロックは YAYA の辞書に訳して書き出します |
 | **伺かスタジオ `ukagaka-studio.exe`** | ブロックエディタ本体（64bit・単体で動く1ファイル）。自前のウィンドウに WebView2 を埋め込んだネイティブアプリ。UI も栞も exe の中。 |
 
 ---
@@ -32,7 +33,7 @@ English: [README.en.md](README.en.md)（英語版。こちらの日本語版が�
 
 |  | |
 |---|---|
-| **書き出したゴースト**（`ikaga.dll` が入ります） | **Windows 2000 以降**。SSP の動作環境に合わせてあります |
+| **書き出したゴースト**（`yaya.dll` が入ります） | **Windows 2000 以降**。SSP の動作環境に合わせてあります |
 | **伺かスタジオ**（`ukagaka-studio.exe`） | **Windows 10 / 11**（WebView2 が要ります） |
 
 ゴーストを**作る**のは新しい Windows で、**配ったゴーストが動く**のは古い Windows から、
@@ -102,7 +103,7 @@ Actions のほうは、実行ページをいちばん下まで送ると **Artifa
 2. その下に **セリフ** の「◯◯が □□ と話す」をつなげます。
 3. 右の **ためす** タブの ▶ で、しゃべる様子とさくらスクリプトを確認できます。
    下に **いまの変数** が出ます。好感度などが変な値で固まったら「ここの変数をもどす」
-   （エディタの中だけ）か「ゴーストの記憶を消す」（書き出したゴーストの `ikaga_save.json`）
+   （エディタの中だけ）か「ゴーストの記憶を消す」（書き出したゴーストの `yaya_variable.cfg`）
    でやり直せます。
 4. 立ち絵は **キャラと絵** の画面の「立ち絵」で、用意した PNG を番号ごとに割り当てられます
    （えらばなかった番号は、指定した色でかんたんな立ち絵を自動生成します）。
@@ -138,8 +139,8 @@ Actions のほうは、実行ページをいちばん下まで送ると **Artifa
 配布用にまとめるときは、同じ画面の「.nar を作る」。
 できた `.nar` を SSP のウィンドウにドラッグ＆ドロップするとインストールできます。
 
-> SSP を動かしたまま書き出し直した場合、栞が数秒以内に `ghost.json` を読み直すので、
-> 手動でのリロードも基本的に要りません。
+> SSP で動いているゴーストに書き出し直すときは、下の「SSP に入れて動かす」を使ってください。
+> 書き出したあと、栞に読みなおさせます（ふつうに書き出しただけでは、YAYA は読みなおしません）。
 
 ### 4. 動いているゴーストで試す（SSTP 連携）
 
@@ -205,7 +206,7 @@ SSP 側で「SSTP を受け付ける」設定が有効（既定でオン）に�
 | `ukagaka-studio.json` | 最後に開いたプロジェクト・書き出し先・ウィンドウの大きさ・言語 |
 | `webview-data\` | WebView2 の作業フォルダ（消しても再生成されます） |
 
-exe のとなりに `ikaga.dll` を置くと、埋め込みのものより **そちらが優先** されます（栞を作り直したときに便利）。
+書き出すゴーストには、exe に埋めこんだ YAYA 一式（`yaya.dll`・`yaya_base`・`studio_runtime.dic`）が入ります。
 
 ---
 
@@ -232,7 +233,7 @@ zip の名前と exe のプロパティ（右クリック→プロパティ→�
 | **一致テスト**（`shiori\test\parity\parity.js`） | 同じ `interp.cpp` を **32bit（SSP に入る栞）** と **64bit（伺かスタジオの「ためす」）** で組んで、同じ `ghost.json` を流し、出てきたさくらスクリプトが一致するか見くらべます（ビット幅に頼った書きかたを見つけます） |
 | **ふるまいテスト**（`shiori\test\behavior\behavior.js`） | 栞だけが持っている判断 — 同じイベントに複数あるときどれを選ぶか、ブロックが無いときの既定の反応（英語のゴーストなら英語で）、`OnClose` の `\-`、「◯秒ごと」の間引き、なでなでの生成、通信の届け先、SAORI（テスト用のおそい DLL を実際に呼びます） — が期待どおりか |
 | **YAYA のテスト**（`shiori\test\yaya\yaya.js`） | 如何栞と置きかえる予定の YAYA（`third_party\yaya\`）が公式のビルドのままで動くか。ブロックを YAYA に訳して、一致テストのゴーストが如何栞と同じ答えになるか（**栞をまたいだ一致テスト**）、ふるまいテストの場面を YAYA でもすべて満たすか、変数が次の起動に残るか |
-| **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
+| **書き出しテスト**（`studio\test\export.js`） | 書き出したファイル（`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic` とファイルの一覧）の中身が期待どおりか。`updates2.dau` は MD5 を node の `crypto` と突き合わせます |
 | **エディタテスト**（`ui\test\editor.js`） | 読みこんだプロジェクトの整形と形の版の確かめ（`model.js`）と、チェックタブが出す注意（`lint.js`）、ブロックを字でさがすところが期待どおりか。お手本がどれもチェックに引っかからないか |
 | **輸入の点検**（`tools\check-imports.js`） | 出来あがった `ikaga.dll` と、YAYA の `yaya.dll` の輸入表を直に読んで、**Windows 2000 に無い API** が混ざっていないか。混ざると、そこから下の Windows ではDLL の読みこみ自体が失敗します |
 | **画面ファイルの点検**（`ui\test\modules.js`） | `ui\js\*.js`（ES モジュール）が入り口の `main.js` からたどれるか、どれを最初に読みこんでも落ちないか、`Xxx.yyy()` の呼び先がそろっているか。ファイルを分けたときの**移し忘れ**を捕まえます。`style.css` の色がトークンを通っているか（暗い表示で色がぬけないように）も見ます |
@@ -333,7 +334,7 @@ ukagaka-studio/
 │       ├── lang.cpp        exe が自分で出す言葉の言語（日本語・英語）
 │       ├── webview.cpp     WebView2 の埋め込みと要求の横取り
 │       ├── webreq.cpp      要求の解析（URL デコードなど）
-│       ├── assets.cpp      exe に埋め込んだ ui\ と ikaga.dll を取り出す
+│       ├── assets.cpp      exe に埋め込んだ ui\ と YAYA 一式を取り出す
 │       ├── sstp.cpp        SSP との連携（SSTP と ssp.exe の検出）
 │       ├── api.cpp         /api/* の受け口（パスと関数の対応表 kRoutes）
 │       ├── api_project.cpp   状態・プロジェクトの保存と読み込み
@@ -344,7 +345,7 @@ ukagaka-studio/
 │       ├── preview.cpp     64bit の如何栞でかたまりを動かす（一致テストの preview_host が使う）
 │       ├── yaya_preview.cpp 「ためす」を YAYA で動かす（yaya_host.exe に頼む）
 │       ├── exporter.cpp    ゴースト一式の組み立てと、フォルダ / .nar への書きこみ
-│       ├── export_program.cpp  ghost.json（栞が読むもの）
+│       ├── export_program.cpp  ghost.json（ブロックの写し。伺かスタジオで読みこみなおすためのもの）
 │       ├── export_shell.cpp    仮の立ち絵・shell の descript.txt・surfaces.txt
 │       ├── export_seriko.cpp   surfaces.txt の SERIKO のうごき
 │       ├── export_balloon.cpp  同梱するバルーン
@@ -410,6 +411,12 @@ ukagaka-studio/
 32bit の手伝い `yaya_host.exe` で、それを動かします（画面側にブロックの解釈はありません）。
 違うのは 2 つだけで、**SAORI は呼びません**（本物の 32bit DLL が要るため）、
 **時計や起動回数は画面から渡します**。如何栞と同じ答えになることは、YAYA のテストが確かめています。
+
+> **書き出すゴーストも、段階 3-5a から YAYA で動きます。** `ghost/master/` に `yaya.dll`・`yaya.txt`・`yaya_base`・
+> しくみの辞書 `studio_runtime.dic`・ブロックを訳した `studio_program.dic` が入ります（`ghost.json` はブロックの写しです）。
+> 動きは如何栞と同じになるように作ってあり（ちがうところはロードマップの 3-3）、下の説明はそのまま当てはまります。
+> ただし変数などは **`yaya_variable.cfg`**（YAYA の保存）に残り、記録は **`studio_debug.txt`** に書きます。
+> 如何栞の説明は、3-6 で YAYA のものに書きなおします。
 
 * SHIORI/3.0 の DLL として `load` / `unload` / `request` を公開しています（`src/ikaga.def`）。
 * 起動時に、DLL と同じフォルダの **`ghost.json`** を読み込みます。
@@ -501,8 +508,8 @@ ukagaka-studio/
 * **人からもらったプロジェクト（.json）は、開く前に中身を確かめてください。**
   立ち絵の画像はパスで指定されているので、書き出すとその画像がゴーストに同梱されます。
   知らないパスが入っていたら、キャラと絵の画面の「立ち絵」で外せます。
-* 栞（`ikaga.dll`）が読む SAORI の DLL は、ゴーストのフォルダの中だけです
-  （`..` や絶対パスは受け付けません）。
+* 栞が読む SAORI の DLL は、ゴーストのフォルダの中だけです
+  （`..` や絶対パスは受け付けません。YAYA で動かすときも、しくみの辞書が同じ決まりで断ります）。
 * **待たない SAORI** が終わらないまま、ゴーストが終わることがあります。栞は 5 秒だけ待って、
   あとは置いていきます（そこで固まらないため）。置いていっても、走っているスレッドが
   消えたメモリや外れた栞を触らないように、置き場を分けあい、栞じしんを押さえています。
@@ -523,7 +530,8 @@ Copyright (c) 2026 月見里　彩葉 (miyagawa-yukinterface)
 ### 作ったゴーストについて
 
 **伺かスタジオで書き出したゴーストは、まるごとあなたのものです。**
-ゴーストの中には `ikaga.dll` が入りますが、それを配るときに
+ゴーストの中には栞（`yaya.dll`。伺かのゴーストに組みこむときは AYA Ver.5 の条件で、自由に配れます）が入りますが、
+伺かスタジオのものを配るときに
 
 * このライセンス文を**同梱する必要はありません**
 * 作者名やソフト名を**どこにも書く必要はありません**

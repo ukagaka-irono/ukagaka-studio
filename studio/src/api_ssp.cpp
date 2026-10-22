@@ -101,8 +101,9 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
         return;
     }
 
-    std::string dll = DllBytes();
-    ExportResult r = ExportToDir(project, ssp.ghostDir, dll,
+    std::string dic = body["dic"].asStr();
+    if (dic.empty()) { JsonError(res, 400, "no_dic"); return; }
+    ExportResult r = ExportToDir(project, ssp.ghostDir, YayaKitFiles(), dic,
                                  body["includeShell"].asBool(true),
                                  body["overwriteShell"].asBool(false));
     if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }

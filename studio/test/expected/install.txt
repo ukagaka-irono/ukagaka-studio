@@ -1,4 +1,4 @@
-== folder: export-test / 12 ファイル
+== folder: export-test / 22 ファイル
 ---- install.txt (78 バイト)
 charset,UTF-8
 type,ghost

@@ -26,7 +26,7 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 
 | どこで動くか | 誰が動かすか |
 |---|---|
-| SSP に入れたゴースト | いまはまだ `ikaga.dll`（32bit）の `interp.cpp`（3-6 で YAYA に置きかえます） |
+| SSP に入れたゴースト | **YAYA**（書き出すゴーストに `yaya.dll` と、訳した辞書・しくみの辞書が入ります。3-5a から） |
 | エディタの「ためす」 | **YAYA**（SSP に入るのと同じ 32bit の `yaya.dll`。exe に埋めこんだ `yaya_host.exe` が動かします） |
 
 画面（`ui/js/`）はブロックを解釈しません。ブロックを YAYA の辞書に訳して（`ui/js/model/yaya.js`）

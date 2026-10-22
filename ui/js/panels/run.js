@@ -121,7 +121,7 @@ function resetSessionVars() {
   toast(t('ためすときの変数を、初期値にもどしました'));
 }
 
-/** 書き出したゴーストが覚えている変数（ikaga_save.json）を消す */
+/** 書き出したゴーストが覚えている変数（YAYA の yaya_variable.cfg）を消す */
 async function resetGhostSave() {
   try {
     const r = await api('/api/save/reset', {
@@ -137,7 +137,7 @@ async function resetGhostSave() {
   }
 }
 
-/** 栞の記録（ikaga_debug.txt）を読む・はじめる・やめる
+/** ゴーストの記録（studio_debug.txt）を読む・はじめる・やめる
  *
  * 栞は「ファイルがあるときだけ」書くので、記録をはじめる＝空ファイルを作る、です。
  * SAORI が呼べなかった理由など、画面に出ない事情はここに残ります。

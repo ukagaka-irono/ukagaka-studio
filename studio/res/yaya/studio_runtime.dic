@@ -93,6 +93,22 @@ OnGhostLoad.Studio : void
 	Studio.found = 0
 	// 「ためす」（studio_preview.dic）は 1 にして、SAORI を呼ばない
 	Studio.noSaori = 0
+
+	Studio.Log('loaded（かたまり ' + ARRAYSIZE(Studio.s.id) + ' こ）')
+	// 辞書を読んだときの YAYA の注意も、記録に残す
+	foreach GETERRORLOG; _e { Studio.Log('YAYA: ' + _e) }
+}
+
+// 記録（studio_debug.txt）。そのファイルがあるときだけ書きます（伺かスタジオの「記録をはじめる」で作ります）
+Studio.Log : void
+{
+	if FSIZE('studio_debug.txt') < 0 { return }
+	_t = GETTIME
+	_line = '[' + STRFORM('$02d:$02d:$02d', _t[4], _t[5], _t[6]) + '] ' + REPLACE(REPLACE(TOSTR(_argv[0]), CHR(13), ''), CHR(10), ' ')
+	if FOPEN('studio_debug.txt', 'a') {
+		void FWRITE('studio_debug.txt', _line)
+		void FCLOSE('studio_debug.txt')
+	}
 }
 
 OnGhostUnload.Studio : void
@@ -231,7 +247,10 @@ Studio.Dispatch
 			Studio.timerDue = Studio.Without(Studio.timerDue, _i)
 			Studio.timerName = Studio.Without(Studio.timerName, _i)
 			_k = Studio.FindCallable(_name)
-			if _k < 0 { break }
+			if _k < 0 {
+				Studio.Log('later: そんな名前のトークはありません: ' + _name)
+				break
+			}
 			_tout = Studio.RunOne(_k)
 			if _tout != '' {
 				Studio.sinceTalk = 0
@@ -728,7 +747,14 @@ Studio.Saori
 		''
 		return
 	}
+	// ゴーストのフォルダから外へ出る指定（.. ・C:\ ・先頭の \ /）は受け付けない（如何栞と同じ）
+	if STRSTR(_file, '..', 0) >= 0 || STRSTR(_file, ':', 0) >= 0 || SUBSTR(_file, 0, 1) == '\' || SUBSTR(_file, 0, 1) == '/' {
+		Studio.Log('SAORI のファイル名が使えません（ゴーストのフォルダの中だけ）: ' + _file)
+		''
+		return
+	}
 	if FUNCTIONLOAD(_file) == 0 {
+		Studio.Log('SAORI を読みこめません: ' + _file)
 		''
 		return
 	}

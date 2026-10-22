@@ -14,9 +14,9 @@ static const char* kStudioVersion = "1.0.0";
 // GET /api/state … 起動したときに画面が読む（栞の有無・プロジェクトの一覧・SSP）
 void Api::GetState(const HttpRequest&, HttpResponse& res) {
     JValue o = JValue::makeObj();
-    std::string dll = DllBytes();
-    o.set("dllFound", JValue::makeBool(!dll.empty()));
-    o.set("dll", JValue::makeStr(dll.empty() ? "" : "ikaga.dll"));
+    bool kit = !YayaKitFiles().empty();
+    o.set("dllFound", JValue::makeBool(kit));
+    o.set("dll", JValue::makeStr(kit ? "yaya.dll" : ""));
     o.set("version", JValue::makeStr(kStudioVersion));
 
     JValue list = JValue::makeArr();

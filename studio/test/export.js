@@ -4,9 +4,12 @@
  *   node studio\test\export.js --update   いまの出力を期待値として保存しなおす
  *
  * 栞のほうは parity / behavior で守られていますが、スタジオが書き出すファイル
- * （surfaces.txt・descript.txt・ghost.json）は形が崩れても気づけませんでした。
+ * （surfaces.txt・descript.txt・ghost.json・yaya.txt・studio_program.dic）は形が崩れても気づけませんでした。
  * ここで材料のプロジェクトを export_host.exe に流して、出てきた中身を
  * studio/test/expected/ の期待値とバイトで見くらべます。
+ *
+ * ブロックを YAYA に訳した辞書（studio_program.dic）は画面（ui/js/model/yaya.js）が作るので、
+ * ここで同じものを作って export_host に --dic で渡します。
  *
  * updates2.dau だけは期待値ファイルではなく、node の crypto で計算した MD5 と
  * 突き合わせます（同じ計算をもう一度書くのではなく、別の実装と合うかを見ます）。
@@ -40,6 +43,22 @@ if (!fs.existsSync(host)) {
 /** export_host を動かして、出てきたバイト列を返す */
 function run(args) {
   return execFileSync(host, args, { encoding: 'buffer', maxBuffer: 1 << 26 });
+}
+
+// 材料ごとの studio_program.dic（画面と同じ ui/js/model/yaya.js で訳す。ES モジュールなので別の node で）
+const dicDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-dic-'));
+process.on('exit', () => fs.rmSync(dicDir, { recursive: true, force: true }));
+function dicFor(fixture) {
+  const out = path.join(dicDir, `${fixture}.dic`);
+  if (!fs.existsSync(out)) {
+    const yaya = require('url').pathToFileURL(path.join(root, 'ui', 'js', 'model', 'yaya.js')).href;
+    const code = `import { toYaya, programOf } from ${JSON.stringify(yaya)};
+import fs from 'fs';
+const p = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+fs.writeFileSync(process.argv[2], toYaya(programOf(p)));`;
+    execFileSync(process.execPath, ['--input-type=module', '-e', code, path.join(fixtureDir, fixture), out]);
+  }
+  return out;
 }
 
 let failed = 0;
@@ -104,11 +123,21 @@ const cases = [
   ['en.json', 'ghost/master/descript.txt', 'en-descript.txt'],
   ['en.json', 'balloon/descript.txt', 'en-balloon-descript.txt'],
   ['en.json', 'ghost/master/ghost.json', 'en-program.json'],
+  // YAYA で動かすためのもの（yaya.txt・訳した辞書）。辞書のコメントはゴーストの言語
+  ['ghost.json', 'ghost/master/yaya.txt', 'yaya-txt.txt'],
+  ['ghost.json', 'ghost/master/studio_program.dic', 'studio_program.dic'],
+  ['en.json', 'ghost/master/studio_program.dic', 'en-studio_program.dic'],
+  // ファイルの一覧（YAYA 一式が ghost/master/ に入ること）。大きさは、しくみの辞書を直すたびに変わるので見ない
+  ['ghost.json', '', 'files.txt', 'namesOnly'],
 ];
 
 console.log('  ---- 書き出したファイルの中身');
-for (const [fixture, want, expected] of cases) {
-  compare(expected, run([path.join(fixtureDir, fixture), want]));
+for (const [fixture, want, expected, how] of cases) {
+  const args = [path.join(fixtureDir, fixture)];
+  if (want) args.push(want);
+  let got = run([...args, '--dic', dicFor(fixture)]);
+  if (how === 'namesOnly') got = Buffer.from(got.toString('utf8').replace(/ \(\d+ バイト\)/g, ''), 'utf8');
+  compare(expected, got);
 }
 
 // ------------------------------------------------- ネットワーク更新の照合表
@@ -124,6 +153,8 @@ try {
     // これは配ってはいけないもの（使う人の持ちもの・作業用）
     'ghost\\master\\ikaga_save.json': Buffer.from('{"好感度":99}', 'utf8'),
     'ghost\\master\\ikaga_debug.txt': Buffer.from('log', 'utf8'),
+    'ghost\\master\\yaya_variable.cfg': Buffer.from('Studio.boots, 3', 'utf8'),
+    'ghost\\master\\studio_debug.txt': Buffer.from('log', 'utf8'),
     'delete.txt': Buffer.from('old.txt\r\n', 'utf8'),
   };
   for (const rel of Object.keys(files)) {

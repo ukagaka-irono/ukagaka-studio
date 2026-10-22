@@ -1,0 +1,7 @@
+== folder: export-test / 22 ファイル
+---- ghost/master/yaya.txt (85 バイト)
+charset, UTF-8
+dicdir, yaya_base
+dic, studio_runtime.dic
+dic, studio_program.dic
+

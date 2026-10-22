@@ -1,4 +1,4 @@
-== folder: fukidashi / 17 ファイル
+== folder: fukidashi / 27 ファイル
 ---- balloon/descript.txt (315 バイト)
 charset,UTF-8
 type,balloon

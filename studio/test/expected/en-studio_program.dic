@@ -1,0 +1,101 @@
+== folder: ikaga-ghost / 27 ファイル
+---- ghost/master/studio_program.dic (2144 バイト)
+//==============================================================================
+// Dictionary exported from blocks by Ukagaka Studio (studio_program.dic).
+// It is rewritten on every export, so do not edit it by hand; put hand-written code in another dictionary.
+// The Studio.* functions the blocks use are in studio_runtime.dic.
+//==============================================================================
+
+//------------------------------------------------------------------------------
+// ghost info, settings, the list of scripts and initial values of variables
+//------------------------------------------------------------------------------
+Studio.Program.Init : void
+{
+	Studio.meta.name = 'New Ghost'
+	Studio.meta.sakuraName = 'Sakura'
+	Studio.meta.lang = 'en'
+	Studio.set.interval = 180
+	Studio.set.enabled = 1
+	Studio.set.noRepeat = 0
+	Studio.Def('e_boot', 'Studio.Script.e_boot', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
+}
+
+//------------------------------------------------------------------------------
+// events (entry points called by SSP)
+//------------------------------------------------------------------------------
+
+OnBoot
+{
+	Studio.Event('OnBoot')
+}
+
+OnFirstBoot
+{
+	Studio.Event('OnFirstBoot')
+}
+
+OnClose
+{
+	Studio.Event('OnClose')
+}
+
+OnCloseAll
+{
+	Studio.Event('OnCloseAll')
+}
+
+OnMouseDoubleClick
+{
+	Studio.Event('OnMouseDoubleClick')
+}
+
+OnNadeNade
+{
+	Studio.Event('OnNadeNade')
+}
+
+OnMouseMove
+{
+	Studio.Event('OnMouseMove')
+}
+
+OnSecondChange
+{
+	Studio.Event('OnSecondChange')
+}
+
+OnUserInput
+{
+	Studio.Event('OnUserInput')
+}
+
+OnChoiceSelect
+{
+	Studio.Event('OnChoiceSelect')
+}
+
+OnAnchorSelect
+{
+	Studio.Event('OnAnchorSelect')
+}
+
+OnUpdateComplete
+{
+	Studio.Event('OnUpdateComplete')
+}
+
+OnUpdateFailure
+{
+	Studio.Event('OnUpdateFailure')
+}
+
+//------------------------------------------------------------------------------
+// scripts
+//------------------------------------------------------------------------------
+
+// OnBoot  (e_boot)
+Studio.Script.e_boot : void
+{
+	Studio.Say(0, 'I have no name.', 1)
+}
+

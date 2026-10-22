@@ -18,20 +18,23 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
 
     std::string outUtf8 = body["outDir"].asStr();
     std::wstring outDir = outUtf8.empty() ? outputDir_ : Utf8ToWide(outUtf8);
-    std::string dll = DllBytes();
+    // 画面がブロックを YAYA に訳した辞書（ui/js/model/yaya.js）
+    std::string dic = body["dic"].asStr();
+    if (dic.empty()) { JsonError(res, 400, "no_dic"); return; }
+    std::vector<OutFile> kit = YayaKitFiles();
     bool includeShell = body["includeShell"].asBool(true);
     bool overwriteShell = body["overwriteShell"].asBool(false);
     bool nar = body["mode"].asStr() == "nar";
 
-    ExportResult r = nar ? ExportToNar(project, outDir, dll, includeShell)
-                         : ExportToDir(project, outDir, dll, includeShell, overwriteShell);
+    ExportResult r = nar ? ExportToNar(project, outDir, kit, dic, includeShell)
+                         : ExportToDir(project, outDir, kit, dic, includeShell, overwriteShell);
     if (!r.ok) { JsonError(res, 500, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
     WriteConfig(configPath_, "lastOutDir", WideToUtf8(outDir));
 
     JValue o = JValue::makeObj();
     o.set("mode", JValue::makeStr(nar ? "nar" : "dir"));
     o.set("folder", JValue::makeStr(r.folder));
-    o.set("dll", JValue::makeBool(!dll.empty()));
+    o.set("dll", JValue::makeBool(!kit.empty()));
     o.set("root", JValue::makeStr(WideToUtf8(r.root)));
     o.set("path", JValue::makeStr(WideToUtf8(r.root)));
     JValue written = JValue::makeArr();

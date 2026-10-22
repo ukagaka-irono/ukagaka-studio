@@ -1,5 +1,5 @@
-== folder: ikaga-ghost / 17 ファイル
----- ghost/master/descript.txt (209 バイト)
+== folder: ikaga-ghost / 27 ファイル
+---- ghost/master/descript.txt (208 バイト)
 charset,UTF-8
 type,ghost
 name,New Ghost
@@ -8,7 +8,7 @@ kero.name,Kero
 craftman,Tester
 craftmanw,Tester
 craftmanurl,
-shiori,ikaga.dll
+shiori,yaya.dll
 sakura.seriko.defaultsurface,0
 kero.seriko.defaultsurface,10
 

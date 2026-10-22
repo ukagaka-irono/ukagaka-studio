@@ -1,0 +1,23 @@
+== folder: export-test / 22 ファイル
+---- install.txt
+---- readme.txt
+---- ghost/master/descript.txt
+---- ghost/master/ghost.json
+---- ghost/master/yaya.txt
+---- ghost/master/studio_program.dic
+---- ghost/master/yaya.dll
+---- ghost/master/yaya_base/_loading_order.txt
+---- ghost/master/yaya_base/compatible.dic
+---- ghost/master/yaya_base/config.dic
+---- ghost/master/yaya_base/lint.dic
+---- ghost/master/yaya_base/optional.dic
+---- ghost/master/yaya_base/shiori3.dic
+---- ghost/master/studio_runtime.dic
+---- shell/master/surface0.png
+---- shell/master/surface1.png
+---- shell/master/surface2.png
+---- shell/master/surface10.png
+---- shell/master/surface11.png
+---- shell/master/surface12.png
+---- shell/master/descript.txt
+---- shell/master/surfaces.txt

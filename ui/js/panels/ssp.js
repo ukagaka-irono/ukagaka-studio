@@ -5,6 +5,7 @@
  */
 
 import { Model } from '../model/model.js';
+import { programOf, toYaya } from '../model/yaya.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -117,6 +118,7 @@ async function installToSsp() {
       method: 'POST',
       body: {
         project: Model.project,
+        dic: toYaya(programOf(Model.project)),   // ブロックを YAYA に訳した辞書（model/yaya.js）
         includeShell: $('#export-shell').checked,
         overwriteShell: $('#export-overwrite').checked,
         activate: true,

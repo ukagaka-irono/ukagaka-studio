@@ -55,16 +55,22 @@ std::string RenderSurfacePng(int surfaceId, const std::string& hairHex, const st
 // プロジェクトでその番号に割り当てた画像ファイルのパス（無ければ空）
 std::string ShellImagePath(const JValue& project, int surfaceId);
 
-std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& dll,
-                                     bool includeShell, std::string* folderOut);
+// YAYA で動かすときの yaya.txt（書き出すゴーストのもの。画面の yayaTxt() と同じ中身）
+std::string YayaTxt();
+
+// ゴースト一式のファイル。
+//   kit … ghost/master/ に置く YAYA 一式（yaya.dll・yaya_base/…・studio_runtime.dic）。名前は master からの相対
+//   dic … 画面がブロックを訳した studio_program.dic（ui/js/model/yaya.js の toYaya）
+std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<OutFile>& kit,
+                                     const std::string& dic, bool includeShell, std::string* folderOut);
 
 // ネットワーク更新の照合表（updates2.dau）を、そのフォルダの中身から作る
 std::string BuildUpdatesDau(const std::wstring& root);
 
-ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::string& dll,
-                         bool includeShell, bool overwriteShell);
+ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
+                         const std::string& dic, bool includeShell, bool overwriteShell);
 
-ExportResult ExportToNar(const JValue& project, const std::wstring& outDir, const std::string& dll,
-                         bool includeShell);
+ExportResult ExportToNar(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
+                         const std::string& dic, bool includeShell);
 
 } // namespace ikaga

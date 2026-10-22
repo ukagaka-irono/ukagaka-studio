@@ -216,7 +216,7 @@ See “Network updates” in the [README](../../README.en.md) for details.
 | V (read the value) | `{"type":"var","name":"V"}` |
 
 A variable's initial value is kept in the project's `variables`, and its actual value
-is saved in the ghost's `ikaga_save.json`.
+is saved in the ghost's `yaya_variable.cfg` (YAYA's own saving; `ikaga_save.json` under ikaga SHIORI).
 
 ## Operators (values and conditions)
 
@@ -241,7 +241,7 @@ Yes/no is treated as the numbers **1 / 0** (dropped into speech, it comes out as
 `file` is relative to the ghost folder; `..` and absolute paths are not allowed.
 The DLL must be **32-bit, like the SHIORI**. A `value` of `-1` takes `Result:`;
 `0` and up take `Value0:` onward. If the call fails it returns an empty string, and
-the reason goes to `ikaga_debug.txt` (it is logged if you create an empty file next to `ikaga.dll`).
+the reason goes to `studio_debug.txt` (it is logged if you create an empty file next to `yaya.dll`; “Start logging” in Ukagaka Studio creates it too).
 A loaded DLL stays loaded until the ghost closes.
 The preview cannot load real DLLs, so it **always returns empty**. Check in SSP.
 

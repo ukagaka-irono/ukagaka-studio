@@ -1,4 +1,4 @@
-== folder: ikaga-ghost / 17 ファイル
+== folder: ikaga-ghost / 27 ファイル
 ---- balloon/descript.txt (327 バイト)
 charset,UTF-8
 type,balloon

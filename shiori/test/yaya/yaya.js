@@ -155,6 +155,38 @@ async function main() {
     if (sameForm === forms.length) ok('画面で作る書き出しの形が、exe の書き出しと同じです', `${forms.length} 件`);
   }
 
+  // ---- 4d. exe が書き出したゴーストが、そのまま YAYA で動くか ---------------------
+  // export_host.exe（exe と同じ書き出し）で書き出したフォルダの ghost/master を、そのまま YAYA で動かし、
+  // 同じプロジェクトを訳して動かしたものと同じ答えになるかを見ます
+  {
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const fixture = path.join(host.root, 'studio', 'test', 'fixture', 'ghost.json');
+    const project = readJson(fixture);
+    const { toYaya, programOf } = await host.yayaTranslator();
+    const dir = path.join(__dirname, 'work', 'export');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    const dicFile = path.join(dir, 'studio_program.dic.in');
+    fs.writeFileSync(dicFile, toYaya(programOf(project)));
+    require('child_process').execFileSync(exportHost, [fixture, '--write', dir, '--dic', dicFile]);
+    const master = path.join(dir, 'ghost', 'master');
+    const events = [...new Set(programOf(project).scripts.filter((s) => s.kind === 'event').map((s) => s.event))];
+    const specs = ['OnBoot', ...events.filter((e) => e !== 'OnBoot' && e !== 'OnSecondChange'), 'OnClose'];
+    const exported = host.runYaya(master, specs);
+    const direct = await host.runYayaProgram('export-direct', programOf(project), specs);
+    checks++;
+    // 材料にはランダムなブロックもあるので、答えの中身ではなく「答えたか（200 か 204 か）」をくらべ、
+    // 辞書そのものはバイトで見くらべます
+    const diff = specs.filter((s, i) => (exported[i] || {}).status !== (direct[i] || {}).status);
+    const descript = fs.readFileSync(path.join(master, 'descript.txt'), 'utf8');
+    const sameDic = fs.readFileSync(path.join(master, 'studio_program.dic'), 'utf8') === fs.readFileSync(dicFile, 'utf8');
+    if (diff.length || !sameDic || !/^shiori,yaya\.dll$/m.test(descript) || !(exported[0] || {}).value) {
+      fails.push(`書き出したゴーストを YAYA で動かした答えがちがいます: ${diff.join(' ') || '（辞書・descript.txt か OnBoot）'}`);
+    } else {
+      ok('exe が書き出したゴーストが、そのまま YAYA で動きます', `${specs.length} イベント`);
+    }
+  }
+
   // ---- 5. ふるまいテストの場面 -------------------------------------------------
   let good = 0;
   for (let i = 0; i < scenarios.length; i++) {
@@ -184,7 +216,18 @@ async function main() {
     }],
   };
   const first = await host.runYayaProgram('save', counter, ['OnBoot', 'OnCount']);
+  const logFile = path.join(__dirname, 'work', 'save', 'studio_debug.txt');
+  checks++;
+  if (fs.existsSync(logFile)) fails.push('studio_debug.txt が無いのに、記録が作られました');
+  fs.writeFileSync(logFile, '');            // 伺かスタジオの「記録をはじめる」と同じ（空のファイルを置く）
   const second = await host.runYayaProgram('save', counter, ['OnBoot', 'OnCount'], true);
+  checks++;
+  const log = fs.readFileSync(logFile, 'utf8');
+  if (!/^\[\d\d:\d\d:\d\d\] loaded（かたまり 1 こ）\r?$/m.test(log)) {
+    fails.push(`記録（studio_debug.txt）に、読みこんだことが書かれていません:\n      ${JSON.stringify(log.slice(0, 200))}`);
+  } else {
+    ok('記録は studio_debug.txt があるときだけ書かれます');
+  }
   expect('はじめての起動（回数/起動回数）', (first[1] || {}).value, '\\01/1\\e');
   expect('起動しなおしても、変数と起動回数が残る', (second[1] || {}).value, '\\02/2\\e');
   if ((second[1] || {}).value === '\\02/2\\e') ok('変数と起動回数が、次の起動に残ります');

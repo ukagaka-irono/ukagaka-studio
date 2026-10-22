@@ -1,16 +1,20 @@
 // 伺かスタジオ - 書き出しの中身を見るためのコンソール
 //
-//   export_host.exe <project.json> [ファイル名の一部]
+//   export_host.exe <project.json> [ファイル名の一部] [--dic <studio_program.dic>]
 //
 // プロジェクトを読んで、書き出されるファイルの一覧と中身を出します。
 // 第 2 引数を付けると、名前にそれをふくむファイルの中身だけを出します。
 // surfaces.txt の中身（当たり判定・SERIKO のアニメーション）を確かめるのに使います。
+//
+// YAYA 一式（yaya.dll・yaya_base・studio_runtime.dic）は、リポジトリのものを入れます。
+// ブロックを訳した辞書は画面（ui/js/model/yaya.js）が作るので、--dic で渡します（無ければ空）。
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstdio>
 #include <string>
 #include <io.h>
 #include <fcntl.h>
+#include <algorithm>
 
 #include "exporter.h"
 #include "json.h"
@@ -19,13 +23,50 @@
 
 using namespace ikaga;
 
+// リポジトリの YAYA 一式（exe なら埋めこんだものを使うところ）。この exe は studio\test\ にあります
+static std::vector<OutFile> KitFromRepo() {
+    std::vector<OutFile> kit;
+    std::wstring repo = ParentDir(ParentDir(ExeDir()));
+    struct One { std::wstring from; std::string name; };
+    std::vector<One> list;
+    list.push_back({ PathJoin(repo, L"third_party\\yaya\\yaya.dll"), "yaya.dll" });
+    std::wstring base = PathJoin(repo, L"third_party\\yaya-dic\\yaya_base");
+    std::vector<std::wstring> names = ListFilesDeep(base);
+    std::sort(names.begin(), names.end());
+    for (size_t i = 0; i < names.size(); i++) {
+        list.push_back({ PathJoin(base, names[i]), "yaya_base/" + WideToUtf8(names[i]) });
+    }
+    list.push_back({ PathJoin(repo, L"studio\\res\\yaya\\studio_runtime.dic"), "studio_runtime.dic" });
+    for (size_t i = 0; i < list.size(); i++) {
+        OutFile f;
+        f.shell = false;
+        f.name = list[i].name;
+        if (ReadBinaryFile(list[i].from, f.data)) kit.push_back(f);
+    }
+    return kit;
+}
+
+// --dic <ファイル> を取り出す（引数の並びからは外す）
+static std::string TakeDic(int& argc, wchar_t** argv) {
+    std::string dic;
+    for (int i = 1; i + 1 < argc; i++) {
+        if (std::wstring(argv[i]) != L"--dic") continue;
+        ReadBinaryFile(argv[i + 1], dic);
+        for (int k = i; k + 2 < argc; k++) argv[k] = argv[k + 2];
+        argc -= 2;
+        break;
+    }
+    return dic;
+}
+
 int wmain(int argc, wchar_t** argv) {
     SetConsoleOutputCP(CP_UTF8);
     // 書き出したものをそのまま出す（\n を \r\n に化けさせない）。
     // 答え合わせテストが中身をバイトで見くらべるので、ここは素通しにします。
     _setmode(_fileno(stdout), _O_BINARY);
+    const std::string dic = TakeDic(argc, argv);
     if (argc < 2) {
-        printf("usage: export_host <project.json> [name-filter]\n");
+        printf("usage: export_host <project.json> [name-filter] [--dic file]\n");
         return 1;
     }
 
@@ -52,7 +93,7 @@ int wmain(int argc, wchar_t** argv) {
         std::string perr;
         if (!JsonParse(src, proj, perr)) { printf("JSON が壊れています: %s\n", perr.c_str()); return 3; }
         std::wstring dir = argv[3];
-        std::vector<OutFile> out = BuildGhostFiles(proj, std::string(), true, NULL);
+        std::vector<OutFile> out = BuildGhostFiles(proj, KitFromRepo(), dic, true, NULL);
         for (size_t i = 0; i < out.size(); i++) {
             std::wstring rel = Utf8ToWide(out[i].name);
             for (size_t k = 0; k < rel.size(); k++) if (rel[k] == L'/') rel[k] = L'\\';
@@ -81,8 +122,7 @@ int wmain(int argc, wchar_t** argv) {
     if (argc >= 3) want = WideToUtf8(argv[2]);
 
     std::string folder;
-    // dll は中身を見ないので空でよい
-    std::vector<OutFile> files = BuildGhostFiles(project, std::string(), true, &folder);
+    std::vector<OutFile> files = BuildGhostFiles(project, KitFromRepo(), dic, true, &folder);
     printf("== folder: %s / %u ファイル\n", folder.c_str(), (unsigned)files.size());
 
     for (size_t i = 0; i < files.size(); i++) {

@@ -28,7 +28,8 @@ Both are native Windows programs (C++ / MSVC); no runtime needs to be installed.
 
 | | |
 |---|---|
-| **ikaga SHIORI `ikaga.dll`** | A SHIORI/3.0 DLL (32-bit). Runs **from Windows 2000, like SSP**. Dialogue is written as blocks in `ghost.json`, not in C++. |
+| **ikaga SHIORI `ikaga.dll`** | A SHIORI/3.0 DLL (32-bit). Runs **from Windows 2000, like SSP**. Dialogue is written as blocks in `ghost.json`, not in C++. **Being replaced by YAYA in stage 3**; exported ghosts already run on YAYA ([`docs/roadmap.md`](docs/roadmap.md)) |
+| **YAYA SHIORI `yaya.dll`** | The SHIORI exported ghosts use (the official build; runs from Windows 2000). Blocks are translated into a YAYA dictionary on export |
 | **Ukagaka Studio `ukagaka-studio.exe`** | The block editor itself (64-bit, a single self-contained file). A native app with WebView2 embedded in its own window. The UI and the SHIORI are both inside the exe. |
 
 ---
@@ -37,7 +38,7 @@ Both are native Windows programs (C++ / MSVC); no runtime needs to be installed.
 
 |  | |
 |---|---|
-| **Exported ghosts** (they contain `ikaga.dll`) | **Windows 2000 or later**, matching what SSP supports |
+| **Exported ghosts** (they contain `yaya.dll`) | **Windows 2000 or later**, matching what SSP supports |
 | **Ukagaka Studio** (`ukagaka-studio.exe`) | **Windows 10 / 11** (needs WebView2) |
 
 You **make** ghosts on a recent Windows, and the **ghosts you hand out** run on old Windows too.
@@ -110,7 +111,7 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
 3. With ▶ in the **Try** tab on the right, you see how it talks and its Sakura Script.
    **Current variables** are shown below. If something like affection gets stuck at a strange value,
    start over with “Reset these variables” (inside the editor only) or “Clear the ghost's memory”
-   (the exported ghost's `ikaga_save.json`).
+   (the exported ghost's `yaya_variable.cfg`).
 4. On the **Characters** page, under “Surfaces”, you can assign your own PNG images to surface numbers
    (numbers you leave out get a simple picture drawn in the colors you choose).
    Under “**Animations**” on the same page you can make animations that flip through surfaces
@@ -146,8 +147,8 @@ Just press “**Run it in SSP**” on the **Export** page.
 To package it for sharing, use “Make .nar” on the same page.
 Drag and drop the `.nar` onto the SSP window to install it.
 
-> If you export again while SSP is running, the SHIORI rereads `ghost.json` within a few seconds,
-> so you usually do not need to reload by hand.
+> To export again into a ghost that is running in SSP, use “Run it in SSP” below.
+> It makes the SHIORI reload after exporting (a plain export does not make YAYA reload).
 
 ### 4. Try it on a running ghost (SSTP)
 
@@ -212,7 +213,7 @@ Next to `ukagaka-studio.exe`.
 | `ukagaka-studio.json` | The last project opened, the output folder, the window size, the language |
 | `webview-data\` | WebView2's working folder (rebuilt if you delete it) |
 
-If you put an `ikaga.dll` next to the exe, it is **used instead of** the embedded one (handy after rebuilding the SHIORI).
+Exported ghosts get the YAYA kit embedded in the exe (`yaya.dll`, `yaya_base`, `studio_runtime.dic`).
 
 ---
 
@@ -239,7 +240,7 @@ With `-Test`, nine tests run.
 | **Parity test** (`shiori\test\parity\parity.js`) | Builds the same `interp.cpp` as **32-bit (the SHIORI that goes into SSP)** and **64-bit (Ukagaka Studio's “Try”)**, feeds both the same `ghost.json`, and compares the Sakura Script that comes out (catches code that depends on the bit width) |
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions only the SHIORI makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
 | **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`), which is to replace ikaga SHIORI, is still the official build and runs; whether, with the blocks translated into YAYA, the parity ghost gives the same answers as ikaga SHIORI (**a parity test across SHIORIs**), all behavior scenarios hold on YAYA too, and variables survive a restart |
-| **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt`) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
+| **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic`, and the file list) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, and that every example is clean |
 | **Import check** (`tools\check-imports.js`) | Reads the import tables of the built `ikaga.dll` and of YAYA's `yaya.dll` directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
@@ -339,7 +340,7 @@ ukagaka-studio/
 │       ├── lang.cpp        the language of what the exe shows itself (Japanese / English)
 │       ├── webview.cpp     embeds WebView2 and intercepts its requests
 │       ├── webreq.cpp      parses requests (URL decoding and so on)
-│       ├── assets.cpp      takes ui\ and ikaga.dll out of the exe
+│       ├── assets.cpp      takes ui\ and the YAYA kit out of the exe
 │       ├── sstp.cpp        talks to SSP (SSTP and finding ssp.exe)
 │       ├── api.cpp         the /api/* entry (the route table kRoutes)
 │       ├── api_project.cpp   state, saving and loading projects
@@ -350,7 +351,7 @@ ukagaka-studio/
 │       ├── preview.cpp     runs a script on the 64-bit ikaga SHIORI (used by the parity test's preview_host)
 │       ├── yaya_preview.cpp runs “Try” on YAYA (through yaya_host.exe)
 │       ├── exporter.cpp    assembles a whole ghost and writes it to a folder / .nar
-│       ├── export_program.cpp  ghost.json (what the SHIORI reads)
+│       ├── export_program.cpp  ghost.json (a copy of the blocks, for opening it again in Ukagaka Studio)
 │       ├── export_shell.cpp    placeholder surfaces, the shell's descript.txt, surfaces.txt
 │       ├── export_seriko.cpp   SERIKO animations in surfaces.txt
 │       ├── export_balloon.cpp  the bundled balloon
@@ -416,6 +417,12 @@ into SSP). The UI translates the blocks into a YAYA dictionary and asks through 
 with `yaya_host.exe`, a small 32-bit helper embedded in the exe (the UI has no block interpreter of its own).
 Only two things differ: **it does not call SAORI** (that needs the real 32-bit DLL), and
 **the clock and boot count come from the UI**. The YAYA test checks that the answers match ikaga SHIORI.
+
+> **Exported ghosts also run on YAYA from stage 3-5a.** `ghost/master/` gets `yaya.dll`, `yaya.txt`, `yaya_base`,
+> the runtime dictionary `studio_runtime.dic` and the translated `studio_program.dic` (`ghost.json` is a copy of the blocks).
+> They are built to behave like ikaga SHIORI (differences: step 3-3 of the roadmap), so the description below still applies,
+> except that variables and the like are kept in **`yaya_variable.cfg`** (YAYA's own saving) and the log goes to **`studio_debug.txt`**.
+> The description of ikaga SHIORI will be rewritten for YAYA in 3-6.
 
 * It exports `load` / `unload` / `request` as a SHIORI/3.0 DLL (`src/ikaga.def`).
 * At startup it reads **`ghost.json`** from the DLL's folder.
@@ -508,8 +515,8 @@ Not there yet (how to add things is in “Adding one block” in [`docs/en/maint
 * **Check the contents of a project (.json) you got from someone else before opening it.**
   Surface images are referenced by path, and exporting bundles those images into the ghost.
   If you see a path you do not know, remove it under “Surfaces” on the Characters page.
-* The SAORI DLLs the SHIORI (`ikaga.dll`) loads must be inside the ghost folder
-  (`..` and absolute paths are refused).
+* The SAORI DLLs the SHIORI loads must be inside the ghost folder
+  (`..` and absolute paths are refused; on YAYA, the runtime dictionary refuses them by the same rule).
 * A ghost can close while a **SAORI called without waiting** is still running. The SHIORI waits only 5 seconds
   and then leaves it behind (so it does not hang there). Even then, the running thread is kept away from
   freed memory and an unloaded SHIORI: they share their storage and the SHIORI pins itself.
@@ -531,7 +538,8 @@ Anyone may use, modify and distribute it, free of charge, for any purpose.
 ### About the ghosts you make
 
 **Ghosts exported from Ukagaka Studio are entirely yours.**
-They contain `ikaga.dll`, but when you hand them out you
+They contain a SHIORI (`yaya.dll`; built into Ukagaka ghosts it is under the AYA Ver.5 terms and free to distribute),
+but for Ukagaka Studio's part, when you hand them out you
 
 * **do not need to include** this license text,
 * **do not need to mention** the author or the software anywhere, and

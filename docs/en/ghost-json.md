@@ -5,6 +5,11 @@
 > **This is the English translation of [docs/ghost-json.md](../ghost-json.md). The Japanese version is authoritative;**
 > **if the two differ, follow the Japanese one.**
 
+> **From stage 3-5a, exported ghosts run on YAYA.** `ghost.json` is still exported as a copy of the blocks that were
+> translated into the YAYA dictionary (`studio_program.dic`); “Import” in Ukagaka Studio opens it, and YAYA does not read it.
+> The description of “the SHIORI” below is ikaga SHIORI's; YAYA is built to behave the same. Saving goes to
+> `yaya_variable.cfg`, and the log to `studio_debug.txt`.
+
 ikaga SHIORI (`ikaga.dll`) runs by reading **`ghost.json`** in its own folder
 (`ikaga.json` also works). You may write it by hand without the editor.
 

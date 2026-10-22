@@ -557,6 +557,42 @@ Done when: the same block gives the same answer in “Try” and in SSP.
 Done when: a hand-written ghost made from a YAYA template is opened, blocks are added and exported,
 and the hand-written dictionaries stay byte-for-byte unchanged.
 
+3-5 is large, so it is split into three parts (decided on 2026-10-22; see “Decisions” below).
+
+| Order | To do | Why this order |
+|---|---|---|
+| 3-5a | **Switch the export to YAYA** (the first half of 3-6, moved ahead). Export `yaya.dll`, `yaya.txt`, `yaya_base`, the runtime dictionary and the translated dictionary instead of `ikaga.dll`; the ghost's saved state and log become YAYA's too | Without exporting YAYA ghosts, there is nothing to put next to hand-written ones |
+| 3-5b | **Open an existing YAYA ghost.** The project remembers the ghost folder and writes only the studio's files and the marked lines of `yaya.txt`. Read the hand-written functions; when an event exists in both, hand-written wins | After the export is YAYA |
+| 3-5c | **Blocks that call hand-written functions** (“Call a YAYA function”, “YAYA expression”) and importing an existing shell folder | Needs the function list of an opened ghost |
+
+Decisions (see the “Decisions” table for details):
+
+* **For the same event, hand-written code wins.** For an event the hand-written dictionaries also define, the studio does not
+  write the entry function (with both, YAYA cannot read the dictionaries and the whole ghost goes silent — confirmed while
+  preparing 3-5). Calling `Studio.Event('OnBoot')` inside the hand-written function runs the blocks too. The Check tab says so.
+* **An opened ghost's `yaya.dll` and `yaya_base` are used as they are.** When they cannot run the studio's runtime
+  (too old, or the entry is not yaya_base), the studio says so and stops before exporting.
+* **Project files stay in `projects\` next to the exe**, and a project remembers the ghost folder it is linked to.
+
+> **3-5a is done.** What was done:
+>
+> * Exports (folder, .nar and “Run it in SSP”) put `yaya.dll`, `yaya.txt`, `yaya_base`, `studio_runtime.dic` and the
+>   `studio_program.dic` translated by the UI into `ghost/master/`, and set `shiori` in `descript.txt` to `yaya.dll`.
+>   `ikaga.dll` is no longer included. `ghost.json` stays as a copy of the blocks (so “Import” can open it; YAYA does not read it).
+>   The UI now sends the dictionary (`dic`) when exporting (`no_dic` without it). The YAYA kit is the one embedded in the exe (`Api::YayaKitFiles`).
+> * “Clear the ghost's memory” deletes `yaya_variable.cfg` (and an old `ikaga_save.json`, if any). The log is `studio_debug.txt`,
+>   which the runtime dictionary writes only when the file exists (loading, YAYA's warnings, unknown names for “call after N
+>   seconds”, SAORI that cannot be loaded). Neither goes into `updates2.dau`.
+> * The SAORI file name rule (refusing anything that points outside the ghost folder) is now in the runtime dictionary too.
+> * Tests: the export test gained `yaya.txt`, the translated dictionary (Japanese and English) and the file list (the expected
+>   files were regenerated only after checking their contents). The YAYA test gained “a ghost exported the way the exe does
+>   runs on YAYA as it is” and “the log is written only when studio_debug.txt exists” (173 checks).
+> * In a scratch copy of the exe: exported to a folder and a .nar from the UI, and the exported ghost answered on YAYA
+>   (`OnFirstBoot`, `OnBoot`, double-click, `OnClose`).
+> * UI text (the SHIORI status, the ghost's memory, the log, “About the SHIORI” in Help) and what the README, ghost-json.md
+>   and blocks.md say about exported ghosts now describe YAYA (English versions too). The description of ikaga SHIORI
+>   itself is rewritten in 3-6.
+
 ### 3-6. Remove ikaga SHIORI
 
 Removed only after both tests in 3-3 are green.
@@ -612,6 +648,10 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-22 | **Drop ikaga SHIORI and replace it with YAYA**; Ukagaka Studio becomes **a helper tool for YAYA ghosts**. Blocks are translated into YAYA dictionaries on export, and hand-written dictionaries are never touched. This goes in as stage 3, before the new features, which become stage 4 (stage 3) |
 | 2026-10-22 | **Use the official `yaya.dll`; do not build it from source** (built with today's Visual Studio, it does not run on Windows 2000; 3-0) |
 | 2026-10-22 | The “call SAORI without waiting” block **stays, and becomes a waiting call under YAYA**. `OnSaoriDone` is still raised on the next `OnSecondChange` (3-0) |
+| 2026-10-22 | 3-5 is split into **3-5a (export as YAYA) → 3-5b (open an existing YAYA ghost) → 3-5c (blocks calling hand-written functions, shell import)**; switching the export (the first half of 3-6) comes first (3-5) |
+| 2026-10-22 | When hand-written dictionaries and blocks share an event, **hand-written wins**. The studio does not write that entry; calling `Studio.Event('…')` from the hand-written function runs the blocks too (3-5) |
+| 2026-10-22 | An opened ghost's **`yaya.dll` and `yaya_base` are used as they are**; if they fall short, the studio says so and stops (3-5) |
+| 2026-10-22 | Project files **stay in `projects\`**, and a project remembers the ghost folder it is linked to (3-5) |
 | 2026-10-22 | “Try” runs **the same `yaya.dll` as SSP through a 32-bit helper (`yaya_host.exe`)**; no 64-bit YAYA is built (we use the official build; 3-4) |
 | 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
 
@@ -619,6 +659,5 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 
 * How to count version numbers (stage 0-2)
 * Details of stage 3:
-  * Whether project files stay in `projects\` next to the exe, or go inside the ghost folder
   * Whether variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) carry over to YAYA
   * What to do with the name “如何栞 (ikaga SHIORI)” and the name `ikaga` in the code (including the project format `ikaga/1`)

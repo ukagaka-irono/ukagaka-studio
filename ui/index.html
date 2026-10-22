@@ -117,13 +117,13 @@
           <div class="ssp-bar">
             <span class="run-vars-title">いまの変数</span>
             <button id="btn-vars-reset" class="btn small" title="ためすときの変数を、プロジェクトの初期値にもどします">ここの変数をもどす</button>
-            <button id="btn-save-reset" class="btn small" title="書き出したゴーストが覚えている変数（ikaga_save.json）を消します">ゴーストの記憶を消す</button>
+            <button id="btn-save-reset" class="btn small" title="書き出したゴーストが覚えている変数（yaya_variable.cfg）を消します">ゴーストの記憶を消す</button>
           </div>
           <div id="run-vars" class="run-vars"></div>
 
           <div class="ssp-bar">
             <span class="run-vars-title">栞の記録</span>
-            <button id="btn-log-show" class="btn small" title="書き出したゴーストの ikaga_debug.txt を読みます">読む</button>
+            <button id="btn-log-show" class="btn small" title="書き出したゴーストの studio_debug.txt を読みます">読む</button>
             <button id="btn-log-start" class="btn small" title="記録用の空ファイルを作ります。栞はこれがあるときだけ書きます">記録をはじめる</button>
             <button id="btn-log-clear" class="btn small" title="記録を消して、止めます">やめる</button>
           </div>
@@ -369,9 +369,9 @@
         <section class="card">
           <div class="card-head"><h2>栞について</h2></div>
           <p class="hint">
-            書き出したゴーストは <b>ikaga.dll</b>（如何栞）で動きます。会話データは
-            <b>ghost/master/ghost.json</b> に入っていて、SSP を動かしたまま書き出し直すと
-            数秒で自動的に読み込み直されます。
+            書き出したゴーストは <b>yaya.dll</b>（栞 YAYA）で動きます。ブロックは YAYA の辞書
+            <b>ghost/master/studio_program.dic</b> に書き出されます。SSP で動いているゴーストは、
+            「SSP に入れて動かす」で書き出すと、すぐ読み込み直されます。
           </p>
         </section>
       </div>

@@ -83,12 +83,21 @@ void Api::PlaceFirstRunSample() {
     }
 }
 
-std::string Api::DllBytes() const {
-    // exe のとなりに ikaga.dll があればそちらを優先（栞を作り直したときのため）
-    std::string data;
-    if (ReadBinaryFile(PathJoin(exeDir_, L"ikaga.dll"), data) && !data.empty()) return data;
-    if (LoadEmbedded(IDR_IKAGA_DLL, data)) return data;
-    return std::string();
+std::vector<OutFile> Api::YayaKitFiles() const {
+    // 埋めこんだ YAYA 一式のうち、ゴーストに入れるもの（yaya.dll・yaya_base・しくみの辞書）。
+    // 「ためす」だけが使う yaya_host.exe と studio_preview.dic は入れません
+    std::vector<OutFile> out;
+    for (int i = 0; i < YayaKitCount(); i++) {
+        std::wstring name = YayaKitName(i);
+        if (name == L"yaya_host.exe" || name == L"studio_preview.dic") continue;
+        OutFile f;
+        f.shell = false;
+        for (size_t k = 0; k < name.size(); k++) if (name[k] == L'\\') name[k] = L'/';
+        f.name = WideToUtf8(name);
+        if (!LoadEmbedded(YayaKitId(i), f.data)) continue;
+        out.push_back(f);
+    }
+    return out;
 }
 
 std::wstring Api::DefaultOutDir() const {

@@ -4,6 +4,7 @@
  */
 
 import { Model } from '../model/model.js';
+import { programOf, toYaya } from '../model/yaya.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -138,6 +139,7 @@ async function doExport(mode) {
       method: 'POST',
       body: {
         project: Model.project,
+        dic: toYaya(programOf(Model.project)),   // ブロックを YAYA に訳した辞書（model/yaya.js）
         outDir,
         mode,
         includeShell: $('#export-shell').checked,
@@ -155,7 +157,7 @@ async function doExport(mode) {
     }
     if (!r.dll) {
       p.appendChild(Render.div('status-line status-ng',
-        t('ikaga.dll が見つかりません。shiori\\build.ps1 を実行してから書き出し直してください。')));
+        t('YAYA（yaya.dll）が exe に入っていません。.\\build.ps1 で作りなおしてから書き出し直してください。')));
     }
     const open = Render.el('button', 'btn small', t('フォルダを開く'));
     open.style.marginTop = '8px';

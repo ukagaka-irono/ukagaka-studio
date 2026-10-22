@@ -103,8 +103,8 @@ function showState(state) {
   const st = $('#dll-status');
   st.className = 'status-line ' + (state.dllFound ? 'status-ok' : 'status-ng');
   st.textContent = state.dllFound
-    ? t('栞 (ikaga.dll) の準備ができています')
-    : t('ikaga.dll がまだありません。shiori\\build.ps1 を実行してください。');
+    ? t('栞 (yaya.dll) の準備ができています')
+    : t('yaya.dll が exe に入っていません。.\\build.ps1 で作りなおしてください。');
   $('#ssp-hint').textContent = state.sspGhostDir
     ? t('SSP らしきフォルダを見つけました: {dir}', { dir: state.sspGhostDir })
     : t('SSP の ghost フォルダを指定すると、そのまま追加できます。');

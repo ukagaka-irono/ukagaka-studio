@@ -122,8 +122,8 @@ export const en = {
   // ---- ui\js\main.js
   '保存していない変更があります。新しく作りますか？': 'You have unsaved changes. Create a new ghost anyway?',
   '新しいゴーストを作りました': 'Created a new ghost',
-  '栞 (ikaga.dll) の準備ができています': 'The SHIORI (ikaga.dll) is ready',
-  'ikaga.dll がまだありません。shiori\\build.ps1 を実行してください。': 'ikaga.dll is missing. Run shiori\\build.ps1.',
+  '栞 (yaya.dll) の準備ができています': 'The SHIORI (yaya.dll) is ready',
+  'yaya.dll が exe に入っていません。.\\build.ps1 で作りなおしてください。': 'yaya.dll is not in the exe. Rebuild with .\\build.ps1.',
   'SSP らしきフォルダを見つけました: {dir}': 'Found what looks like SSP: {dir}',
   'SSP の ghost フォルダを指定すると、そのまま追加できます。': "Point this at SSP's ghost folder to add the ghost directly.",
   '「{name}」を開けませんでした: {message}': 'Could not open “{name}”: {message}',
@@ -520,7 +520,7 @@ export const en = {
     '<b>Made a .nar</b><br><code>{path}</code><br>Drag and drop it onto the SSP window to install it.',
   '<b>書き出しました</b><br><code>{path}</code><br>ファイル {count} 個': '<b>Exported</b><br><code>{path}</code><br>{count} files',
   '（既存のシェル {count} 個はそのまま）': '({count} existing shell files kept)',
-  'ikaga.dll が見つかりません。shiori\\build.ps1 を実行してから書き出し直してください。': 'ikaga.dll was not found. Run shiori\\build.ps1, then export again.',
+  'YAYA（yaya.dll）が exe に入っていません。.\\build.ps1 で作りなおしてから書き出し直してください。': 'YAYA (yaya.dll) is not in the exe. Rebuild with .\\build.ps1, then export again.',
   'フォルダを開く': 'Open folder',
   '書き出しました': 'Exported',
   '読み込みました': 'Imported',
@@ -674,8 +674,8 @@ export const en = {
   'このイベントを SSP のゴーストに送ります': 'Send this event to the ghost in SSP',
   '他のゴーストのふりをして、SSP のゴーストに話しかけます': 'Talk to the ghost in SSP as if you were another ghost',
   'ためすときの変数を、プロジェクトの初期値にもどします': "Reset the test variables to the project's initial values",
-  '書き出したゴーストが覚えている変数（ikaga_save.json）を消します': 'Clear the variables the exported ghost remembers (ikaga_save.json)',
-  '書き出したゴーストの ikaga_debug.txt を読みます': "Read the exported ghost's ikaga_debug.txt",
+  '書き出したゴーストが覚えている変数（yaya_variable.cfg）を消します': 'Clear the variables the exported ghost remembers (yaya_variable.cfg)',
+  '書き出したゴーストの studio_debug.txt を読みます': "Read the exported ghost's studio_debug.txt",
   '記録用の空ファイルを作ります。栞はこれがあるときだけ書きます': 'Create an empty log file. The SHIORI writes only while it exists',
   '記録を消して、止めます': 'Delete the log and stop',
   '好感度やフラグなど、ゴーストが覚えておく値です。終了時に自動で保存されます。': 'Values the ghost remembers, such as affection or flags. They are saved automatically when the ghost closes.',
@@ -801,7 +801,7 @@ export const en = {
   'ブロックの色': 'Block colors',
   '栞について': 'About the SHIORI',
   '書き出したゴーストは': 'Exported ghosts run on ',
-  '（如何栞）で動きます。会話データは': ' (ikaga SHIORI). Its dialogue data lives in ',
-  'に入っていて、SSP を動かしたまま書き出し直すと 数秒で自動的に読み込み直されます。':
-    'and is reloaded automatically within a few seconds when you export again while SSP is running.',
+  '（栞 YAYA）で動きます。ブロックは YAYA の辞書': ' (the YAYA SHIORI). Blocks are exported as the YAYA dictionary ',
+  'に書き出されます。SSP で動いているゴーストは、 「SSP に入れて動かす」で書き出すと、すぐ読み込み直されます。':
+    '. A ghost running in SSP reloads right away when you export it with “Run it in SSP”.',
 };

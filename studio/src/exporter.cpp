@@ -64,8 +64,15 @@ std::string DescriptLine(const char* key, const std::string& value) {
 // ---------------------------------------------------------- ファイル一覧
 
 
-std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& dll,
-                                     bool includeShell, std::string* folderOut) {
+std::string YayaTxt() {
+    return "charset, UTF-8\r\n"
+           "dicdir, yaya_base\r\n"
+           "dic, studio_runtime.dic\r\n"
+           "dic, studio_program.dic\r\n";
+}
+
+std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<OutFile>& kit,
+                                     const std::string& dic, bool includeShell, std::string* folderOut) {
     const JValue& meta = project["meta"];
     std::string folder = GhostFolderName(project);
     if (folderOut) *folderOut = folder;
@@ -95,12 +102,16 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
     f.data += ByGhostLang(project, "バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
     f.data += meta["description"].asStr("") + "\r\n\r\n";
     f.data += "----\r\n";
-    f.data += ByGhostLang(project, "このゴーストは 如何栞 (ikaga.dll) で動いています。\r\n"
-                 "会話の中身は ghost/master/ghost.json にブロック形式で入っています。\r\n"
-                 "伺かスタジオで読み込むと編集できます。\r\n",
-                 "This ghost runs on ikaga SHIORI (ikaga.dll).\r\n"
-                 "Its dialogue is stored as blocks in ghost/master/ghost.json.\r\n"
-                 "Open it in Ukagaka Studio to edit it.\r\n");
+    f.data += ByGhostLang(project, "このゴーストは 栞 YAYA (yaya.dll) で動いています。\r\n"
+                 "会話は伺かスタジオのブロックで作り、ghost/master/studio_program.dic に YAYA の辞書として\r\n"
+                 "書き出しています。ブロックの写しは ghost/master/ghost.json にあり、伺かスタジオで\r\n"
+                 "読み込むと編集できます。\r\n"
+                 "YAYA: https://github.com/YAYA-shiori/yaya-shiori\r\n",
+                 "This ghost runs on the YAYA SHIORI (yaya.dll).\r\n"
+                 "Its dialogue was made with blocks in Ukagaka Studio and exported as a YAYA dictionary,\r\n"
+                 "ghost/master/studio_program.dic. A copy of the blocks is in ghost/master/ghost.json;\r\n"
+                 "open it in Ukagaka Studio to edit it.\r\n"
+                 "YAYA: https://github.com/YAYA-shiori/yaya-shiori\r\n");
     files.push_back(f);
 
     f.name = "ghost/master/descript.txt";
@@ -111,7 +122,7 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
              DescriptLine("craftman", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanw", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanurl", meta["craftmanUrl"].asStr("")) +
-             DescriptLine("shiori", "ikaga.dll") +
+             DescriptLine("shiori", "yaya.dll") +
              // ネットワーク更新のありか。空なら書かない（書くと更新を試して失敗する）
              (meta["homeUrl"].asStr("").empty()
                   ? std::string()
@@ -122,13 +133,21 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
                   NumToStr(project["settings"]["defaultSurfaceKero"].asNum(10)));
     files.push_back(f);
 
+    // ブロックの写し（YAYA は読みません。伺かスタジオで読みこみなおすためのもの）
     f.name = "ghost/master/ghost.json";
     f.data = RuntimeProgramJson(project);
     files.push_back(f);
 
-    if (!dll.empty()) {
-        f.name = "ghost/master/ikaga.dll";
-        f.data = dll;
+    // YAYA で動かすためのもの
+    f.name = "ghost/master/yaya.txt";
+    f.data = YayaTxt();
+    files.push_back(f);
+    f.name = "ghost/master/studio_program.dic";
+    f.data = dic;
+    files.push_back(f);
+    for (size_t i = 0; i < kit.size(); i++) {
+        f.name = "ghost/master/" + kit[i].name;
+        f.data = kit[i].data;
         files.push_back(f);
     }
 
@@ -139,11 +158,11 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::string& d
 
 // -------------------------------------------------------------- 書き出し
 
-ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::string& dll,
-                         bool includeShell, bool overwriteShell) {
+ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
+                         const std::string& dic, bool includeShell, bool overwriteShell) {
     ExportResult r;
     std::string folder;
-    std::vector<OutFile> files = BuildGhostFiles(project, dll, includeShell, &folder);
+    std::vector<OutFile> files = BuildGhostFiles(project, kit, dic, includeShell, &folder);
     r.folder = folder;
     r.root = PathJoin(outDir, Utf8ToWide(folder));
 
@@ -158,6 +177,7 @@ ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, cons
             if (rel[k] == L'/') rel[k] = L'\\';
         }
         std::wstring dest = PathJoin(r.root, rel);
+        EnsureDir(ParentDir(dest));                 // ghost/master/yaya_base/ など
         if (files[i].shell && PathExists(dest) && !overwriteShell) {
             r.skipped.push_back(files[i].name);
             continue;
@@ -183,11 +203,11 @@ ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, cons
     return r;
 }
 
-ExportResult ExportToNar(const JValue& project, const std::wstring& outDir, const std::string& dll,
-                         bool includeShell) {
+ExportResult ExportToNar(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
+                         const std::string& dic, bool includeShell) {
     ExportResult r;
     std::string folder;
-    std::vector<OutFile> files = BuildGhostFiles(project, dll, includeShell, &folder);
+    std::vector<OutFile> files = BuildGhostFiles(project, kit, dic, includeShell, &folder);
     r.folder = folder;
 
     std::vector<ZipEntry> entries;

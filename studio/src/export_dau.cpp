@@ -22,6 +22,9 @@ static bool SkipInDau(const std::wstring& rel) {
     // 使う人ごとの持ちもの・こちらの作業用ファイルは配らない
     if (low.find(L"ikaga_save.json") != std::wstring::npos) return true;
     if (low.find(L"ikaga_debug.txt") != std::wstring::npos) return true;
+    if (low.find(L"yaya_variable.cfg") != std::wstring::npos) return true;   // YAYA が覚えている変数
+    if (low.find(L"studio_debug.txt") != std::wstring::npos) return true;    // しくみの辞書の記録
+    if (low.find(L"yaya.log") != std::wstring::npos) return true;
     if (low == L"updates2.dau" || low == L"updates.txt") return true;
     if (low == L"delete.txt") return true;              // サーバ側だけの指示書
     if (low == L"thumbs.db" || low == L"desktop.ini") return true;

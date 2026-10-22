@@ -248,10 +248,12 @@
     },
     {
       "id": "p19", "kind": "event", "event": "OnP19",
-      "_": "SAORIは本物の DLL が無いので、両方とも空を返す",
+      "_": "SAORIは本物の DLL が無いので、両方とも空を返す（ゴーストのフォルダの外を指したものも、読まずに空）",
       "blocks": [
         { "type": "say", "who": 0, "text": { "type": "saori", "file": "nai.dll", "a": "x" }, "nl": 1 },
-        { "type": "say", "who": 0, "text": { "type": "saori", "file": "", "a": "" }, "nl": 1 }
+        { "type": "say", "who": 0, "text": { "type": "saori", "file": "", "a": "" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "saori", "file": "..\\slow_saori.dll", "a": "1", "b": "そと" }, "nl": 1 },
+        { "type": "say", "who": 0, "text": { "type": "saori", "file": "C:\\Windows\\x.dll", "a": "1" }, "nl": 1 }
       ]
     },
     {
