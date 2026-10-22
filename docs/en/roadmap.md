@@ -720,7 +720,8 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 ### Shell features
 
 * ~~Import an existing shell folder~~ (done in 3-5d, numbered images only; importing animations and hit areas goes with the next two)
-* Draw hit areas on top of the picture
+* ~~Draw hit areas on top of the picture~~ (done: “Hit areas” on each surface draws rectangles by dragging on the picture;
+  `shell.areas`, `ui/js/panels/areas.js`; drawn names can be picked in mouse hats; the export test input covers them)
 * ~~More choices for how the balloon looks~~ (done: shape, size, tail, line and text colors; `studio/src/export_balloon.cpp`;
   the export test gained the `balloon-styled.json` input)
 

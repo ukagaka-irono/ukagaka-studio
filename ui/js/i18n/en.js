@@ -570,6 +570,19 @@ export const en = {
   '立ち絵 {id}': 'surface {id}',
   '{id} 番の絵がありません': 'No image for #{id}',
   'このこまを消す': 'Delete this frame',
+  '当たり判定（{n}）': 'Hit areas ({n})',
+  '当たり判定': 'Hit areas',
+  '絵の上で、さわれる場所を描きます': 'Draw the places you can touch on the picture',
+  '{name}（描いた当たり判定）': '{name} (drawn hit area)',
+
+  // ---- ui\js\panels\areas.js
+  '絵の上をドラッグすると、四角い当たり判定を描けます。1 つでも描くと、この立ち絵の自動の当たり判定のかわりになります。':
+    'Drag on the picture to draw a rectangular hit area. Once you draw one, they replace the automatic hit areas of this surface.',
+  'まだ描いていません（自動の当たり判定を使います）。': 'Nothing drawn yet (the automatic hit areas are used).',
+  'ほかの名前…': 'Another name…',
+  '当たり判定の名前は？（英数字がおすすめです）': 'Name of the hit area? (letters and digits are recommended)',
+  '{label}（{id} 番）の当たり判定': 'Hit areas of {label} (#{id})',
+  '自動にもどす': 'Back to automatic',
   '重ねかた': 'method',
   'うごき番号': 'animation #',
   '動く絵': 'animated image',

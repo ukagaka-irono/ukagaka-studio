@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- shell/master/surfaces.txt (2237 バイト)
+---- shell/master/surfaces.txt (2112 バイト)
 charset,UTF-8
 
 descript
@@ -40,12 +40,8 @@ animation7.pattern0,add,2,0,0,0
 
 surface1
 {
-collision0,34,40,155,114,Head
-collision1,45,114,144,154,Face
-collision2,57,154,133,249,Bust
-collision3,19,249,171,320,Skirt
-collision4,34,186,57,237,Hand
-collision5,133,186,155,237,Hand
+collision0,40,10,150,90,Head
+collision1,60,40,120,80,Ribbon Left
 }
 
 surface2

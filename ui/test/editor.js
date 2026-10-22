@@ -130,6 +130,13 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
     q.patterns.map((x) => x.method), ['alternativestart', 'parallelstop', 'scaling', 'blend-soft-light', 'add']);
   check('着せ替えの種類と名前は前後の空白を落とし、はじめから着るかを持つ',
     q.bind, { category: '服', part: 'セーラー', default: true });
+
+  // 絵の上で描いた当たり判定（shell.areas）: 番号ごとの四角。名前の無いもの・番号でないキーは落とし、座標は整数に
+  const areas = Model.normalize({
+    format: 'ikaga/1',
+    shell: { areas: { 0: [{ name: ' Head ', x1: 1.4, y1: 2, x2: 50, y2: 60.6 }, { name: '' }], x: [{ name: 'a' }], 10: 'へん' } },
+  }).shell.areas;
+  check('描いた当たり判定は、番号ごとに名前と整数の座標で持つ', areas, { 0: [{ name: 'Head', x1: 1, y1: 2, x2: 50, y2: 61 }] });
 }
 
 {

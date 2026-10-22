@@ -145,6 +145,14 @@ function buildField(owner, name, argDef, project, blockEl) {
       const opts = AREAS.slice();
       const seen = {};
       for (const [, v] of opts) seen[v] = 1;
+      // 絵の上で描いた当たり判定の名前（あたま・かお…にないもの）
+      for (const list of Object.values((Model.project.shell || {}).areas || {})) {
+        for (const c of list) {
+          if (!c.name || seen[c.name]) continue;
+          seen[c.name] = 1;
+          opts.push([t('{name}（描いた当たり判定）', { name: c.name }), c.name]);
+        }
+      }
       for (const a of (Model.project.animations || [])) {
         for (const c of (a.collisions || [])) {
           if (!c.name || seen[c.name]) continue;

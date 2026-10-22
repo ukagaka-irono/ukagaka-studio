@@ -14,6 +14,7 @@ import { t } from '../i18n/i18n.js';
 import { shellImages, shellImageOf, shellUrl, hasSurface } from './surfaces.js';
 import { bindField, setVal } from './fields.js';
 import { Stage } from './stage.js';
+import { Areas } from './areas.js';
 
 // ------------------------------------------------------------ 立ち絵の絵
 // 標準の 6 枚。ここに無い番号も「追加」でふやせる。
@@ -62,6 +63,12 @@ function renderShellSlots() {
     const pickBtn = Render.el('button', 'btn tiny', img ? t('変える') : t('えらぶ'));
     pickBtn.addEventListener('click', () => pickShellImage(id));
     btns.appendChild(pickBtn);
+    // 絵の上で当たり判定を描く（描いてあれば、その数を出す）
+    const drawn = ((Model.project.shell.areas || {})[String(id)] || []).length;
+    const areaBtn = Render.el('button', 'btn tiny', drawn ? t('当たり判定（{n}）', { n: drawn }) : t('当たり判定'));
+    areaBtn.title = t('絵の上で、さわれる場所を描きます');
+    areaBtn.addEventListener('click', () => Areas.open(id, label));
+    btns.appendChild(areaBtn);
     if (img) {
       const clear = Render.el('button', 'btn tiny', t('もどす'));
       clear.title = t('自動生成にもどす');

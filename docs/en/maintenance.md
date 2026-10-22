@@ -322,6 +322,8 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
   (“キーボードとマウス” in `index.html`) **too.** Inside text fields, only a few such as
   `Ctrl+S` work. Block operations work only while the Talk page is shown.
 * Right-click menus are in `editor/contextmenu.js`. Write `key: 'Ctrl+C'` on an item to show the key on the right.
+* Hit areas drawn on a surface are in `panels/areas.js`. `shell.areas` holds rectangles (in the picture's pixels) per surface number,
+  and when a surface has any, they are exported instead of its automatic hit areas (`CustomCollisionLines` in `export_shell.cpp`).
 * Parts (arrangements you use often) are in `editor/parts.js`. They are read and written in `parts.json` next to the exe through `/api/parts`
   and listed in the palette's “Parts” category (`@parts` in `PALETTE.parts`). Grabbing a part carries all its blocks (`pickPayload` in
   `editor/drag.js`), and dropping it adds the variables it uses. Parts are not block definitions, so `PALETTE_EXPANDS` in

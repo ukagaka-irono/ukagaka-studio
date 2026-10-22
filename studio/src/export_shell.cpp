@@ -118,6 +118,31 @@ static std::string CollisionLines(int w, int h) {
     return out;
 }
 
+// 絵の上で描いた当たり判定（shell.areas の、その番号のもの）。1 つも無ければ空で、自動の形を使う
+static std::string CustomCollisionLines(const JValue& project, int surfaceId) {
+    const JValue& list = project["shell"]["areas"][NumToStr(surfaceId).c_str()];
+    if (!list.isArr()) return std::string();
+    std::string out;
+    int n = 0;
+    for (size_t i = 0; i < list.size(); i++) {
+        const JValue& a = list.at(i);
+        std::string name = Trim(a["name"].asStr());
+        if (name.empty()) continue;
+        for (size_t k = 0; k < name.size(); k++) {              // 1 行に収める
+            if (name[k] == ',' || name[k] == '\r' || name[k] == '\n') name[k] = ' ';
+        }
+        int x1 = a["x1"].asInt(0), y1 = a["y1"].asInt(0), x2 = a["x2"].asInt(0), y2 = a["y2"].asInt(0);
+        if (x1 > x2) { int t = x1; x1 = x2; x2 = t; }
+        if (y1 > y2) { int t = y1; y1 = y2; y2 = t; }
+        if (x1 < 0) x1 = 0;
+        if (y1 < 0) y1 = 0;
+        if (x2 - x1 < 2 || y2 - y1 < 2) continue;               // 小さすぎるものは、さわれないので書かない
+        out += "collision" + NumToStr(n++) + "," + NumToStr(x1) + "," + NumToStr(y1) + "," +
+               NumToStr(x2) + "," + NumToStr(y2) + "," + name + "\r\n";
+    }
+    return out;
+}
+
 std::string RenderSurfacePng(int surfaceId, const std::string& hairHex, const std::string& clothHex) {
     const int SW = 190, SH = 320, KW = 140, KH = 230;
     bool kero = surfaceId >= 10;
@@ -225,7 +250,9 @@ void AppendShell(std::vector<OutFile>& files, const JValue& project) {
         char head[32];
         sprintf_s(head, "surface%d\r\n{\r\n", list[i].id);
         s.data += head;
-        s.data += CollisionLines(list[i].w, list[i].h);   // 画像を使うときはその大きさで
+        // 絵の上で描いた当たり判定があればそれを、無ければ自動の形（画像を使うときはその大きさで）
+        std::string custom = CustomCollisionLines(project, list[i].id);
+        s.data += custom.empty() ? CollisionLines(list[i].w, list[i].h) : custom;
         s.data += AnimationLines(project, list[i].id);    // SERIKO のアニメーション
         s.data += "}\r\n\r\n";
     }

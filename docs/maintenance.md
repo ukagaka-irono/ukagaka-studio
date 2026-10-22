@@ -311,6 +311,8 @@ ui/js/
   （`index.html` の「キーボードとマウス」）**にも足してください。** 文字を打っている欄の中では、
   `Ctrl+S` などの一部を除いて動きません。ブロックの操作は、トークの画面が見えているときだけです。
 * 右クリックのメニューは `editor/contextmenu.js` です。項目に `key: 'Ctrl+C'` のように書くと、右にキーが出ます。
+* 立ち絵の上で描く当たり判定は `panels/areas.js` です。`shell.areas` に立ち絵の番号ごとの四角（絵のピクセル）を持ち、
+  あればその立ち絵の自動の当たり判定のかわりに書き出します（`export_shell.cpp` の `CustomCollisionLines`）。
 * 部品（よく使う組みかた）は `editor/parts.js` です。exe のとなりの `parts.json` に `/api/parts` で読み書きし、パレットの
   「部品」カテゴリ（`PALETTE.parts` の `@parts`）に並べます。部品をつかんだときは中のブロックをまとめて持ち（`editor/drag.js` の
   `pickPayload`）、置いたときに使っている変数を足します。部品はブロックの定義ではないので、`tools/check-blocks.js` の

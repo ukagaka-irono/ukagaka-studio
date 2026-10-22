@@ -224,6 +224,15 @@ button, input, select, textarea { font-family: inherit; }
 .palette-part-name { font-size: 12px; font-weight: 600; color: var(--text-2); margin: 0 0 6px 2px; }
 .palette-part-name small { font-weight: 400; color: var(--text-faint); margin-left: 6px; }
 .palette-part .stack { zoom: .8; }
+/* 立ち絵の上で当たり判定を描く（panels/areas.js） */
+.areas-stage { position: relative; display: inline-block; max-width: 100%; margin: 8px 0; cursor: crosshair; user-select: none; touch-action: none; }
+.areas-stage img { display: block; max-width: 100%; max-height: 360px; background: var(--canvas); border: 1px solid var(--line); }
+.areas-layer { position: absolute; inset: 0; pointer-events: none; }
+.areas-rect { position: absolute; border: 2px solid var(--accent); box-sizing: border-box; }
+.areas-rect.is-ghost { border-style: dashed; }
+.areas-rect span { position: absolute; left: 0; top: -18px; font-size: 11px; padding: 0 4px; border-radius: 3px; background: var(--accent); color: var(--on-accent); white-space: nowrap; }
+.areas-row { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+.areas-row input { width: 64px; }
 .palette-note {
   font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 6px 8px 2px 0;
 }

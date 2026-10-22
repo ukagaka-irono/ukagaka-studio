@@ -116,6 +116,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    (the exported ghost's `yaya_variable.cfg`).
 4. On the **Characters** page, under “Surfaces”, you can assign your own PNG images to surface numbers
    (numbers you leave out get a simple picture drawn in the colors you choose).
+   With “**Hit areas**” on each surface, drag on the picture to draw the places that can be touched (head, face, … or names of your own).
+   Drawn areas replace that surface's automatic hit areas, and their names appear in the area list of mouse hats.
    Enter an existing shell folder (such as `shell\master`) under “Import from an existing shell folder” to assign
    numbered images such as `surface0.png` to their numbers all at once (animations and hit areas are not imported;
    numbers that `surfaces.txt` builds by combining images have no single picture, so they are not imported).
@@ -480,7 +482,7 @@ export, so when you write YAYA by hand, put it in a dictionary file of your own 
   and **other events**. SSP calls the steady loop every second, so the hat block's
   “every N seconds” thins it out (`everySec`).
 * Mouse events can be narrowed down by **the area hit (head, face, chest, skirt, hand) and who was hit**.
-  The placeholder shell is exported with hit areas of those names.
+  The placeholder shell is exported with hit areas of those names (you can redraw them on the Characters page).
 * When `OnMouseMove` keeps hitting the same area, the runtime makes **`OnNadeNade` (when petted)** itself.
   SSP has no such event; the runtime dictionary counts it.
 * **Talking between ghosts** (`OnCommunicate`) is supported. It can be narrowed down by the sender's name and

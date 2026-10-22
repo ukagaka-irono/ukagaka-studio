@@ -102,7 +102,7 @@ The `ikaga` in `ikaga/1` is a leftover from the name of the 1.x SHIORI (ikaga SH
 | `name` | The name of a `talk` / `function`, used by `call` and choice targets |
 | `weight` | How likely it is to be picked (default 1). When an event has several scripts, one is drawn by weight |
 | `everySec` | How often `OnSecondChange` runs it, in seconds (omitted = every second). SSP sends it every second, so the runtime dictionary thins it out |
-| `filter` | Narrows down the event. Mouse events use `area` (hit area name `Head` / `Face` / `Bust` / `Skirt` / `Hand`) and `who` (`0` = main character, `1` = partner). `OnCommunicate` uses `from` (the sender's name) and `contains` (a word in what was said); each **matches if it is contained**. Omitted items mean “anywhere / anyone / anything” |
+| `filter` | Narrows down the event. Mouse events use `area` (hit area name `Head` / `Face` / `Bust` / `Skirt` / `Hand`, or the names of hit areas drawn on the Characters page) and `who` (`0` = main character, `1` = partner). `OnCommunicate` uses `from` (the sender's name) and `contains` (a word in what was said); each **matches if it is contained**. Omitted items mean “anywhere / anyone / anything” |
 | `disabled` | `true` disables it |
 | `note` | A note on the script (does not affect behavior; goes into the dictionary as a `//` comment). Blocks can carry the same `note` |
 | `x` / `y` | The position in the editor. Not written into the dictionaries |

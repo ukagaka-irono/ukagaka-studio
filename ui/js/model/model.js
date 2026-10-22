@@ -118,6 +118,7 @@ const Model = {
         sakuraColor: '#f08cae', sakuraCloth: '#6e82c8',
         keroColor: '#8fd18a', keroCloth: '#e8b45c',
         images: [],       // { id, path, name, w, h } 用意した立ち絵
+        areas: {},        // { 立ち絵の番号: [{ name, x1, y1, x2, y2 }] } 絵の上で描いた当たり判定
       },
       variables: [],
       scripts: [],
@@ -146,6 +147,20 @@ const Model = {
         w: Number(x.w) || 0, h: Number(x.h) || 0,
       }))
       .sort((a, b) => a.id - b.id);
+    // 絵の上で描いた当たり判定（立ち絵の番号ごと）。あればその番号の自動の当たり判定のかわりになります（export_shell.cpp）
+    const areas = {};
+    const srcAreas = out.shell.areas && typeof out.shell.areas === 'object' ? out.shell.areas : {};
+    for (const id of Object.keys(srcAreas)) {
+      if (!/^\d+$/.test(id) || !Array.isArray(srcAreas[id])) continue;
+      areas[id] = srcAreas[id]
+        .filter((a) => a && String(a.name || '').trim())
+        .map((a) => ({
+          name: String(a.name).trim(),
+          x1: Math.round(Number(a.x1) || 0), y1: Math.round(Number(a.y1) || 0),
+          x2: Math.round(Number(a.x2) || 0), y2: Math.round(Number(a.y2) || 0),
+        }));
+    }
+    out.shell.areas = areas;
     out.variables = Array.isArray(out.variables) ? out.variables : [];
     out.variables = out.variables
       .filter((v) => v && v.name)
