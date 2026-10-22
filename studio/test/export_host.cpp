@@ -22,6 +22,7 @@
 #include "fsutil.h"
 #include "yaya_ghost.h"
 #include "shell_import.h"
+#include "project_history.h"
 
 using namespace ikaga;
 
@@ -98,6 +99,26 @@ int wmain(int argc, wchar_t** argv) {
         }
         for (size_t i = 0; i < r.compositeOnly.size(); i++) printf("composite: %d\n", r.compositeOnly[i]);
         for (size_t i = 0; i < r.unreadable.size(); i++) printf("unreadable: %s\n", r.unreadable[i].c_str());
+        return 0;
+    }
+
+    // export_host --history <projects のフォルダ> <名前> <新しい中身のファイル> [auto] [間隔の秒] [残す数]
+    //   プロジェクトを保存するのと同じに、前の版を残してから上書きし、残っている版の一覧を出す（project_history.h）
+    if (std::wstring(argv[1]) == L"--history") {
+        if (argc < 5) { printf("usage: export_host --history <projects> <name> <new.json> [auto] [gap] [keep]\n"); return 1; }
+        std::string text;
+        if (!ReadBinaryFile(argv[4], text)) { printf("error: read\n"); return 7; }
+        bool manual = !(argc > 5 && std::wstring(argv[5]) == L"auto");
+        int gap = argc > 6 ? _wtoi(argv[6]) : kHistoryMinGapSec;
+        int keep = argc > 7 ? _wtoi(argv[7]) : kHistoryMaxKeep;
+        bool kept = KeepProjectVersion(argv[2], argv[3], text, manual, gap, keep);
+        WriteBinaryFile(PathJoin(argv[2], std::wstring(argv[3]) + L".json"), text);
+        printf("kept: %d\n", kept ? 1 : 0);
+        for (const ProjectVersion& v : ListProjectVersions(argv[2], argv[3])) {
+            std::string body;
+            ReadProjectVersion(argv[2], argv[3], v.id, body);
+            printf("version: %s %s\n", v.time.c_str(), body.c_str());
+        }
         return 0;
     }
 

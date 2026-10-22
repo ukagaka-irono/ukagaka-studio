@@ -52,6 +52,8 @@ private:
     void GetProject(const HttpRequest& req, HttpResponse& res);
     void SaveProject(const HttpRequest& req, HttpResponse& res);
     void DeleteProject(const HttpRequest& req, HttpResponse& res);
+    void GetProjectHistory(const HttpRequest& req, HttpResponse& res);    // 前の版の一覧（project_history.h）
+    void GetProjectVersion(const HttpRequest& req, HttpResponse& res);    // 前の版の中身
     void ImportProject(const HttpRequest& req, HttpResponse& res);
 
     // api_shell.cpp

@@ -89,6 +89,8 @@ After you close it, you can bring it back with “Show the first-steps guide aga
 * Closing the window quits the app. If you have unsaved changes, it asks first.
 * The window position and size are restored the next time.
 * Starting it twice does not open a second one (the open window comes to the front).
+* While there are unsaved changes, it saves automatically every minute. Each save keeps what it overwrites as an **earlier version**;
+  press 🕘 next to a project in “Open” to pick one and open it (saving what you opened makes it the current version).
 * The screen language follows the Windows display language. Switch it with **English** / **日本語** in the top bar
   (what you have open, including unsaved changes, stays as it is). With the English UI, the examples are English too.
 * The language of what the ghost says on its own (reactions to events without blocks) and of values such as
@@ -242,6 +244,7 @@ Next to `ukagaka-studio.exe`.
 | | |
 |---|---|
 | `projects\` | Projects (your unfinished blocks). A sample is put here on first start (`Ikaga.json` in English, `いかがちゃん.json` in Japanese) |
+| `projects\.history\` | Earlier versions of projects. Each save keeps what it overwrites (autosaves only every 10 minutes; the newest 30 per project are kept). Open them with 🕘 in “Open” |
 | `output\` | Exported ghosts (unless you changed the output folder) |
 | `ukagaka-studio.json` | The last project opened, the output folder, the window size, the language |
 | `webview-data\` | WebView2's working folder (rebuilt if you delete it) |
@@ -365,6 +368,7 @@ ukagaka-studio/
 │       ├── sstp.cpp        talks to SSP (SSTP and finding ssp.exe)
 │       ├── api.cpp         the /api/* entry (the route table kRoutes)
 │       ├── api_project.cpp   state, saving and loading projects
+│       ├── project_history.cpp  earlier versions of projects (projects\.history\)
 │       ├── api_shell.cpp     surfaces (drawing the placeholder shell, your own images)
 │       ├── api_ghost.cpp     Try, and the exported ghost's memory and log
 │       ├── api_export.cpp    export, open in Explorer, inspect a hand-written YAYA ghost

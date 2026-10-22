@@ -145,7 +145,7 @@ $exportSources = @('exporter.cpp', 'export_program.cpp', 'export_shell.cpp', 'ex
 
 # /api/* の受け口（api.cpp の kRoutes）と、用事ごとの中身
 $apiSources = @('api.cpp', 'api_project.cpp', 'api_shell.cpp', 'api_ghost.cpp',
-                'api_export.cpp', 'api_ssp.cpp') |
+                'api_export.cpp', 'api_ssp.cpp', 'project_history.cpp') |
     ForEach-Object { Join-Path $src $_ }
 
 $sources = @(
@@ -172,12 +172,12 @@ Build-Exe -Label "伺かスタジオ ($Arch)" -Out $exeOut -ObjDir $obj -Sources
 
 # ---- テスト用コンソール ----------------------------------------------------
 # 画面を出さずに中身を見るためのもの。
-#   export_host  … 書き出されるファイル（surfaces.txt など）・手書きのゴースト・シェルのフォルダ
+#   export_host  … 書き出されるファイル（surfaces.txt など）・手書きのゴースト・シェルのフォルダ・プロジェクトの前の版
 if ($Test) {
     Build-Exe -Label '書き出しテスト用コンソール' `
         -Out (Join-Path $root 'test\export_host.exe') -ObjDir (Join-Path $obj 'test') `
         -Sources (@((Join-Path $root 'test\export_host.cpp'), (Join-Path $src 'json.cpp'),
-                    (Join-Path $src 'util.cpp')) + $exportSources) `
+                    (Join-Path $src 'util.cpp'), (Join-Path $src 'project_history.cpp')) + $exportSources) `
         -Include @($src) `
         -Lib ($libsCommon + @('gdi32.lib', 'comdlg32.lib', 'oleaut32.lib'))
 }

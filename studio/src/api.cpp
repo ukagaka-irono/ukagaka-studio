@@ -156,6 +156,8 @@ const Api::Route Api::kRoutes[] = {
     { "GET",  "/api/project",        &Api::GetProject },
     { "POST", "/api/project",        &Api::SaveProject },
     { "POST", "/api/project/delete", &Api::DeleteProject },
+    { "GET",  "/api/project/history", &Api::GetProjectHistory },
+    { "GET",  "/api/project/version", &Api::GetProjectVersion },
     { "POST", "/api/import",         &Api::ImportProject },
     // api_shell.cpp
     { "GET",  "/api/shell",          &Api::RenderShell },

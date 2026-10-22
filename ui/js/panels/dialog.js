@@ -16,10 +16,14 @@ import { Render } from '../editor/render.js';
 import { t, getLang } from '../i18n/i18n.js';
 
 // ---------------------------------------------------------- 保存 / 読込
-async function saveProject(silent) {
+/**
+ * プロジェクトを保存する。上書きする前のものは、exe が前の版として残します（studio/src/project_history.h）。
+ * auto は 1 分ごとの自動保存のしるし（前の版は 10 分おきにだけ残します）
+ */
+async function saveProject(silent, auto = false) {
   const name = Model.project.meta.name || t('ゴースト');
   try {
-    const r = await api('/api/project', { method: 'POST', body: { name, project: Model.project } });
+    const r = await api('/api/project', { method: 'POST', body: { name, project: Model.project, auto } });
     Session.projectName = r.saved;
     Model.dirty = false;
     updateTitle();
@@ -67,6 +71,14 @@ async function openProjectDialog() {
     const row = Render.div('proj-row');
     row.appendChild(Render.div('t', p.title));
     row.appendChild(Render.div('d', new Date(p.updated).toLocaleString('ja-JP')));
+    const past = Render.el('button', 'x', '🕘');
+    past.title = t('前の版');
+    past.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+      setTimeout(() => openHistoryDialog(p.file, p.title), 0);
+    });
+    row.appendChild(past);
     const x = Render.el('button', 'x', '✕');
     x.title = t('削除');
     x.addEventListener('click', async (e) => {
@@ -78,6 +90,7 @@ async function openProjectDialog() {
     });
     row.appendChild(x);
     row.addEventListener('click', async () => {
+      if (Model.dirty && !confirm(t('保存していない変更があります。「{title}」を開きますか？', { title: p.title }))) return;
       try {
         const data = await api('/api/project?name=' + encodeURIComponent(p.file));
         Model.init(data);
@@ -89,8 +102,46 @@ async function openProjectDialog() {
     });
     list.appendChild(row);
   }
-  modal(t('プロジェクトを開く'), list, [
-    { label: t('お手本から始める'), run: () => setTimeout(openSampleDialog, 0) },
+  const buttons = [{ label: t('お手本から始める'), run: () => setTimeout(openSampleDialog, 0) }];
+  if (Session.projectName) {
+    const name = Session.projectName;
+    buttons.push({ label: t('いまのプロジェクトの前の版'), run: () => setTimeout(() => openHistoryDialog(name, name), 0) });
+  }
+  buttons.push({ label: t('閉じる') });
+  modal(t('プロジェクトを開く'), list, buttons);
+}
+
+const timeText = (iso) => new Date(iso).toLocaleString(getLang() === 'en' ? 'en-US' : 'ja-JP');
+
+/** 保存したプロジェクトの前の版をえらんで開く（file は projects\ のファイル名） */
+async function openHistoryDialog(file, title) {
+  let r;
+  try { r = await api('/api/project/history?name=' + encodeURIComponent(file)); } catch (e) { toast(e.message, true); return; }
+  const list = Render.div('');
+  list.appendChild(Render.div('hint', r.versions.length
+    ? t('保存するたびに、上書きする前のものを残しています（自動保存は 10 分おき・新しいほうから 30 こ）。えらぶと、その版を開きます。')
+    : t('まだ前の版がありません。保存しなおすと、上書きする前のものが残ります。')));
+  for (const v of r.versions) {
+    const row = Render.div('proj-row');
+    row.appendChild(Render.div('t', timeText(v.time)));
+    if (typeof v.scripts === 'number') row.appendChild(Render.div('d', t('かたまり {n} こ', { n: v.scripts })));
+    row.addEventListener('click', async () => {
+      if (Model.dirty && !confirm(t('保存していない変更があります。前の版を開きますか？'))) return;
+      try {
+        const data = await api('/api/project/version?name=' + encodeURIComponent(file) + '&id=' + encodeURIComponent(v.id));
+        Model.init(data);
+        Session.projectName = file;
+        Session.vars = {};
+        Model.dirty = true;     // 保存すると、いまの版のかわりになります（いまの版も前の版として残ります）
+        updateTitle();
+        closeModal();
+        toast(t('{time} の版を開きました。保存すると、これがいまの版になります（いまの版も前の版として残ります）', { time: timeText(v.time) }));
+      } catch (e) { toast(e.message, true); }
+    });
+    list.appendChild(row);
+  }
+  modal(t('「{title}」の前の版', { title }), list, [
+    { label: t('もどる'), run: () => setTimeout(openProjectDialog, 0) },
     { label: t('閉じる') },
   ]);
 }
@@ -200,4 +251,4 @@ function init() {
   });
 }
 
-export const Dialog = { init, saveProject, requestSaveAndClose, openProjectDialog, openSampleDialog, doExport, modal, closeModal };
+export const Dialog = { init, saveProject, requestSaveAndClose, openProjectDialog, openHistoryDialog, openSampleDialog, doExport, modal, closeModal };

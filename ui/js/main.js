@@ -185,7 +185,8 @@ async function boot() {
     e.returnValue = '';
   });
 
-  setInterval(() => { if (Model.dirty) Dialog.saveProject(true); }, 60000);
+  // 1 分ごとの自動保存（前の版は、exe が 10 分おきにだけ残します）
+  setInterval(() => { if (Model.dirty) Dialog.saveProject(true, true); }, 60000);
 }
 
 // exe（studio/src/main.cpp）が、ウィンドウを閉じるときに呼ぶもの。

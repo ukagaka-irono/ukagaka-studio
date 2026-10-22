@@ -3,6 +3,7 @@
 #include "api_util.h"
 #include "exporter.h"
 #include "fsutil.h"
+#include "project_history.h"
 #include "util.h"
 #include "version_gen.h"
 
@@ -78,7 +79,10 @@ void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
     if (name.empty()) { JsonError(res, 400, "no_name"); return; }
     EnsureDir(projectsDir_);
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
-    if (!WriteBinaryFile(file, body["project"].dump(2))) {
+    std::string text = body["project"].dump(2);
+    // 上書きする前のものを、前の版として残す（自動保存のときは 10 分おき。project_history.h）
+    KeepProjectVersion(projectsDir_, Utf8ToWide(name), text, !body["auto"].asBool(false));
+    if (!WriteBinaryFile(file, text)) {
         JsonError(res, 500, "save_failed");
         return;
     }
@@ -99,9 +103,51 @@ void Api::DeleteProject(const HttpRequest& req, HttpResponse& res) {
         JsonError(res, 404, "project_not_found");
         return;
     }
+    DeleteProjectVersions(projectsDir_, Utf8ToWide(name));
     JValue o = JValue::makeObj();
     o.set("deleted", JValue::makeStr(name));
     Json(res, 200, o);
+}
+
+static std::string QueryOf(const HttpRequest& req, const char* key) {
+    std::map<std::string, std::string>::const_iterator it = req.query.find(key);
+    return it == req.query.end() ? "" : it->second;
+}
+
+// GET /api/project/history?name=… … 前の版の一覧（新しい順）。かたまりの数も添える
+void Api::GetProjectHistory(const HttpRequest& req, HttpResponse& res) {
+    std::string name = SafeFolderName(QueryOf(req, "name"), "");
+    if (name.empty()) { JsonError(res, 404, "project_not_found"); return; }
+    JValue list = JValue::makeArr();
+    for (const ProjectVersion& v : ListProjectVersions(projectsDir_, Utf8ToWide(name))) {
+        JValue one = JValue::makeObj();
+        one.set("id", JValue::makeStr(WideToUtf8(v.id)));
+        one.set("time", JValue::makeStr(v.time));
+        one.set("size", JValue::makeNum((double)v.size));
+        std::string text;
+        JValue p;
+        std::string err;
+        if (ReadProjectVersion(projectsDir_, Utf8ToWide(name), v.id, text) && JsonParse(ToUtf8(text), p, err)) {
+            one.set("scripts", JValue::makeNum(p["scripts"].isArr() ? (double)p["scripts"].arr.size() : 0));
+        }
+        list.arr.push_back(one);
+    }
+    JValue o = JValue::makeObj();
+    o.set("versions", list);
+    Json(res, 200, o);
+}
+
+// GET /api/project/version?name=…&id=… … 前の版の中身をそのまま返す
+void Api::GetProjectVersion(const HttpRequest& req, HttpResponse& res) {
+    std::string name = SafeFolderName(QueryOf(req, "name"), "");
+    std::string text;
+    if (name.empty() || !ReadProjectVersion(projectsDir_, Utf8ToWide(name), Utf8ToWide(QueryOf(req, "id")), text)) {
+        JsonError(res, 404, "version_not_found");
+        return;
+    }
+    res.status = 200;
+    res.contentType = "application/json; charset=utf-8";
+    res.body = ToUtf8(text);
 }
 
 // POST /api/import … ghost.json のファイルか、書き出したゴーストのフォルダから読みこむ

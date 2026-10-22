@@ -718,8 +718,21 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 
 * ~~**Notes (comments)** on blocks~~ (done; see “What was done” below)
 * Copy and paste between projects
-* Autosave and going back to an earlier version
+* ~~Autosave and going back to an earlier version~~ (done)
 * Saving a frequently used arrangement as a “part”
+
+> **Autosave and earlier versions are done.** What was done:
+>
+> * Autosave (every minute while there are unsaved changes) already existed; **earlier versions** were added on top. On every save the exe
+>   keeps what it overwrites in `projects\.history\<name>\<date-time>.json` (`studio/src/project_history.cpp`): always for manual saves,
+>   for autosaves only when the newest version is at least 10 minutes old, and never when the contents are the same.
+>   Up to the newest 30 are kept per project, and deleting a project deletes its versions too.
+> * In “Open”, 🕘 on each project (and “Earlier versions of this project”) lists the versions and opens one. What you open counts as unsaved,
+>   so saving makes it the current version (the current one is kept as an earlier version).
+>   Added `GET /api/project/history` and `GET /api/project/version` (error code `version_not_found`).
+> * Picking another project in “Open” now asks first when there are unsaved changes (it used to replace it silently).
+> * Tests: the export test gained 7 checks for earlier versions (`export_host --history`: first save, manual save, same contents,
+>   autosave gap, number kept, file names).
 
 > **Notes are done.** What was done:
 >

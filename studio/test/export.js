@@ -269,6 +269,49 @@ console.log('  ---- いまあるシェルのフォルダの読みこみ');
   }
 }
 
+// ------------------------------------------------- プロジェクトの前の版（project_history.h）
+//
+// 保存するのと同じ順に、前の版を残してから上書きします（export_host --history）。
+console.log('  ---- プロジェクトの前の版');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-history-'));
+  const name = 'テスト';
+  const save = (text, ...opt) => {
+    const f = path.join(dir, 'new.json');
+    fs.writeFileSync(f, text);
+    const out = run(['--history', dir, name, f, ...opt]).toString('utf8').split(/\r?\n/).filter((s) => s);
+    return { kept: out[0] === 'kept: 1', bodies: out.slice(1).map((l) => l.replace(/^version: \S+ /, '')) };
+  };
+  const steps = [
+    ['はじめての保存では、前の版は無い', () => save('A'), { kept: false, bodies: [] }],
+    ['手で保存すると、上書きする前のものを残す', () => save('B'), { kept: true, bodies: ['A'] }],
+    ['中身が同じなら残さない', () => save('B'), { kept: false, bodies: ['A'] }],
+    ['自動保存は、いちばん新しい版から間があいていなければ残さない', () => save('C', 'auto', '600'), { kept: false, bodies: ['A'] }],
+    ['間があいていれば、自動保存でも残す（新しい順）', () => save('D', 'auto', '0'), { kept: true, bodies: ['C', 'A'] }],
+    ['残す数をこえたら、古いものから消す', () => save('E', 'manual', '600', '2'), { kept: true, bodies: ['D', 'C'] }],
+  ];
+  try {
+    for (const [label, fn, want] of steps) {
+      checked++;
+      const got = fn();
+      if (JSON.stringify(got) === JSON.stringify(want)) {
+        console.log(`${green}  OK  ${off}${label}`);
+      } else {
+        failed++;
+        console.log(`${red}  だめ ${label}${off}`);
+        console.log(`        ほしい: ${JSON.stringify(want)}`);
+        console.log(`        出た  : ${JSON.stringify(got)}`);
+      }
+    }
+    checked++;
+    const ids = fs.readdirSync(path.join(dir, '.history', name));
+    if (ids.every((f) => /^\d{8}-\d{6}(-\d+)?\.json$/.test(f))) console.log(`${green}  OK  ${off}版は .history\\<名前>\\<日時>.json に残る`);
+    else { failed++; console.log(`${red}  だめ 版のファイル名が日時になっていません: ${ids.join(', ')}${off}`); }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------------------------ おしまい
 if (failed) {
   console.log(`${red}[export] ${failed} か所ちがいます（${checked} か所中）。${off}`);
