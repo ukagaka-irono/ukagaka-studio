@@ -7,6 +7,7 @@
  *   model.js      … 読みこんだプロジェクトの整形（normalize）と、かたまりの名前
  *   lint.js       … チェックタブが出す注意
  *   blockindex.js … 「ブロックを探して置く」（/ キー）で、字からブロックをさがすところ
+ *   clipboard.js  … プロジェクトをまたいだコピー（DOM と localStorage の代わりの小さな入れもので）
  *
  * ブロックを動かすところ（YAYA への訳 ui/js/model/yaya.js と、しくみの辞書）は、ここでは見ません
  * （そちらは shiori/test/parity と shiori/test/behavior が YAYA で動かして見ています）。
@@ -349,6 +350,52 @@ section('お手本ゴースト');
   // はじめて起動したときに exe が置くサンプル（studio/tools/embed.ps1 が埋め込む）
   sample(path.join(root, 'studio', 'res', 'sample-project.json'), 'ja');
   sample(path.join(root, 'studio', 'res', 'sample-project.en.json'), 'en');
+}
+
+section('プロジェクトをまたいだコピー (clipboard)');
+{
+  // 画面の部品を、DOM の代わりの小さな入れもので動かします（お知らせの欄と localStorage だけ使う）
+  const said = [];
+  const box = { textContent: '', classList: { toggle() {}, add() {}, remove() {} } };
+  globalThis.document = { querySelector: () => box };
+  const store = new Map();
+  globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)) };
+  const realTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = () => 0;   // お知らせを消すタイマーは要らない
+  const { Clipboard } = require('../js/editor/clipboard.js');
+  const { Session } = require('../js/core/session.js');
+  const say = () => { said.push(box.textContent); return box.textContent; };
+
+  // かたまり A: 変数「好感度」「こたえ」を使うブロック（はめこんだブロックの中の変数もふくむ）
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'A' },
+    variables: [{ name: '好感度', value: 5 }, { name: 'こたえ', value: 'はい' }, { name: '使わない', value: 0 }],
+    scripts: [{ id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'if', cond: { type: 'compare', op: '>', a: { type: 'var', name: '好感度' }, b: 3 },
+        then: [{ type: 'ask', into: 'こたえ', initial: '' }] },
+    ] }],
+  });
+  const block = Model.project.scripts[0].blocks[0];
+  check('使っている変数を、はめこんだブロックの中までさがす', Clipboard.usedVariables(block), ['好感度', 'こたえ']);
+  Clipboard.copy(block);
+
+  // 起動しなおしたつもりで、画面の中のコピーを消し、別のプロジェクト B にはりつける
+  Session.clipboard = null;
+  Session.clipboardVars = [];
+  Model.init({ format: 'ikaga/1', meta: { name: 'B' }, variables: [{ name: '好感度', value: 100 }], scripts: [] });
+  Clipboard.pasteAt(40, 40);
+  say();
+  const pasted = Model.project.scripts[0] && Model.project.scripts[0].blocks[0];
+  check('起動しなおしても、別のプロジェクトにはりつけられる', JSON.stringify(pasted), JSON.stringify(block));
+  check('はりつけた先に無い変数だけ、初期値つきで足す（ある変数の初期値はそのまま）',
+    Model.project.variables, [{ name: '好感度', value: 100 }, { name: 'こたえ', value: 'はい' }]);
+  check('足した変数をお知らせする', said[said.length - 1], 'はりつけました（変数「こたえ」も足しました）');
+  Model.undo();
+  check('元にもどすと、はりつけたものも足した変数も消える',
+    [Model.project.scripts.length, Model.project.variables.length], [0, 1]);
+  globalThis.setTimeout = realTimeout;
+  delete globalThis.document;
+  delete globalThis.localStorage;
 }
 
 section('このソフトについて (about)');

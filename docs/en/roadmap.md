@@ -717,9 +717,19 @@ The shell feature “Import an existing shell folder” was done in stage 3 (3-5
 ### Editor
 
 * ~~**Notes (comments)** on blocks~~ (done; see “What was done” below)
-* Copy and paste between projects
+* ~~Copy and paste between projects~~ (done)
 * ~~Autosave and going back to an earlier version~~ (done)
 * Saving a frequently used arrangement as a “part”
+
+> **Copy and paste between projects is done.** What was done:
+>
+> * Copied blocks already survived opening another project (within one run). They are now also kept in WebView2's storage (`localStorage`),
+>   so they can be pasted after a language switch reloads the page, and after restarting.
+> * When copying, the variables the blocks use (names and their initial values in the current project) are kept too, and only those missing
+>   from the project you paste into are added (existing initial values are left alone; undo removes the added variables too). Targets of
+>   blocks that call talks are not added (the Check tab reports them as missing talks).
+> * Tests: 5 checks in the editor test (variables inside nested blocks, pasting into another project after a restart, which variables are added,
+>   the notice, undo).
 
 > **Autosave and earlier versions are done.** What was done:
 >

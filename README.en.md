@@ -125,6 +125,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    Each frame has its own drawing method and position, and you can add “areas you can touch only while it plays”.
 5. In the **Search** tab (Ctrl+F) you can find blocks by speech text or variable name.
    Click a result to jump there. Copy blocks with **Ctrl+C / Ctrl+V**.
+   What you copy can be pasted into another project, even after restarting. Variables the blocks use are added, with their
+   initial values, if the project you paste into does not have them.
 6. The **Check** tab lists empty speech, missing variables, choices that go nowhere and so on.
    If it shows a red number, fix those before exporting. Click an item and
    the canvas scrolls there and the block flashes.

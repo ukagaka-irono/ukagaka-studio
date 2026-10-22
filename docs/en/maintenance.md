@@ -327,6 +327,9 @@ Blocks are translated into a YAYA dictionary (`studio_program.dic`) by `ui/js/mo
   The dictionary comments come from `noteLines` in `model/yaya.js`; in the ghost.json copy, a script's `note` is written the same way by
   both `programOf` and the exe's `export_program.cpp` (`shiori\test\yaya\yaya.js` checks that both shapes match and that notes do not change behavior).
 * Copy, cut, paste, duplicate and delete for blocks are in `editor/clipboard.js`, which both the menus and the keys call.
+  What you copy is kept in `Session.clipboard` and in `localStorage` as `ikaga.clipboard` (so it can be pasted across projects and after
+  restarting). The variables it uses are collected from fields with `kind: 'varname'` in the block definitions, so give any new
+  variable-picking field that kind (“copy across projects” in `ui\test\editor.js` checks this).
   Change them there; changing only one side makes the menus and the keys behave differently.
 
 ### Other

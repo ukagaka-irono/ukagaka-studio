@@ -99,6 +99,7 @@ export const en = {
   'コピーしたブロックがありません': 'Nothing has been copied yet',
   'はりつける場所のブロックを、先にクリックしてください': 'Click a block first to choose where to paste',
   'はりつけました': 'Pasted',
+  'はりつけました（変数「{names}」も足しました）': 'Pasted (also added the variables “{names}”)',
   'ブロックを複製しました': 'Duplicated the block',
 
   // ---- ui\js\editor\contextmenu.js

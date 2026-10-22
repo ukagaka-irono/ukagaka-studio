@@ -316,6 +316,9 @@ ui/js/
   辞書へのコメントは `model/yaya.js` の `noteLines`、ghost.json の写しでは、かたまりの `note` を `programOf` と exe の
   `export_program.cpp` の両方で同じように書きます（`shiori\test\yaya\yaya.js` が、両方の形が同じことと、メモで動きが変わらないことを見ます）。
 * ブロックのコピー・切り取り・はりつけ・複製・削除は `editor/clipboard.js` にあり、メニューとキーの両方がそれを呼びます。
+  コピーしたものは `Session.clipboard` と、`localStorage` の `ikaga.clipboard` に置きます（プロジェクトをまたいで・起動しなおしても
+  はりつけられるように）。使っている変数は、ブロックの定義で `kind: 'varname'` の欄から集めるので、変数をえらぶ欄を足すときは
+  その形にしてください（`ui\test\editor.js` の「プロジェクトをまたいだコピー」が見ます）。
   片方だけ直すと、メニューとキーで動きがずれるので、ここを直してください。
 
 ### そのほか
