@@ -114,6 +114,9 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    (the exported ghost's `yaya_variable.cfg`).
 4. On the **Characters** page, under “Surfaces”, you can assign your own PNG images to surface numbers
    (numbers you leave out get a simple picture drawn in the colors you choose).
+   Enter an existing shell folder (such as `shell\master`) under “Import from an existing shell folder” to assign
+   numbered images such as `surface0.png` to their numbers all at once (animations and hit areas are not imported;
+   numbers that `surfaces.txt` builds by combining images have no single picture, so they are not imported).
    Under “**Animations**” on the same page you can make animations that flip through surfaces
    (frames are lined up from left to right, each with a preview).
    Set “when” and they play by themselves; you can also start one with the “play animation N” block.
@@ -373,6 +376,7 @@ ukagaka-studio/
 │       ├── api_ghost.cpp     Try, and the exported ghost's memory and log
 │       ├── api_export.cpp    export, open in Explorer, inspect a hand-written YAYA ghost
 │       ├── yaya_ghost.cpp    inspects a hand-written YAYA ghost and exports into a linked one (the studio's files only)
+│       ├── shell_import.cpp  collects numbered surface images from an existing shell folder
 │       ├── api_ssp.cpp       working with a running SSP
 │       ├── preview.cpp     runs a script on the 64-bit ikaga SHIORI (used by the parity test's preview_host)
 │       ├── yaya_preview.cpp runs “Try” on YAYA (through yaya_host.exe)

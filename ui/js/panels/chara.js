@@ -111,6 +111,42 @@ async function pickShellImage(surfaceId) {
   toast(files.length > 1 ? t('{count} 枚を割り当てました', { count: files.length }) : t('画像を割り当てました'));
 }
 
+/**
+ * いまあるシェルのフォルダから、番号ごとの絵を読みこむ（段階 3-5d。exe の studio/src/shell_import.cpp）。
+ * 同じ番号に割り当ててあった絵は置きかえ、ほかの番号はそのまま残します。
+ */
+async function importShellFolder() {
+  const path = $('#shell-import-path').value.trim();
+  if (!path) { toast(t('シェルのフォルダを入れてください'), true); return; }
+  let r;
+  try {
+    r = await api('/api/shell/import', { method: 'POST', body: { path } });
+  } catch (e) {
+    toast(e.message, true);
+    return;
+  }
+  const files = r.images || [];
+  if (files.length) {
+    Model.act(() => {
+      const list = shellImages();
+      for (const f of files) {
+        const one = { id: Number(f.id), path: f.path, name: f.name, w: f.width, h: f.height, stamp: String(Date.now()) };
+        const i = list.findIndex((x) => Number(x.id) === one.id);
+        if (i >= 0) list[i] = one; else list.push(one);
+      }
+      list.sort((a, b) => Number(a.id) - Number(b.id));
+    });
+    Stage.refresh();
+  }
+  let msg = t('シェルの絵を {count} 枚読みこみました', { count: files.length });
+  const comp = r.compositeOnly || [];
+  if (comp.length) {
+    msg += t('（{n} 個の番号は、surfaces.txt で絵を組み合わせているので読みこめませんでした: {ids}）',
+      { n: comp.length, ids: comp.slice(0, 8).join(', ') + (comp.length > 8 ? ' …' : '') });
+  }
+  toast(msg, !files.length);
+}
+
 /** 仮シェルの見本（色を動かしている最中も呼ぶので、軽くしておく） */
 function renderPreviews() {
   for (const id of [0, 1, 2, 10]) {
@@ -381,6 +417,7 @@ function init() {
   bindField('#shell-balloon-color', (v) => { Model.project.shell.balloonColor = v; });
 
   $('#btn-anim-add').addEventListener('click', addAnimation);
+  $('#btn-shell-import').addEventListener('click', importShellFolder);
   $('#btn-shell-add').addEventListener('click', () => {
     const v = prompt(t('どの番号の立ち絵にしますか？（さくらは 0〜9、うにゅうは 10 以上）'), '3');
     if (v == null) return;

@@ -21,6 +21,7 @@
 #include "util.h"
 #include "fsutil.h"
 #include "yaya_ghost.h"
+#include "shell_import.h"
 
 using namespace ikaga;
 
@@ -82,6 +83,21 @@ int wmain(int argc, wchar_t** argv) {
             else if (dau[i] == '\n') printf("<LF>\n");
             else putchar(dau[i]);
         }
+        return 0;
+    }
+
+    // export_host --shell <フォルダ>
+    //   いまあるシェルのフォルダを読みこんだ結果を出す（番号・ファイル・大きさ、組み合わせだけの番号）
+    if (std::wstring(argv[1]) == L"--shell") {
+        if (argc < 3) { printf("usage: export_host --shell <folder>\n"); return 1; }
+        ShellImport r = ImportShellFolder(argv[2]);
+        if (!r.ok) { printf("error: %s\n", r.error.c_str()); return 7; }
+        printf("folder: %s\n", WideToUtf8(FileNameOf(r.folder)).c_str());
+        for (size_t i = 0; i < r.images.size(); i++) {
+            printf("image: %d %s %dx%d\n", r.images[i].id, r.images[i].name.c_str(), r.images[i].width, r.images[i].height);
+        }
+        for (size_t i = 0; i < r.compositeOnly.size(); i++) printf("composite: %d\n", r.compositeOnly[i]);
+        for (size_t i = 0; i < r.unreadable.size(); i++) printf("unreadable: %s\n", r.unreadable[i].c_str());
         return 0;
     }
 

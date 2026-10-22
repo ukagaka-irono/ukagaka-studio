@@ -632,6 +632,23 @@ Decisions (see the “Decisions” table for details):
 >   the expression's value. Noticing that a killed exe leaves Try's work folder behind, the exe now cleans up folders of studios
 >   that are no longer running when it starts (`CleanupStaleYayaPreviews`).
 
+> **3-5d is done**, which completes 3-5. What was done:
+>
+> * “Surfaces” on the Characters page gained “**Import from an existing shell folder**”. From a shell folder (or a ghost folder:
+>   `shell/master`, else the first shell found under `shell`) it collects numbered images such as `surface0.png` and
+>   `surface0010.png` and assigns them to their numbers (same numbers are replaced, others stay). In the exe:
+>   `studio/src/shell_import.cpp` (`POST /api/shell/import`). With two images for one number the shorter name wins; files that
+>   are not readable PNGs are left out and reported.
+> * `surfaces.txt` is read only to learn numbers (`surface0`, `surface10,11`, `surface100-102`, `surface.append3`).
+>   Numbers that only combine images have no single picture, so they are not imported, and the studio says so.
+> * **Animations (SERIKO) and hit areas are not imported** (decided). The project builds hit areas from image sizes and has
+>   no place for a shell's own yet; they will be considered with “the rest of SERIKO” and “draw hit areas on the picture” in stage 4.
+> * Tests: the export test reads a shell folder assembled on the spot with tiny PNGs (from a ghost folder or directly,
+>   zero-padded names, two images for one number, an unreadable image, a non-numbered image, combination-only numbers, and refusing
+>   a folder that is not a shell; 26 checks).
+> * In a scratch copy of the exe: imported the shell of a previously exported ghost from the UI, and the six images (0–2, 10–12)
+>   lined up under their numbers.
+
 ### 3-6. Remove ikaga SHIORI
 
 Removed only after both tests in 3-3 are green.
@@ -649,7 +666,7 @@ Done when: `.\build.ps1 -Release` is green and the zip contains no ikaga SHIORI.
 ## Stage 4 — New features
 
 Candidates. Which comes first is decided along the way through stage 3.
-The shell feature “Import an existing shell folder” is done in stage 3 (3-5).
+The shell feature “Import an existing shell folder” was done in stage 3 (3-5d; numbered images only).
 
 ### The rest of SERIKO (“Not there yet” in the README)
 
@@ -660,7 +677,7 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 
 ### Shell features
 
-* **Import an existing shell folder** (read `surfaces.txt` and the images, and line up numbers and pictures)
+* ~~Import an existing shell folder~~ (done in 3-5d, numbered images only; importing animations and hit areas goes with the next two)
 * Draw hit areas on top of the picture
 * More choices for how the balloon looks
 
@@ -691,6 +708,7 @@ The shell feature “Import an existing shell folder” is done in stage 3 (3-5)
 | 2026-10-22 | When hand-written dictionaries and blocks share an event, **hand-written wins**. The studio does not write that entry; calling `Studio.Event('…')` from the hand-written function runs the blocks too (3-5) |
 | 2026-10-22 | An opened ghost's **`yaya.dll` and `yaya_base` are used as they are**; if they fall short, the studio says so and stops (3-5) |
 | 2026-10-22 | Project files **stay in `projects\`**, and a project remembers the ghost folder it is linked to (3-5) |
+| 2026-10-23 | From an existing shell folder, **only numbered images** are imported; animations (SERIKO) and hit areas are not (the project has no place for them yet; considered together in stage 4; 3-5d) |
 | 2026-10-22 | “Try” runs **the same `yaya.dll` as SSP through a 32-bit helper (`yaya_host.exe`)**; no 64-bit YAYA is built (we use the official build; 3-4) |
 | 2026-10-22 | Block variables live in **one hash, `Studio.var['name']`**, under YAYA. Any name works as it is, and they never clash with hand-written variables; hand-written YAYA reads and writes them as `Studio.var['name']` (3-2) |
 

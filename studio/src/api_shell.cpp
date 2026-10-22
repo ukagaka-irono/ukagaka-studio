@@ -1,5 +1,6 @@
 // 伺かスタジオ - 立ち絵（仮シェルのリアルタイム描画・用意した画像）
 #include "api.h"
+#include "shell_import.h"
 #include "api_util.h"
 #include "exporter.h"
 #include "fsutil.h"
@@ -43,6 +44,36 @@ void Api::PickShellImages(const HttpRequest&, HttpResponse& res) {
         arr.arr.push_back(one);
     }
     o.set("files", arr);
+    Json(res, 200, o);
+}
+
+// POST /api/shell/import … いまあるシェルのフォルダから、番号ごとの立ち絵を集める（shell_import.h）
+void Api::ImportShell(const HttpRequest& req, HttpResponse& res) {
+    JValue body;
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
+    std::string raw = Unquote(body["path"].asStr());
+    if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    ShellImport r = ImportShellFolder(Utf8ToWide(raw));
+    if (!r.ok) { JsonError(res, 404, r.error, raw); return; }
+    JValue o = JValue::makeObj();
+    o.set("folder", JValue::makeStr(WideToUtf8(r.folder)));
+    JValue arr = JValue::makeArr();
+    for (size_t i = 0; i < r.images.size(); i++) {
+        JValue one = JValue::makeObj();
+        one.set("id", JValue::makeNum(r.images[i].id));
+        one.set("path", JValue::makeStr(WideToUtf8(r.images[i].path)));
+        one.set("name", JValue::makeStr(r.images[i].name));
+        one.set("width", JValue::makeNum(r.images[i].width));
+        one.set("height", JValue::makeNum(r.images[i].height));
+        arr.arr.push_back(one);
+    }
+    o.set("images", arr);
+    JValue comp = JValue::makeArr();
+    for (size_t i = 0; i < r.compositeOnly.size(); i++) comp.arr.push_back(JValue::makeNum(r.compositeOnly[i]));
+    o.set("compositeOnly", comp);
+    JValue bad = JValue::makeArr();
+    for (size_t i = 0; i < r.unreadable.size(); i++) bad.arr.push_back(JValue::makeStr(r.unreadable[i]));
+    o.set("unreadable", bad);
     Json(res, 200, o);
 }
 

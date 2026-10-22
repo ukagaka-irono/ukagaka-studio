@@ -201,6 +201,74 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// ------------------------------------------------- いまあるシェルのフォルダの読みこみ（段階 3-5d）
+//
+// その場で小さな PNG を作って、シェルのフォルダを組み立てます。
+console.log('  ---- いまあるシェルのフォルダの読みこみ');
+{
+  const zlib = require('zlib');
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(zlib.crc32(td) >>> 0);
+    return Buffer.concat([len, td, crc]);
+  };
+  const png = (w, h) => {
+    const ihdr = Buffer.alloc(13);
+    ihdr.writeUInt32BE(w, 0);
+    ihdr.writeUInt32BE(h, 4);
+    ihdr[8] = 8; ihdr[9] = 6;        // 8bit RGBA
+    const rows = Buffer.alloc((w * 4 + 1) * h);
+    return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(rows)), chunk('IEND', Buffer.alloc(0))]);
+  };
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-shell-'));
+  try {
+    const dir = path.join(root, 'ghost-a', 'shell', 'master');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'surface0.png'), png(3, 4));
+    fs.writeFileSync(path.join(dir, 'surface0010.png'), png(5, 6));     // 0 を足した名前も 10 番
+    fs.writeFileSync(path.join(dir, 'surface11.png'), png(2, 2));
+    fs.writeFileSync(path.join(dir, 'surface1.png'), png(7, 8));
+    fs.writeFileSync(path.join(dir, 'surface0001.png'), png(9, 9));     // 1 番が 2 つ → 名前の短いほう
+    fs.writeFileSync(path.join(dir, 'surface2.png'), Buffer.from('not a png'));   // 読めない
+    fs.writeFileSync(path.join(dir, 'body.png'), png(1, 1));            // 番号の絵ではない
+    fs.writeFileSync(path.join(dir, 'surfaces.txt'),
+      'charset,UTF-8\r\nsurface0\r\n{\r\n}\r\nsurface10,11\r\n{\r\n}\r\nsurface100-102\r\n{\r\nelement0,overlay,body.png,0,0\r\n}\r\nsurface.append3\r\n{\r\n}\r\n');
+    // 2 番は読めない絵。3・100〜102 番は surfaces.txt にだけある（組み合わせの絵）
+    const want = [
+      'folder: master',
+      'image: 0 surface0.png 3x4', 'image: 1 surface1.png 7x8',
+      'image: 10 surface0010.png 5x6', 'image: 11 surface11.png 2x2',
+      'composite: 3', 'composite: 100', 'composite: 101', 'composite: 102',
+      'unreadable: surface2.png',
+    ];
+    const cases = [['ゴーストのフォルダを渡しても shell/master を見つける', path.join(root, 'ghost-a')],
+      ['シェルのフォルダをじかに渡しても読める', dir]];
+    for (const [label, p] of cases) {
+      checked++;
+      const got = run(['--shell', p]).toString('utf8').split(/\r?\n/).filter((s) => s);
+      if (got.join(' | ') === want.join(' | ')) {
+        console.log(`${green}  OK  ${off}${label}`);
+      } else {
+        failed++;
+        console.log(`${red}  だめ ${label}${off}`);
+        console.log(`        ほしい: ${want.join(' | ')}`);
+        console.log(`        出た  : ${got.join(' | ')}`);
+      }
+    }
+    checked++;
+    let refused = '';
+    try { run(['--shell', root]); } catch (e) { refused = String(e.stdout || ''); }
+    if (refused.includes('error: not_shell_folder')) console.log(`${green}  OK  ${off}シェルのフォルダでなければ断る`);
+    else { failed++; console.log(`${red}  だめ シェルのフォルダでないのに断りませんでした${off}`); }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------------------------ おしまい
 if (failed) {
   console.log(`${red}[export] ${failed} か所ちがいます（${checked} か所中）。${off}`);

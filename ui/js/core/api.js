@@ -32,6 +32,7 @@ const ERRORS = {
   script_not_found: (d) => t('そのかたまりが見つかりません: {detail}', { detail: d }),
   no_dic: () => t('YAYA の辞書がありません'),
   yaya_failed: (d) => t('YAYA で動かせませんでした: {detail}', { detail: d }),
+  not_shell_folder: (d) => t('シェルのフォルダではないようです（surfaces.txt も surface の絵もありません）: {detail}', { detail: d }),
   not_yaya_ghost: (d) => t('YAYA のゴーストではないようです（yaya.txt がありません）: {detail}', { detail: d }),
   yaya_dll_missing: () => t('ゴーストに yaya.dll がありません'),
   yaya_dll_old: () => t('ゴーストの yaya.dll が古いので、スタジオのしくみが動きません（YAYA 6 系にしてください）'),
