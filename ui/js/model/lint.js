@@ -447,6 +447,33 @@ Lint.run = function (project, ctx = {}) {
   return out;
 };
 
+// よく使うイベント（段階 6-3）。builtin は、ブロックが無くても studio_runtime.dic の Studio.BuiltinDefault が答えるもの
+const COMMON_EVENTS = [
+  { event: 'OnFirstBoot', builtin: true },
+  { event: 'OnBoot', builtin: true },
+  { event: 'OnClose', builtin: true },
+  { event: 'OnMouseDoubleClick', builtin: true },
+  { event: 'OnNadeNade', builtin: true },
+  { event: 'OnGhostChanged', builtin: false },
+  { event: 'OnGhostChanging', builtin: false },
+  { event: 'OnWindowStateRestore', builtin: false },
+];
+
+/**
+ * まだ反応していない、よく使うイベント（チェックタブの「まだ反応していないイベント」）。
+ * 止めていないかたまりがあるもの・つないだ手書きの辞書にあるものは出しません。ランダムトークが 1 つも無ければ、それも出します。
+ * 返すのは [{ kind: 'event', event, builtin } | { kind: 'talk' }]
+ */
+Lint.missingEvents = function (project, handwritten = []) {
+  const scripts = ((project && project.scripts) || []).filter((s) => !s.disabled);
+  const have = new Set(scripts.filter((s) => s.kind === 'event').map((s) => s.event));
+  const hand = new Set(Array.isArray(handwritten) ? handwritten : []);
+  const out = COMMON_EVENTS.filter((e) => !have.has(e.event) && !hand.has(e.event))
+    .map((e) => ({ kind: 'event', event: e.event, builtin: e.builtin }));
+  if (!scripts.some((s) => s.kind === 'talk')) out.push({ kind: 'talk' });
+  return out;
+};
+
 Lint.countErrors = function (list) {
   return list.filter((x) => x.level === 'error').length;
 };

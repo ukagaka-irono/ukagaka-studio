@@ -899,7 +899,7 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 |---|---|---|
 | 6-1 | Filter random talks (time of day, season, affection, boot count) | done |
 | 6-2 | Serial talks (one episode further on each boot) | done |
-| 6-3 | A list of events without a reaction (click to place the hat) | |
+| 6-3 | A list of events without a reaction (click to place the hat) | done |
 
 
 > **6-1 is done.** The random talk hat gained “when” (`when`: any time, or one of morning, afternoon, evening, night, spring, summer, autumn,
@@ -917,6 +917,15 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 > time it runs after a new boot (the same episode within one boot), and progress is saved per name in `Studio.serialAt` / `Studio.serialBoot`.
 > The Check tab flags an empty name, two serials with the same name and empty episodes. 1 parity case (33; Try gives the same answer), a YAYA
 > test that restarts the ghost and sees one episode per boot (both endings; 29 checks), 4 editor checks (163).
+
+
+> **6-3 is done.** The Check tab gained “Events without a reaction yet” below the warnings. It lists the common events (first boot, boot,
+> closing, double click, pats, coming from / going to another ghost, restoring from minimized) that no enabled script handles and the linked
+> hand-written dictionary does not have, plus random talk when there is none (`Lint.missingEvents`, no DOM). Each row says whether the ghost
+> currently gives the default reaction (answered by `Studio.BuiltinDefault` in `studio_runtime.dic`) or does nothing, and “Place” puts the hat
+> in a free spot and scrolls to it. These do not count toward the Check tab badge. 2 editor checks (165).
+>
+> **Stage 6 is now complete.**
 
 ---
 

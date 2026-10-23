@@ -309,6 +309,21 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 6-3: まだ反応していないイベント
+{
+  const keys = (list) => list.map((m) => (m.kind === 'talk' ? 'talk' : m.event + (m.builtin ? '*' : '')));
+  check('からっぽなら、よく使うイベントとランダムトークを出す', keys(Lint.missingEvents({ scripts: [] })),
+    ['OnFirstBoot*', 'OnBoot*', 'OnClose*', 'OnMouseDoubleClick*', 'OnNadeNade*', 'OnGhostChanged', 'OnGhostChanging', 'OnWindowStateRestore', 'talk']);
+  const p = { scripts: [
+    { kind: 'event', event: 'OnBoot', blocks: [] },
+    { kind: 'event', event: 'OnClose', disabled: true, blocks: [] },
+    { kind: 'event', event: 'OnNadeNade', area: 'Head', blocks: [] },
+    { kind: 'talk', name: 'あ', blocks: [] },
+  ] };
+  check('置いたもの・手書きにあるものは出さない（止めたものは出す）', keys(Lint.missingEvents(p, ['OnGhostChanged'])),
+    ['OnFirstBoot*', 'OnClose*', 'OnMouseDoubleClick*', 'OnGhostChanging', 'OnWindowStateRestore']);
+}
+
 // --- 段階 6-2: 続きもの
 {
   const ser = (name, episodes) => ({ type: 'serial', name, end: 'loop', episodes });

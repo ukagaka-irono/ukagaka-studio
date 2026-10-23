@@ -300,6 +300,14 @@ button, input, select, textarea { font-family: inherit; }
 /* ひな形ウィザード（panels/starter.js） */
 .starter { min-width: 360px; }
 .starter-head { margin: 12px 0 4px; font-weight: 600; color: var(--text-2); font-size: 12px; }
+/* チェックタブの「まだ反応していないイベント」（panels/search.js） */
+.missing-head { margin: 14px 2px 6px; font-weight: 600; font-size: 12px; color: var(--text-2); }
+.missing-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 4px;
+  border: 1px dashed var(--line-strong); border-radius: 8px; font-size: 12.5px;
+}
+.missing-row .msg { flex: 1 1 auto; }
+.missing-row .why { display: block; color: var(--text-faint); font-size: 11px; }
 #canvas-hint {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-faint); font-size: 14px; line-height: 1.9;

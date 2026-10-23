@@ -129,6 +129,14 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- まだ反応していないイベント（段階 6-3）
+  'まだ反応していないイベント': 'Events without a reaction yet',
+  'ひとつも無いので、自動ではしゃべりません': 'There are none, so the ghost does not talk on its own',
+  'いまは、おまかせの反応をします': 'For now it gives the default reaction',
+  'いまは、なにもしません': 'For now it does nothing',
+  '置く': 'Place',
+  '「{title}」を置きました。ブロックをつなげてください': 'Placed “{title}”. Snap blocks under it.',
+
   // ---- 続きもの（段階 6-2）
   '続きもの %name 第1話（起動するたびに次の話へ。おわったら %end）': 'serial %name episode 1 (next episode on each boot; at the end %end)',
   '連続トーク': 'Serial talk',

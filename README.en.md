@@ -141,7 +141,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    What you copy can be pasted into another project, even after restarting. Variables the blocks use are added, with their
    initial values, if the project you paste into does not have them.
 6. The **Check** tab lists empty speech, missing variables, choices that go nowhere and so on. It also points out overlong speech,
-   talks that are never called, and variables that are unused (or set but never read).
+   talks that are never called, and variables that are unused (or set but never read). Below it, “Events without a reaction yet” lists
+   common events with no blocks yet (closing, double click, switching to and from other ghosts, …); “Place” puts that hat on the canvas.
    If it shows a red number, fix those before exporting. Click an item and
    the canvas scrolls there and the block flashes.
 

@@ -11,6 +11,8 @@ import { $ } from '../core/dom.js';
 import { Session } from '../core/session.js';
 import { toast } from '../core/toast.js';
 import { Render } from '../editor/render.js';
+import { Scripts } from '../editor/scripts.js';
+import { EVENTS } from '../model/blocks.js';
 import { Tabs } from './tabs.js';
 import { Pages } from './pages.js';
 import { t } from '../i18n/i18n.js';
@@ -27,10 +29,7 @@ function renderCheck() {
   badge.classList.toggle('warn-only', issues.length > 0 && errors === 0);
 
   list.textContent = '';
-  if (!issues.length) {
-    list.appendChild(Render.div('check-ok', t('✓ 気になるところはありません')));
-    return;
-  }
+  if (!issues.length) list.appendChild(Render.div('check-ok', t('✓ 気になるところはありません')));
   for (const it of issues) {
     const item = Render.el('button', 'check-item ' + (it.level === 'error' ? 'is-error' : 'is-warn'));
     item.appendChild(Render.el('span', 'mark', it.level === 'error' ? '⛔' : '⚠'));
@@ -46,6 +45,43 @@ function renderCheck() {
     }
     list.appendChild(item);
   }
+  renderMissing(list);
+}
+
+/** まだ反応していない、よく使うイベント（段階 6-3）。「置く」で、その帽子をキャンバスに置く */
+function renderMissing(list) {
+  const missing = Lint.missingEvents(Model.project, (Session.yayaGhost || {}).functions || []);
+  if (!missing.length) return;
+  list.appendChild(Render.div('missing-head', t('まだ反応していないイベント')));
+  for (const m of missing) {
+    const row = Render.div('missing-row');
+    const label = m.kind === 'talk'
+      ? t('ランダムトーク')
+      : ((EVENTS.find((e) => e[1] === m.event) || [])[0] || m.event);
+    const text = Render.div('msg', label);
+    text.appendChild(Render.el('span', 'why', m.kind === 'talk'
+      ? t('ひとつも無いので、自動ではしゃべりません')
+      : (m.builtin ? t('いまは、おまかせの反応をします') : t('いまは、なにもしません'))));
+    row.appendChild(text);
+    const put = Render.el('button', 'btn small', t('置く'));
+    put.addEventListener('click', () => placeHat(m));
+    row.appendChild(put);
+    list.appendChild(row);
+  }
+}
+
+function placeHat(m) {
+  const at = Scripts.freeSpot();
+  let script = null;
+  Model.act(() => {
+    script = m.kind === 'talk'
+      ? Model.addScript('talk', { x: at.x, y: at.y })
+      : Model.addScript('event', { event: m.event, x: at.x, y: at.y });
+  });
+  // すぐ描いて、置いたところへ動かす
+  Render.renderWorkspace($('#canvas'), Model.project);
+  jumpTo({ script });
+  toast(t('「{title}」を置きました。ブロックをつなげてください', { title: Model.scriptTitle(script) }));
 }
 
 // --------------------------------------------------------------- さがす
