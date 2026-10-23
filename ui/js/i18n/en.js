@@ -129,6 +129,22 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 前の版とのちがい（段階 7-6）
+  'いまとくらべる': 'Compare with now',
+  'はい': 'yes',
+  'いいえ': 'no',
+  '（なし）': '(none)',
+  '{time} の版から、いままでに変わったところです（かたまりの置き場所だけのちがいは数えません）。':
+    'What has changed since the version of {time} (moving a script around does not count).',
+  'ちがいはありません': 'No differences',
+  'かたまり': 'Scripts',
+  '（ブロック {n} こ）': ' ({n} blocks)',
+  '（ブロック {a} → {b} こ）': ' ({a} → {b} blocks)',
+  '{name}（はじめの値 {a} → {b}）': '{name} (initial value {a} → {b})',
+  '{name}（はじめの値 {v}）': '{name} (initial value {v})',
+  'ゴーストの情報と設定': 'Ghost info and settings',
+  '{time} の版とのちがい': 'Differences from the version of {time}',
+
   // ---- 100 回引く（段階 7-5）
   '🎲 100 回引く': '🎲 Draw 100',
   'ランダムトークを 100 回引いて、どれが何回出るかを数えます（トークは動かしません）':

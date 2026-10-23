@@ -308,6 +308,15 @@ button, input, select, textarea { font-family: inherit; }
 }
 .missing-row .msg { flex: 1 1 auto; }
 .missing-row .why { display: block; color: var(--text-faint); font-size: 11px; }
+/* 前の版とのちがい（panels/dialog.js） */
+.diff-row {
+  display: block; width: 100%; text-align: left; font: inherit; font-size: 12.5px; padding: 5px 8px; margin-bottom: 3px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text);
+}
+button.diff-row { cursor: pointer; }
+button.diff-row:hover { background: var(--surface-hover); }
+.diff-row.is-removed { color: var(--text-faint); }
+.proj-row .btn.small { margin-left: auto; }
 #canvas-hint {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-faint); font-size: 14px; line-height: 1.9;

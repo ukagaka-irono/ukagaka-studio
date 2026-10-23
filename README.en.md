@@ -91,6 +91,8 @@ After you close it, you can bring it back with “Show the first-steps guide aga
 * Starting it twice does not open a second one (the open window comes to the front).
 * While there are unsaved changes, it saves automatically every minute. Each save keeps what it overwrites as an **earlier version**;
   press 🕘 next to a project in “Open” to pick one and open it (saving what you opened makes it the current version).
+  For the project that is open now, “Compare with now” next to a version lists the scripts, variables and ghost info changed since
+  then (click a script to jump to it).
 * The screen language follows the Windows display language. Switch it with **English** / **日本語** in the top bar
   (what you have open, including unsaved changes, stays as it is). With the English UI, the examples are English too.
 * The language of what the ghost says on its own (reactions to events without blocks) and of values such as
@@ -445,6 +447,7 @@ ukagaka-studio/
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk
 │       │   ├── partsfile.js parts files (.parts.json) out and in
+│       │   ├── diff.js     differences between an earlier version and the project now
 │       │   └── sample.js   the template for “New” (built from the parts picked in the starter wizard)
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)

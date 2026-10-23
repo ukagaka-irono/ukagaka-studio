@@ -941,7 +941,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | done |
 | 7-4 | Export and import parts as files | done |
 | 7-5 | Draw random talks 100 times in “Try” | done |
-| 7-6 | See what changed since an earlier version | |
+| 7-6 | See what changed since an earlier version | done |
 | 7-7 | A diagram of where choices lead | |
 
 
@@ -981,6 +981,13 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > bar per random talk (including those drawn 0 times). Filters use the current time and the continuing Try variables. The YAYA test checks that
 > weights 3 and 1 still alternate under the no-repeat rule, that weight 0 and non-matching talks are never drawn, and that passing variables lets
 > the conditional talk in (31 checks). The path through the exe (`/api/preview` passing `draws` on) builds, but has not yet been tried in a running exe.
+
+
+> **7-6 is done.** In 🕘 (earlier versions) under “Open”, versions of the project that is open now get “Compare with now”. It loads that
+> version (through `Model.normalize`) and compares it with the current project using `diffProjects` in `ui/js/model/diff.js`: scripts by id
+> (added, changed, removed; moving or folding alone does not count; changed ones show their block counts), variables by name (initial
+> values), plus the ghost info and settings fields. Clicking an added or changed script in the list jumps to it and highlights it.
+> 6 editor checks (184).
 
 ---
 

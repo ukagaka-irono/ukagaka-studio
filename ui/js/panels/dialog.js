@@ -5,6 +5,7 @@
 
 import { Model } from '../model/model.js';
 import { programOf, toYaya } from '../model/yaya.js';
+import { diffProjects, diffIsEmpty, countBlocks } from '../model/diff.js';
 import { YayaLink } from './yayalink.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { api } from '../core/api.js';
@@ -14,6 +15,8 @@ import { updateTitle } from '../core/title.js';
 import { Events } from '../core/events.js';
 import { Render } from '../editor/render.js';
 import { t, getLang } from '../i18n/i18n.js';
+import { Search } from './search.js';
+import { Pages } from './pages.js';
 
 // ---------------------------------------------------------- 保存 / 読込
 /**
@@ -127,6 +130,18 @@ async function openHistoryDialog(file, title) {
     const row = Render.div('proj-row');
     row.appendChild(Render.div('t', timeText(v.time)));
     if (typeof v.scripts === 'number') row.appendChild(Render.div('d', t('かたまり {n} こ', { n: v.scripts })));
+    // いま開いているプロジェクトの版なら、いまとのちがいを見られる（段階 7-6）
+    if (file === Session.projectName) {
+      const cmp = Render.el('button', 'btn small', t('いまとくらべる'));
+      cmp.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          const data = await api('/api/project/version?name=' + encodeURIComponent(file) + '&id=' + encodeURIComponent(v.id));
+          showDiff(Model.normalize(data), timeText(v.time), file, title);
+        } catch (err) { toast(err.message, true); }
+      });
+      row.appendChild(cmp);
+    }
     row.addEventListener('click', async () => {
       if (Model.dirty && !confirm(t('保存していない変更があります。前の版を開きますか？'))) return;
       try {
@@ -144,6 +159,76 @@ async function openHistoryDialog(file, title) {
   }
   modal(t('「{title}」の前の版', { title }), list, [
     { label: t('もどる'), run: () => setTimeout(openProjectDialog, 0) },
+    { label: t('閉じる') },
+  ]);
+}
+
+// ゴーストの情報・設定の欄の名前（ちがいの一覧で使う）
+const FIELD_LABELS = {
+  name: () => t('ゴーストの名前'), sakuraName: () => t('本体（さくら）の名前'), keroName: () => t('相方（うにゅう）の名前'),
+  craftman: () => t('作者名'), craftmanUrl: () => t('作者URL'), homeUrl: () => t('更新のありか'), version: () => t('バージョン'),
+  description: () => t('説明'), lang: () => t('ゴーストの言語'), readme: () => t('readme.txt に書くこと'),
+  randomTalkEnabled: () => t('自動でしゃべる'), randomTalkInterval: () => t('しゃべる間隔（秒）'),
+  noRepeatCount: () => t('同じトークを避ける数（0＝おまかせ）'),
+};
+
+function valueText(v) {
+  if (v === undefined || v === null || v === '') return t('（なし）');
+  if (typeof v === 'boolean') return v ? t('はい') : t('いいえ');
+  const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+  return s.length > 40 ? s.slice(0, 40) + '…' : s;
+}
+
+/** 前の版（old）と、いまのプロジェクトのちがいを見せる（段階 7-6）。足したもの・変えたかたまりは、押すとそこへ動く */
+function showDiff(old, when, file, title) {
+  const d = diffProjects(old, Model.project);
+  const body = Render.div('diff');
+  body.appendChild(Render.div('hint', t('{time} の版から、いままでに変わったところです（かたまりの置き場所だけのちがいは数えません）。', { time: when })));
+  if (diffIsEmpty(d)) body.appendChild(Render.div('check-ok', t('ちがいはありません')));
+  const mark = { added: '＋', removed: '－', changed: '＊' };
+  const section = (label) => body.appendChild(Render.div('missing-head', label));
+  if (d.scripts.length) {
+    section(t('かたまり'));
+    for (const c of d.scripts) {
+      const s = c.after || c.before;
+      const row = Render.el(c.after ? 'button' : 'div', 'diff-row is-' + c.kind);
+      let text = `${mark[c.kind]} ${Model.scriptTitle(s)}`;
+      if (c.kind === 'changed') {
+        const n0 = countBlocks(c.before.blocks);
+        const n1 = countBlocks(c.after.blocks);
+        text += n0 === n1 ? t('（ブロック {n} こ）', { n: n1 }) : t('（ブロック {a} → {b} こ）', { a: n0, b: n1 });
+      }
+      row.textContent = text;
+      if (c.after) {
+        row.title = t('クリックでその場所へ移動します');
+        row.addEventListener('click', () => {
+          closeModal();
+          Pages.show('talk');
+          setTimeout(() => Search.jumpTo({ script: c.after }), 120);   // キャンバスを描いてから
+        });
+      }
+      body.appendChild(row);
+    }
+  }
+  if (d.variables.length) {
+    section(t('変数'));
+    for (const c of d.variables) {
+      const text = c.kind === 'changed'
+        ? t('{name}（はじめの値 {a} → {b}）', { name: c.name, a: valueText(c.before), b: valueText(c.after) })
+        : t('{name}（はじめの値 {v}）', { name: c.name, v: valueText(c.kind === 'added' ? c.after : c.before) });
+      body.appendChild(Render.div('diff-row is-' + c.kind, `${mark[c.kind]} ${text}`));
+    }
+  }
+  const fields = d.meta.concat(d.settings);
+  if (fields.length) {
+    section(t('ゴーストの情報と設定'));
+    for (const c of fields) {
+      const label = FIELD_LABELS[c.key] ? FIELD_LABELS[c.key]() : c.key;
+      body.appendChild(Render.div('diff-row is-changed', `＊ ${label}: ${valueText(c.before)} → ${valueText(c.after)}`));
+    }
+  }
+  modal(t('{time} の版とのちがい', { time: when }), body, [
+    { label: t('もどる'), run: () => setTimeout(() => openHistoryDialog(file, title), 0) },
     { label: t('閉じる') },
   ]);
 }

@@ -309,6 +309,35 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 7-6: 前の版とのちがい
+{
+  const { diffProjects, diffIsEmpty, countBlocks } = require('../js/model/diff.js');
+  const say = (text) => ({ type: 'say', who: 0, text });
+  const old = Model.normalize({
+    meta: { name: 'みかん' }, variables: [{ name: 'x', value: 0 }, { name: 'y', value: 1 }],
+    scripts: [
+      { id: 'a', kind: 'event', event: 'OnBoot', x: 10, y: 10, blocks: [say('やあ')] },
+      { id: 'b', kind: 'event', event: 'OnClose', blocks: [say('またね')] },
+      { id: 'c', kind: 'talk', name: 'ひま', blocks: [say('ひま')] },
+    ],
+  });
+  const now = Model.normalize(JSON.parse(JSON.stringify(old)));
+  check('同じなら、ちがいは無い', diffIsEmpty(diffProjects(old, now)), true);
+  now.scripts[0].x = 500; now.scripts[0].folded = true;
+  check('置き場所とたたんだ印だけなら、ちがいは無い', diffIsEmpty(diffProjects(old, now)), true);
+  now.scripts[1].blocks.push(say('おやすみ'));
+  now.scripts = now.scripts.filter((s) => s.id !== 'c');
+  now.scripts.push(Model.normalize({ scripts: [{ id: 'd', kind: 'event', event: 'OnMouseDoubleClick', blocks: [] }] }).scripts[0]);
+  now.variables = [{ name: 'x', value: 5 }, { name: 'z', value: 0 }];
+  now.meta.name = 'いよかん';
+  now.settings.randomTalkInterval = 60;
+  const d = diffProjects(old, now);
+  check('かたまりのちがい（変えた・足した・消した）', d.scripts.map((c) => [c.kind, (c.after || c.before).id]), [['changed', 'b'], ['added', 'd'], ['removed', 'c']]);
+  check('変数のちがい', d.variables.map((v) => [v.kind, v.name]), [['changed', 'x'], ['added', 'z'], ['removed', 'y']]);
+  check('ゴーストの情報と設定のちがい', [d.meta.map((m) => m.key), d.settings.map((m) => m.key)], [['name'], ['randomTalkInterval']]);
+  check('ブロックの数（入れ子もふくむ）', countBlocks([{ type: 'if', cond: { type: 'compare' }, then: [say('a')] }]), 3);
+}
+
 // --- 段階 7-4: 部品のファイル
 {
   const { partsToFile, partsFromFile } = require('../js/model/partsfile.js');

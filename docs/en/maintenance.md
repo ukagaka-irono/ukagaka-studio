@@ -165,7 +165,7 @@ ui/js/
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
-└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile
+└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff
 ```
 
 **Imports point downward only.** Files in the same layer may import each other, but **never in a cycle**
