@@ -1,0 +1,60 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "キーのしぼり込み（段階 7-2）。F1 はキーの文字で（大文字と小文字は区別しない）、Esc はキーコード 27 で。ほかは「なにか」。"
+  ],
+  "meta": {
+    "name": "キーテスト",
+    "sakuraName": "さくら",
+    "keroName": "うにゅう"
+  },
+  "settings": {
+    "randomTalkEnabled": false,
+    "randomTalkInterval": 180,
+    "noRepeatCount": 0
+  },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "any",
+      "kind": "event",
+      "event": "OnKeyPress",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "なにか",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "f1",
+      "kind": "event",
+      "event": "OnKeyPress",
+      "when": "F1",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "ヘルプ",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "esc",
+      "kind": "event",
+      "event": "OnKeyPress",
+      "when": "27",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "エスケープ",
+          "nl": 0
+        }
+      ]
+    }
+  ]
+}

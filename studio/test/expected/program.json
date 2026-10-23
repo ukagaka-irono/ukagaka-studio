@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/ghost.json (4016 バイト)
+---- ghost/master/ghost.json (4271 バイト)
 {
   "format": "ikaga/1",
   "meta": {
@@ -109,6 +109,20 @@
           "type": "say",
           "who": 0,
           "text": "おはよう、今日もよろしくね。",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_key",
+      "kind": "event",
+      "event": "OnKeyPress",
+      "when": "F1",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "ヘルプだよ。",
           "nl": 1
         }
       ]

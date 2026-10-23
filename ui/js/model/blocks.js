@@ -214,6 +214,17 @@ def({
   },
   hat: true, kind: 'event',
 });
+// 「キーが押されたとき」を選ぶと、キーでしぼり込める形に変わる（段階 7-2）。キーは、キーに書いてある文字（a・f1 など。
+// 大文字と小文字は区別しない）か、Windows の仮想キーコードの数（Esc なら 27）。空ならどのキーでも
+def({
+  key: '@event.key', type: '@event', cat: 'events', shape: 'hat',
+  spec: t('%event（キー %key）'),
+  args: {
+    event: { kind: 'eventname', def: 'OnKeyPress' },
+    key: { kind: 'input', mode: 'text', def: 'f1' },
+  },
+  hat: true, kind: 'event',
+});
 def({
   key: '@event.alarm', type: '@event', cat: 'events', shape: 'hat',
   spec: t('%event %hour 時 %minute 分'),
@@ -652,7 +663,7 @@ def({
 export const PALETTE = {
   events: [
     { note: t('ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。') },
-    '@event', '@event.touch', '@event.every', '@event.nthboot', '@event.alarm', '@event.anniv', '@event.comm', '@event.menu',
+    '@event', '@event.touch', '@event.every', '@event.nthboot', '@event.alarm', '@event.anniv', '@event.key', '@event.comm', '@event.menu',
     '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],

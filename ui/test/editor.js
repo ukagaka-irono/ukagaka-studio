@@ -309,6 +309,18 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 7-2: キーのしぼり込み
+{
+  const { programOf } = require('../js/model/yaya.js');
+  const p = Model.normalize({ scripts: [
+    { id: 'k', kind: 'event', event: 'OnKeyPress', when: 'f1', blocks: [] },
+    { id: 'n', kind: 'event', event: 'OnKeyPress', blocks: [] },
+  ] });
+  check('書き出した when をキーにほどく', p.scripts.map((s) => [s.key, 'when' in s]), [['f1', false], ['', false]]);
+  check('キーの帽子の名前', p.scripts.map((s) => Model.scriptTitle(s)), ['f1 キーが押されたとき', 'キーが押されたとき']);
+  check('キーが空なら when を書かない', programOf(p).scripts.map((s) => s.when), ['f1', undefined]);
+}
+
 // --- 段階 7-1: 決めた回数めの起動
 {
   const one = (s) => Object.assign({ meta: {}, variables: [],

@@ -595,6 +595,14 @@ Studio.Matches
 		0
 		return
 	}
+	// キーのしぼり込み（段階 7-2）。キーの文字（Reference0。大文字と小文字は区別しない）か、仮想キーコード（Reference1）
+	if Studio.s.event[_k] == 'OnKeyPress' && Studio.s.when[_k] != '' {
+		_key = TOLOWER(Studio.Trim(Studio.s.when[_k]))
+		if _key != TOLOWER(Studio.Ref(0)) && _key != Studio.Ref(1) {
+			0
+			return
+		}
+	}
 	1
 }
 
@@ -607,6 +615,7 @@ Studio.Specificity
 	if Studio.s.who[_k] >= 0 { _s += 1 }
 	if Studio.s.from[_k] != '' { _s += 1 }
 	if Studio.s.contains[_k] != '' { _s += 1 }
+	if Studio.s.event[_k] == 'OnKeyPress' && Studio.s.when[_k] != '' { _s += 1 }
 	_s
 }
 

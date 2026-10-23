@@ -493,6 +493,8 @@ export function programOf(project) {
       }
       // 決めた回数めの起動（段階 7-1）。1 回目から
       if (ev === 'OnStudioNthBoot') one.when = String(clamp(asInt(src.nth, 10), 1, 999999));
+      // キーのしぼり込み（段階 7-2）。空なら書かない
+      if (ev === 'OnKeyPress' && trimC(asStr(src.key))) one.when = trimC(asStr(src.key));
     }
     if (kind === 'talk' || kind === 'function') one.name = asStr(src.name);
     if (kind === 'talk') {

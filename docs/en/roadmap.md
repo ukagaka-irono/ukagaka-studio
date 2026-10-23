@@ -937,7 +937,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | | What | |
 |---|---|---|
 | 7-1 | A hat for “on the Nth boot” | done |
-| 7-2 | Filter “when a key is pressed” by key | |
+| 7-2 | Filter “when a key is pressed” by key | done |
 | 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | |
 | 7-4 | Export and import parts as files | |
 | 7-5 | Draw random talks 100 times in “Try” | |
@@ -950,6 +950,13 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > On every OnBoot and OnFirstBoot, `Studio.RunNthBoot` in `studio_runtime.dic` tries the scripts whose count equals the boot count
 > (`Studio.boots`) from the top, and if one says something, returns it instead of the usual “on boot”. The Check tab flags unusable counts.
 > 1 behavior scenario (23 scenarios, 115 checks), one script in the export fixture, 4 editor checks (169).
+
+
+> **7-2 is done.** Picking “When a key is pressed” turns the hat into one with a key (`@event.key`). UKADOC says Reference0 is the character
+> on the key and Reference1 the virtual key code, so either can be entered: `Studio.Matches` in `studio_runtime.dic` compares text with
+> Reference0 ignoring case, and a number with Reference1. Scripts with a key win over those without (`Studio.Specificity`). The exported
+> ghost.json carries the key in `when` only when set (trimmed; same shape from the UI and the exe), and Try passes that key in the References.
+> 1 behavior scenario (24 scenarios, 118 checks), one script in the export fixture, 3 editor checks (172).
 
 ---
 

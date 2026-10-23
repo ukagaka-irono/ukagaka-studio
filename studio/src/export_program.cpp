@@ -90,6 +90,8 @@ std::string RuntimeProgramJson(const JValue& project) {
                 sprintf_s(when, "%d", clamp(src["nth"].asInt(10), 1, 999999));
             }
             if (when[0]) one.set("when", JValue::makeStr(when));
+            // キーのしぼり込み（段階 7-2）。空なら書かない
+            if (ev == "OnKeyPress" && !Trim(src["key"].asStr()).empty()) one.set("when", JValue::makeStr(Trim(src["key"].asStr())));
         }
         if (kind == "talk" || kind == "function") one.set("name", JValue::makeStr(src["name"].asStr()));
         if (kind == "talk") {

@@ -553,6 +553,8 @@ What you can do:
 * Choices (`\q`) and where they go, links (`\_a`), sounds (`\_v`)
 * Variables (affection, flags, …), conditions, loops, random branches, calling talks
 * Talking between ghosts (`OnCommunicate`) — reacting when talked to, and talking to others
+* **Filtering by key** — put the character on the key (a, f1, …; case does not matter) or a Windows virtual key code (27 for Esc)
+  into “When a key is pressed (key …)” and it only runs for that key (empty means any key)
 * **A chosen boot** — the “On a chosen boot: number N” hat runs instead of the usual “on boot” only when the ghost starts for the Nth time
 * **Anniversaries and alarms** — the “On an anniversary: month/day” and “At a set time every day: hour:minute” hats.
   An anniversary runs once on that day whenever the ghost is running (not only in the morning; restarting the same day does not repeat it)

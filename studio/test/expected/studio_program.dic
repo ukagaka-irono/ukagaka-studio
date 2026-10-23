@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/studio_program.dic (5872 バイト)
+---- ghost/master/studio_program.dic (6133 バイト)
 // ukagaka-studio: generated
 //==============================================================================
 // 伺かスタジオが、ブロックから書き出した辞書です（studio_program.dic）。
@@ -23,6 +23,7 @@ Studio.Program.Init : void
 	Studio.Def('s_comm', 'Studio.Script.s_comm', 'event', 'OnCommunicate', '', '', 1.0, 0, '', (-1), 'みかん', 'ねえ', 0, '')
 	Studio.Def('s_menu', 'Studio.Script.s_menu', 'event', 'OnStudioMenu', '', '', 1.0, 0, '', (-1), '', '', 0, '')
 	Studio.Def('s_morning', 'Studio.Script.s_morning', 'talk', '', '朝のひとこと', '', 1.0, 0, '', (-1), '', '', 0, 'morning')
+	Studio.Def('s_key', 'Studio.Script.s_key', 'event', 'OnKeyPress', '', '', 1.0, 0, '', (-1), '', '', 0, 'F1')
 	Studio.Def('s_nth', 'Studio.Script.s_nth', 'event', 'OnStudioNthBoot', '', '', 1.0, 0, '', (-1), '', '', 0, '100')
 	Studio.Def('s_alarm', 'Studio.Script.s_alarm', 'event', 'OnStudioAlarm', '', '', 1.0, 0, '', (-1), '', '', 0, '07:59')
 	Studio.Def('s_anniv', 'Studio.Script.s_anniv', 'event', 'OnStudioAnniversary', '', '', 1.0, 0, '', (-1), '', '', 0, '12-25')
@@ -113,6 +114,11 @@ OnStudioMenu
 	Studio.Event('OnStudioMenu')
 }
 
+OnKeyPress
+{
+	Studio.Event('OnKeyPress')
+}
+
 OnStudioNthBoot
 {
 	Studio.Event('OnStudioNthBoot')
@@ -176,6 +182,12 @@ Studio.Script.s_morning : void
 Studio.Cond.s_morning
 {
 	Studio.B(Studio.Cmp(Studio.Get('好感度'), '>', 3.0))
+}
+
+// OnKeyPress  (s_key)
+Studio.Script.s_key : void
+{
+	Studio.Say(0, 'ヘルプだよ。', 1)
 }
 
 // OnStudioNthBoot  (s_nth)

@@ -16,6 +16,7 @@ const MENU = path.join(__dirname, 'menu');
 const TALK_FILTER = path.join(__dirname, 'talkfilter');
 const TALK_GROUP = path.join(__dirname, 'talkgroup');
 const NTH_BOOT = path.join(__dirname, 'nthboot');
+const KEY_PRESS = path.join(__dirname, 'keypress');
 
 // 応答 1 件に対する期待。文字列なら Value の完全一致。
 //   { value } Value / { commTo } 話しかけ先 / { status } 応答の種類
@@ -260,6 +261,15 @@ const scenarios = [
       ['OnSet', { status: '204 No Content' }],
       ['OnSecondChange:0,1,3', { status: '204 No Content' }],
       ['OnSecondChange:0,1,4', '\\0なかよし\\e'],
+    ],
+  },
+  {
+    name: 'キーのしぼり込み — キーの文字（大文字と小文字は区別しない）かキーコードで、決めたキーのものが先',
+    dir: KEY_PRESS,
+    steps: [
+      ['OnKeyPress:f1,112', '\\0ヘルプ\\e'],
+      ['OnKeyPress:escape,27', '\\0エスケープ\\e'],
+      ['OnKeyPress:a,65', '\\0なにか\\e'],
     ],
   },
   {

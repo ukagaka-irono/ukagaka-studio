@@ -52,6 +52,11 @@ function refsFor(script) {
   }
   // メニューの項目は、えらばれたかたまりの id が Reference0 に来る（model/yaya.js の sakura.recommendsites）
   if (script.event === 'OnStudioMenu') return [script.id];
+  // キー（段階 7-2）。数ならキーコードとして、文字ならキーの文字として渡す
+  if (script.event === 'OnKeyPress') {
+    const key = String(script.key || '').trim() || 'f1';
+    return /^\d+$/.test(key) ? ['', key] : [key, ''];
+  }
   if (!MOUSE_EVENTS[script.event]) return [];
   const who = script.who >= 0 ? script.who : 0;
   return ['0', '0', '0', String(who), script.area || 'Head'];

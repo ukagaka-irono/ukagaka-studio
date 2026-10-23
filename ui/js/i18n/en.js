@@ -129,6 +129,10 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- キーのしぼり込み（段階 7-2）
+  '%event（キー %key）': '%event (key %key)',
+  '{key} キーが押されたとき': 'When the {key} key is pressed',
+
   // ---- 決めた回数めの起動（段階 7-1）
   '決めた回数めの起動のとき': 'On a chosen boot',
   '%event %nth 回目': '%event number %nth',

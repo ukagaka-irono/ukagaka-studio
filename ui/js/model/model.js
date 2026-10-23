@@ -244,6 +244,7 @@ const Model = {
           if (hm && script.event === 'OnStudioAlarm') { script.hour = Number(hm[1]); script.minute = Number(hm[2]); }
           if (md && script.event === 'OnStudioAnniversary') { script.month = Number(md[1]); script.day = Number(md[2]); }
           if (/^\d+$/.test(s.when) && script.event === 'OnStudioNthBoot') script.nth = Number(s.when);
+          if (script.event === 'OnKeyPress') script.key = s.when;
           delete script.when;
         }
         if (script.event === 'OnStudioAlarm') {
@@ -251,6 +252,7 @@ const Model = {
           if (typeof script.minute !== 'number') script.minute = 0;
         }
         if (script.event === 'OnStudioNthBoot' && typeof script.nth !== 'number') script.nth = 10;
+        if (script.event === 'OnKeyPress' && typeof script.key !== 'string') script.key = '';
         if (script.event === 'OnStudioAnniversary') {
           if (typeof script.month !== 'number') script.month = 1;
           if (typeof script.day !== 'number') script.day = 1;
@@ -386,6 +388,7 @@ const Model = {
         label = t('毎日 {time} になったとき', { time: pad(s.hour == null ? 12 : s.hour) + ':' + pad(s.minute) });
       }
       if (s.event === 'OnStudioNthBoot') label = t('{n} 回目に起動したとき', { n: Number(s.nth) || 10 });
+      if (s.event === 'OnKeyPress' && String(s.key || '').trim()) label = t('{key} キーが押されたとき', { key: String(s.key).trim() });
       if (s.event === 'OnStudioAnniversary') {
         label = t('毎年 {month} 月 {day} 日（記念日）', { month: Number(s.month) || 1, day: Number(s.day) || 1 });
       }

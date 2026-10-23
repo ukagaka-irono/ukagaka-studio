@@ -157,6 +157,11 @@
       "blocks": [{ "type": "say", "who": 0, "text": "おはよう、今日もよろしくね。", "nl": 1 }]
     },
     {
+      "id": "s_key", "kind": "event", "event": "OnKeyPress", "key": " F1 ",
+      "_": "キーのしぼり込みなので when が F1 になるはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "ヘルプだよ。", "nl": 1 }]
+    },
+    {
       "id": "s_nth", "kind": "event", "event": "OnStudioNthBoot", "nth": 100,
       "_": "決めた回数めの起動なので when が 100 になるはず",
       "blocks": [{ "type": "say", "who": 0, "text": "100 回目だね。", "nl": 1 }]
