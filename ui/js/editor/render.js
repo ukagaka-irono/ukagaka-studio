@@ -336,6 +336,9 @@ function buildScriptEl(script, project, options) {
       b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
       return b;
     };
+    if (script.blocks.length || script.folded) {
+      tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => Scripts.toggleFold(script)));
+    }
     tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
     tools.appendChild(mk('⧉', t('複製する'), () => Scripts.duplicateScript(script)));
     tools.appendChild(mk('✕', t('削除する'), () => Scripts.deleteScript(script)));
@@ -354,6 +357,16 @@ function buildScriptEl(script, project, options) {
     const note = opts.noTools ? null : Notes.build(script);   // かたまりのメモ
     if (note) hat.appendChild(note);
     wrap.appendChild(hat);
+  }
+
+  // たたんでいるときは、中のブロックのかわりに数だけを出す（押すとひろげる）
+  if (script.folded && !opts.noTools) {
+    wrap.classList.add('is-folded');
+    const bar = el('button', 'fold-summary', t('… {n} 個のブロック（たたんでいます）', { n: Scripts.countBlocks(script) }));
+    bar.title = t('押すと、ひろげます');
+    bar.addEventListener('click', (e) => { e.stopPropagation(); Scripts.toggleFold(script); });
+    wrap.appendChild(bar);
+    return wrap;
   }
 
   wrap.appendChild(buildStackEl(script.blocks, project, { script }));

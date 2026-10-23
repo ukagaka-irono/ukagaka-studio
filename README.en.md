@@ -145,7 +145,8 @@ below the selected block, and you can type straight into the new block's text fi
 to keep building downward.
 
 **Right-click** a block for copy, cut, paste, duplicate, save as a part, disable, note and delete; a script's hat for run, duplicate,
-note, save as a part, **show YAYA** and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
+**fold**, note, save as a part, **show YAYA** and delete; empty space for “Find and place a block here”, “Paste here”, “Tidy up”, “Fold all”
+and “Unfold all”. A folded script shows only its hat and a “… N blocks” bar (click the bar, or ▸ above the script, to unfold it).
 The list of keys is on the How to use page, opened with **?** or **F1**.
 
 “**Show YAYA**” shows the YAYA function the script becomes when exported, exactly as it is written out.

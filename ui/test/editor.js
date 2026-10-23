@@ -234,6 +234,16 @@ section('かたまりの名前 (scriptTitle)');
     Model.scriptTitle({ kind: 'event', event: 'OnUnknownThing' }), 'OnUnknownThing');
 }
 
+{
+  // かたまりをたたむ（段階 5-7）。たたんだ印は true のときだけ残す
+  const p = Model.normalize({ scripts: [
+    { id: 'a', kind: 'event', event: 'OnBoot', folded: true, blocks: [] },
+    { id: 'b', kind: 'event', event: 'OnBoot', folded: 'yes', blocks: [] },
+    { id: 'c', kind: 'event', event: 'OnBoot', blocks: [] },
+  ] });
+  check('たたんだ印: true は残し、ほかは消す', p.scripts.map((s) => 'folded' in s), [true, false, false]);
+}
+
 // =========================================================== チェックタブ
 section('チェックタブ (lint)');
 

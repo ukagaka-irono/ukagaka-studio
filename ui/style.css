@@ -280,6 +280,13 @@ button, input, select, textarea { font-family: inherit; }
   font-size: 11px; padding: 1px 6px; cursor: pointer; color: var(--text-2);
 }
 .script-tool:hover { background: var(--surface-hover); }
+/* たたんだかたまり（editor/scripts.js）の、帽子の下の帯 */
+.fold-summary {
+  display: block; margin: -2px 0 0 0; padding: 3px 12px; font: inherit; font-size: 12px;
+  border: 1px dashed var(--line-strong); border-radius: 0 0 8px 8px;
+  background: var(--surface); color: var(--text-2); cursor: pointer;
+}
+.fold-summary:hover { background: var(--surface-hover); }
 #canvas-hint {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-faint); font-size: 14px; line-height: 1.9;

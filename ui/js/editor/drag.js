@@ -64,7 +64,7 @@ function reselect() {
 function insertTarget() {
   const s = D.selected;
   if (!s || !s.el || !s.el.isConnected) return null;
-  if (s.el._isHat && s.el._script) return { stack: s.el._script.blocks, index: 0 };
+  if (s.el._isHat && s.el._script) return s.el._script.folded ? null : { stack: s.el._script.blocks, index: 0 };
   if (Array.isArray(s.stack)) return { stack: s.stack, index: s.index + 1 };
   return null;
 }

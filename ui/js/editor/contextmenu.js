@@ -1,7 +1,7 @@
 /* 伺かスタジオ - キャンバスの右クリックメニュー
  *
  * 3 つあります。どれも、キーボードで同じことができるものは右にキーを出します。
- *   ・かたまり（帽子）の上 … 実行・複製・メモ・部品にする・YAYA を見る・削除
+ *   ・かたまり（帽子）の上 … 実行・複製・たたむ・メモ・部品にする・YAYA を見る・削除
  *   ・ブロックの上         … コピー・切り取り・複製・部品にする・無効にする・メモ・削除
  *   ・パレットの部品の上   … 名前を変える・消す
  *   ・何もないところ       … ブロックを探して置く・はりつけ・整列
@@ -87,6 +87,8 @@ function init() {
         { label: t('ここにはりつけ'), key: 'Ctrl+V', run: () => Clipboard.pasteAt(at.x, at.y) },
         '-',
         { label: t('整列'), run: () => { Scripts.tidy(); toast(t('整列しました')); } },
+        { label: t('すべてたたむ'), run: () => Scripts.foldAll(true) },
+        { label: t('すべてひろげる'), run: () => Scripts.foldAll(false) },
       ]);
       return;
     }
@@ -98,6 +100,7 @@ function init() {
       open(e.clientX, e.clientY, [
         { label: t('▶ 実行してみる'), run: () => Commands.runScript(script) },
         { label: t('複製する'), run: () => Scripts.duplicateScript(script) },
+        { label: script.folded ? t('ひろげる') : t('たたむ'), run: () => Scripts.toggleFold(script) },
         ...noteItems(script),
         { label: t('このかたまりを部品にする'), run: () => Parts.save(script.blocks, Model.scriptTitle(script)) },
         { label: t('YAYA を見る'), run: () => Commands.showYaya(script) },

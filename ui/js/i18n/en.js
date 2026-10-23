@@ -129,6 +129,14 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ui/js/editor/scripts.js・render.js・contextmenu.js（たたむ）
+  'たたむ': 'Fold',
+  'ひろげる': 'Unfold',
+  'すべてたたむ': 'Fold all',
+  'すべてひろげる': 'Unfold all',
+  '… {n} 個のブロック（たたんでいます）': '… {n} blocks (folded)',
+  '押すと、ひろげます': 'Click to unfold',
+
   // ---- ui/js/model/lint.js（段階 5-6）
   '{title}に、{n} 文字の長いセリフがあります': '{title} has a speech {n} characters long',
   'バルーンからあふれて、読みにくくなります。いくつかのセリフに分けるか、とちゅうで待つブロックを入れてください。':

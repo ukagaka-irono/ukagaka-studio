@@ -798,7 +798,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-4 | A speech list page (read and edit together, CSV in and out) | done |
 | 5-5 | Search and replace | done |
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | done |
-| 5-7 | Fold scripts on the canvas | |
+| 5-7 | Fold scripts on the canvas | done |
 | 5-8 | Add items to SSP's right-click menu | |
 | 5-9 | Anniversary and alarm hat blocks | |
 | 5-10 | Pick hand-written function names | |
@@ -837,6 +837,12 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > are not flagged; calls from disabled scripts do not count); and variables that are set but never read by a variable block (variables never
 > used at all were already flagged). The hint says it is fine to leave them when hand-written YAYA uses them. No example is flagged.
 > 8 editor checks (134).
+
+
+> **5-7 is done.** ▾ above a script and “Fold” in the hat's right-click menu fold the script: only the hat and a “… N blocks (folded)” bar
+> are drawn (clicking the bar unfolds it). Right-clicking empty space offers “Fold all” and “Unfold all”. The flag lives in `script.folded`
+> (kept only when true), so it is saved and undoable; it does not affect behaviour or the exported YAYA. Nothing is dropped or pasted into a
+> folded script, and jumping to a block inside one from Check or Search unfolds it first. 1 editor check (135).
 
 ---
 

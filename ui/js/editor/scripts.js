@@ -1,4 +1,4 @@
-/* 伺かスタジオ - キャンバスの上のかたまり（複製・削除・あたらしいトーク・整列） */
+/* 伺かスタジオ - キャンバスの上のかたまり（複製・削除・たたむ・あたらしいトーク・整列） */
 
 import { getDef } from '../model/blocks.js';
 import { Model } from '../model/model.js';
@@ -82,6 +82,40 @@ function deleteScript(script) {
   toast(t('削除しました'));
 }
 
+/**
+ * かたまりをたたむ・ひろげる。たたんだかたまりは、帽子と「◯個のブロック」の帯だけを描きます。
+ * script.folded に持つので、保存しても残ります（動きには関係しません）。
+ */
+function toggleFold(script) {
+  Model.act(() => {
+    if (script.folded) delete script.folded;
+    else script.folded = true;
+  });
+}
+
+/** すべてのかたまりを、たたむ（on が true）か、ひろげる */
+function foldAll(on) {
+  Model.act(() => {
+    for (const s of Model.project.scripts) {
+      if (on && s.blocks && s.blocks.length) s.folded = true;
+      else delete s.folded;
+    }
+  });
+}
+
+/** かたまりの中のブロックの数（入れ子と、欄にはめたものもふくむ） */
+function countBlocks(script) {
+  let n = 0;
+  const walk = (v) => {
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    if (!v || typeof v !== 'object') return;
+    if (typeof v.type === 'string') n++;
+    for (const k of Object.keys(v)) if (v[k] && typeof v[k] === 'object') walk(v[k]);
+  };
+  walk(script.blocks);
+  return n;
+}
+
 /** 名前を聞いてトークを作る。作った名前か null を返す */
 function promptNewFunction() {
   const name = prompt(t('あたらしいトークの名前は？'), t('あたらしいトーク'));
@@ -132,6 +166,7 @@ function tidy() {
 }
 
 function estimateHeight(script) {
+  if (script.folded) return 80;
   let n = 1;
   const walk = (arr) => {
     if (!Array.isArray(arr)) return;
@@ -151,4 +186,6 @@ function init() {
   $('#btn-tidy').addEventListener('click', () => { tidy(); toast(t('整列しました')); });
 }
 
-export const Scripts = { init, duplicateScript, deleteScript, promptNewFunction, tidy, freeSpot, viewCenter };
+export const Scripts = {
+  init, duplicateScript, deleteScript, toggleFold, foldAll, countBlocks, promptNewFunction, tidy, freeSpot, viewCenter,
+};

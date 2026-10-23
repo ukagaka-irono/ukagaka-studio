@@ -147,6 +147,12 @@ function renderSearch() {
 /** チェックで見つけた場所までキャンバスを動かして、光らせる */
 function jumpTo(it) {
   if (!it.script) return;
+  // たたんだかたまりの中のブロックなら、ひろげてから（すぐ描きなおして、光らせる先を作る）
+  if (it.block && it.script.folded) {
+    delete it.script.folded;
+    Render.renderWorkspace($('#canvas'), Model.project);
+    Model.emit();
+  }
   let target = null;
   let scriptEl = null;
   for (const el of document.querySelectorAll('#canvas .script')) {
