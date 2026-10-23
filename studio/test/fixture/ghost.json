@@ -146,6 +146,11 @@
       "blocks": [{ "type": "say", "who": 0, "text": "みかんだ。", "nl": 1 }]
     },
     {
+      "id": "s_menu", "kind": "event", "event": "OnStudioMenu", "menu": " あいさつ ",
+      "_": "メニューの項目なので menu が付き、sakura.recommendsites に出るはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "メニューからこんにちは。", "nl": 1 }]
+    },
+    {
       "id": "s_mixed", "kind": "event", "event": "OnBoot",
       "area": "Head", "from": "みかん",
       "_": "マウスでも通信でもないので、どちらの条件も付かないはず",

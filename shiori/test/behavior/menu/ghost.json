@@ -1,0 +1,18 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "SSP の右クリックメニューの項目（段階 5-8）を確かめるためのゴースト。",
+    "「あいさつ」「おやつ」はメニューに出る。止めた「ひみつ」は出ない。"
+  ],
+  "meta": { "name": "メニューテスト", "sakuraName": "さくら", "keroName": "うにゅう" },
+  "settings": { "randomTalkEnabled": false, "randomTalkInterval": 180, "noRepeatCount": 0 },
+  "variables": [],
+  "scripts": [
+    { "id": "m_hello", "kind": "event", "event": "OnStudioMenu", "menu": "あいさつ",
+      "blocks": [{ "type": "say", "who": 0, "text": "こんにちは", "nl": 0 }] },
+    { "id": "m_snack", "kind": "event", "event": "OnStudioMenu", "menu": "おやつ",
+      "blocks": [{ "type": "say", "who": 0, "text": "おやつだ", "nl": 0 }] },
+    { "id": "m_off", "kind": "event", "event": "OnStudioMenu", "menu": "ひみつ", "disabled": true,
+      "blocks": [{ "type": "say", "who": 0, "text": "でない", "nl": 0 }] }
+  ]
+}

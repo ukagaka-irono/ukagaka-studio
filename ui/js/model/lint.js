@@ -119,6 +119,10 @@ Lint.run = function (project, ctx = {}) {
       issue(out, 'error', t('イベント名が空のかたまりがあります'),
         t('イベントをえらぶか、名前を直接入力してください。'), s);
     }
+    if (s.kind === 'event' && s.event === 'OnStudioMenu' && !String(s.menu || '').trim()) {
+      issue(out, 'error', t('{title}の、メニューに出す名前が空です', { title }),
+        t('SSP の右クリックメニューに出す名前を入れてください。空だと、メニューに出ません。'), s);
+    }
     if ((s.kind === 'talk' || s.kind === 'function') && !String(s.name || '').trim()) {
       issue(out, 'error', t('名前のないトークがあります'),
         t('名前をつけないと、よび出せません。'), s);
@@ -349,6 +353,23 @@ Lint.run = function (project, ctx = {}) {
       issue(out, 'warn', t('しゃべる間隔が 0 秒なので、自動ではしゃべりません'),
         t('ゴーストタブで秒数を入れてください。'));
     }
+  }
+
+  // ---- SSP のメニューの項目
+  const menus = (project.scripts || [])
+    .filter((s) => s.kind === 'event' && s.event === 'OnStudioMenu' && !s.disabled && String(s.menu || '').trim());
+  const menuSeen = {};
+  for (const s of menus) {
+    const menu = String(s.menu).trim();
+    if (menuSeen[menu]) {
+      issue(out, 'warn', t('メニューの「{menu}」が 2 つあります', { menu }),
+        t('SSP のメニューには両方出ますが、見分けがつきません。名前を変えてください。'), s);
+    }
+    menuSeen[menu] = true;
+  }
+  if (menus.length && handwritten.has('On_sakura.recommendsites')) {
+    issue(out, 'warn', t('つないだゴーストの手書きの辞書に On_sakura.recommendsites があります'),
+      t('メニューには、手書きのほうの項目が出ます（ブロックの項目は出ません）。'), menus[0]);
   }
 
   // ---- よばれないトーク（名前でよぶトークは、よぶブロック・選択肢・◯秒後によぶ からしか動かない）

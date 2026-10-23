@@ -544,6 +544,8 @@ What you can do:
 * Choices (`\q`) and where they go, links (`\_a`), sounds (`\_v`)
 * Variables (affection, flags, …), conditions, loops, random branches, calling talks
 * Talking between ghosts (`OnCommunicate`) — reacting when talked to, and talking to others
+* **Adding items to SSP's right-click menu** — the “When picked from the SSP menu: …” hat. Once exported, an item with that
+  name appears under “Recommended” in SSP's right-click menu (picking it runs the blocks under the hat)
 * Switching to a third or later character (`\p[n]`)
 * Calling external modules (**SAORI**) — 32-bit DLLs placed in the ghost folder
   (there is a “call without waiting for the answer” block, but YAYA waits for the answer, so the ghost stops meanwhile)

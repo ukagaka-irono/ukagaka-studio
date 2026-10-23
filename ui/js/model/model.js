@@ -234,6 +234,8 @@ const Model = {
         // ゴースト間通信のしぼり込み（だれが・なんと言ったら）
         if (typeof script.from !== 'string') script.from = '';
         if (typeof script.contains !== 'string') script.contains = '';
+        // SSP のメニューに出す名前（「SSP のメニューからえらばれたとき」）
+        if (typeof script.menu !== 'string') script.menu = '';
         // くりかえしの間隔（1 なら毎秒）
         script.everySec = Math.max(1, Math.floor(Number(script.everySec) || 1));
         // 読み込んだゴーストの filter を、編集できる形にほどく
@@ -327,6 +329,7 @@ const Model = {
       if (typeof s.who !== 'number') s.who = -1;
       if (typeof s.from !== 'string') s.from = '';
       if (typeof s.contains !== 'string') s.contains = '';
+      if (typeof s.menu !== 'string') s.menu = '';
       if (typeof s.everySec !== 'number') s.everySec = 1;
     }
     if (kind === 'talk') { s.name = s.name || t('トーク'); if (s.weight == null) s.weight = 1; }
@@ -358,6 +361,9 @@ const Model = {
       if (s.event === 'OnCommunicate' && (s.from || s.contains)) {
         const who = s.from ? s.from : t('だれか');
         label = s.contains ? t('{who}に「{contains}」と{label}', { who, contains: s.contains, label }) : t('{who}に{label}', { who, label });
+      }
+      if (s.event === 'OnStudioMenu' && String(s.menu || '').trim()) {
+        label = t('メニューの「{menu}」がえらばれたとき', { menu: String(s.menu).trim() });
       }
       return label;
     }

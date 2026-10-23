@@ -129,6 +129,21 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- SSP のメニューの項目（段階 5-8）
+  'SSP のメニューからえらばれたとき': 'When picked from the SSP menu',
+  '%menu を %event': '%event: %menu',
+  'あいさつ': 'Greeting',
+  'メニューの「{menu}」がえらばれたとき': 'When “{menu}” is picked from the menu',
+  '{title}の、メニューに出す名前が空です': '{title} has no name to show in the menu',
+  'SSP の右クリックメニューに出す名前を入れてください。空だと、メニューに出ません。':
+    'Enter the name to show in SSP\'s right-click menu. Without it, nothing appears in the menu.',
+  'メニューの「{menu}」が 2 つあります': 'There are two menu items named “{menu}”',
+  'SSP のメニューには両方出ますが、見分けがつきません。名前を変えてください。':
+    'Both appear in the SSP menu, but they cannot be told apart. Rename one.',
+  'つないだゴーストの手書きの辞書に On_sakura.recommendsites があります': 'The linked ghost\'s hand-written dictionary has On_sakura.recommendsites',
+  'メニューには、手書きのほうの項目が出ます（ブロックの項目は出ません）。':
+    'The menu shows the hand-written items (the block items do not appear).',
+
   // ---- ui/js/editor/scripts.js・render.js・contextmenu.js（たたむ）
   'たたむ': 'Fold',
   'ひろげる': 'Unfold',

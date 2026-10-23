@@ -319,6 +319,17 @@ Studio.Dispatch
 		}
 	}
 
+	// SSP の右クリックメニューの項目（studio_program.dic の On_sakura.recommendsites が \![raise,OnStudioMenu,id] で起こす）。
+	// えらんだ項目のかたまりだけを動かす。無い id のときは、ほかのメニューのかたまりを動かさない
+	if _id == 'OnStudioMenu' {
+		_k = ASEARCH(Studio.Ref(0), Studio.s.id)
+		if _k >= 0 && Studio.s.event[_k] == 'OnStudioMenu' && !Studio.s.off[_k] {
+			Studio.sinceTalk = 0
+			Studio.RunOne(_k)
+		}
+		return
+	}
+
 	if _id == 'OnChoiceSelect' || _id == 'OnAnchorSelect' {
 		_k = Studio.FindCallable(Studio.Ref(0))
 		if _k >= 0 {

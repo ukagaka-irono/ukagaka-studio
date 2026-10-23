@@ -75,6 +75,9 @@ std::string RuntimeProgramJson(const JValue& project) {
                 if (!contains.empty()) f.set("contains", JValue::makeStr(contains));
                 one.set("filter", f);
             }
+            // SSP のメニューに出す名前（空なら書かない）
+            std::string menu = (ev == "OnStudioMenu") ? Trim(src["menu"].asStr()) : std::string();
+            if (!menu.empty()) one.set("menu", JValue::makeStr(menu));
         }
         if (kind == "talk" || kind == "function") one.set("name", JValue::makeStr(src["name"].asStr()));
         if (kind == "talk") {

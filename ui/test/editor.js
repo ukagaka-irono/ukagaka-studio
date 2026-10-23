@@ -309,6 +309,23 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 5-8: SSP のメニューの項目
+{
+  const menu = (items, extra) => Object.assign({
+    meta: {}, variables: [],
+    scripts: items.map((m, i) => ({ id: 'm' + i, kind: 'event', event: 'OnStudioMenu', menu: m,
+      blocks: [{ type: 'say', who: 0, text: 'やあ' }] })),
+  }, extra || {});
+  check('メニューに出す名前が空', issuesOf(menu(['']), 'メニューに出す名前が空'), ['error']);
+  check('メニューの名前がかぶっている', issuesOf(menu(['あ', 'あ']), 'が 2 つあります'), ['warn']);
+  check('ちがう名前なら言わない', issuesOf(menu(['あ', 'い']), 'メニュー'), []);
+  Model.project = Model.normalize(menu(['あ']));
+  check('メニューの手書きとのかぶり',
+    Lint.run(Model.project, { handwritten: ['On_sakura.recommendsites'] })
+      .filter((i) => i.message.includes('On_sakura.recommendsites')).map((i) => i.level), ['warn']);
+  check('メニューの帽子の名前', Model.scriptTitle(Model.project.scripts[0]), 'メニューの「あ」がえらばれたとき');
+}
+
 // --- 段階 5-6: 長すぎるセリフ・よばれないトーク・読まれない変数
 check('長すぎるセリフは言う',
   issuesOf(withScript([{ type: 'say', who: 0, text: 'あ'.repeat(201) }]), '文字の長いセリフ'), ['warn']);

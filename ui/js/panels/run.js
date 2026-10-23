@@ -50,6 +50,8 @@ function refsFor(script) {
     // 相手の名前・言われたこと。空欄なら、ためすとき用の仮の値を入れる。
     return [script.from || t('ほかのゴースト'), script.contains || t('こんにちは')];
   }
+  // メニューの項目は、えらばれたかたまりの id が Reference0 に来る（model/yaya.js の sakura.recommendsites）
+  if (script.event === 'OnStudioMenu') return [script.id];
   if (!MOUSE_EVENTS[script.event]) return [];
   const who = script.who >= 0 ? script.who : 0;
   return ['0', '0', '0', String(who), script.area || 'Head'];

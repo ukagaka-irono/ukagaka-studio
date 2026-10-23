@@ -799,7 +799,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-5 | Search and replace | done |
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | done |
 | 5-7 | Fold scripts on the canvas | done |
-| 5-8 | Add items to SSP's right-click menu | |
+| 5-8 | Add items to SSP's right-click menu | done |
 | 5-9 | Anniversary and alarm hat blocks | |
 | 5-10 | Pick hand-written function names | |
 | 5-11 | Set the ghost's thumbnail and readme on screen | |
@@ -843,6 +843,16 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > are drawn (clicking the bar unfolds it). Right-clicking empty space offers “Fold all” and “Unfold all”. The flag lives in `script.folded`
 > (kept only when true), so it is saved and undoable; it does not affect behaviour or the exported YAYA. Nothing is dropped or pasted into a
 > folded script, and jumping to a block inside one from Check or Search unfolds it first. 1 editor check (135).
+
+
+> **5-8 is done.** A new event, “When picked from the SSP menu” (`OnStudioMenu`), turns the hat into “When picked from the SSP menu: …”
+> (`@event.menu`) with the name to show in the menu (`script.menu`). The exported ghost.json carries `menu` only for that event (same shape
+> from the UI and the exe). studio_program.dic gets `On_sakura.recommendsites` (yaya_base prefixes the `sakura.recommendsites` resource SSP
+> asks for with `On_`), which returns “name [1] `script:\![raise,OnStudioMenu,script id]` [1] [1]” per item, joined with [2]. When an item is
+> picked, SSP raises OnStudioMenu and `Studio.Dispatch` in `studio_runtime.dic` runs only the script whose id is in Reference0 (nothing for
+> disabled scripts or unknown ids). Disabled scripts and scripts whose id has symbols are left out of the menu. When the linked hand-written
+> ghost has `On_sakura.recommendsites`, it is not written and the Check tab says so; empty and duplicate names are flagged too. Try passes the
+> script's id as Reference0. 1 behavior scenario (20 scenarios, 103 checks), a menu script in the export fixture, 5 editor checks (140).
 
 ---
 

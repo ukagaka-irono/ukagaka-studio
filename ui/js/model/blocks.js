@@ -31,6 +31,7 @@ export const EVENTS = [
   [t('ずっとくりかえす'), 'OnSecondChange'],
   [t('選択肢がえらばれたとき'), 'OnChoiceSelect'],
   [t('話しかけられたとき'), 'OnCommunicate'],
+  [t('SSP のメニューからえらばれたとき'), 'OnStudioMenu'],
   [t('他のゴーストから来たとき'), 'OnGhostChanged'],
   [t('他のゴーストへ行くとき'), 'OnGhostChanging'],
   [t('キーが押されたとき'), 'OnKeyPress'],
@@ -174,6 +175,17 @@ def({
     from: { kind: 'input', mode: 'text', def: '', long: true },
     contains: { kind: 'input', mode: 'text', def: '', long: true },
     event: { kind: 'eventname', def: 'OnCommunicate' },
+  },
+  hat: true, kind: 'event',
+});
+// 「SSP のメニューからえらばれたとき」を選ぶと、メニューに出す名前を入れる形に変わる。
+// 書き出すと、SSP の右クリックメニュー（おすすめ）に、その名前の項目が出ます（model/yaya.js の On_sakura.recommendsites）
+def({
+  key: '@event.menu', type: '@event', cat: 'events', shape: 'hat',
+  spec: t('%menu を %event'),
+  args: {
+    menu: { kind: 'input', mode: 'text', def: t('あいさつ'), long: true },
+    event: { kind: 'eventname', def: 'OnStudioMenu' },
   },
   hat: true, kind: 'event',
 });
@@ -579,7 +591,7 @@ def({
 export const PALETTE = {
   events: [
     { note: t('ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。') },
-    '@event', '@event.touch', '@event.every', '@event.comm', '@talk', '@function',
+    '@event', '@event.touch', '@event.every', '@event.comm', '@event.menu', '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
   looks: ['surface', 'chara', 'anim', 'dress', 'balloon', 'sound'],

@@ -314,6 +314,7 @@ function hatKeyFor(script) {
     if (MOUSE_EVENTS[script.event]) return '@event.touch';
     if (script.event === 'OnSecondChange') return '@event.every';
     if (script.event === 'OnCommunicate') return '@event.comm';
+    if (script.event === 'OnStudioMenu') return '@event.menu';
   }
   return HAT_DEF[script.kind];
 }

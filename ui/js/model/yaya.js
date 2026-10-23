@@ -464,6 +464,9 @@ export function programOf(project) {
         if (contains) f.contains = contains;
         one.filter = f;
       }
+      // SSP のメニューに出す名前（空なら書かない）
+      const menu = ev === 'OnStudioMenu' ? trimC(asStr(src.menu)) : '';
+      if (menu) one.menu = menu;
     }
     if (kind === 'talk' || kind === 'function') one.name = asStr(src.name);
     if (kind === 'talk') {
@@ -508,6 +511,8 @@ const TEXT = {
       `${ev} は手書きの辞書にもあるので、ここには入り口を書きません（両方あると YAYA が辞書を読めないため）。`, // i18n-ignore
       `ブロックも動かすときは、手書きの ${ev} の中で Studio.Event('${ev}') をよんでください。`, // i18n-ignore
     ],
+    menu: 'SSP の右クリックメニュー（おすすめ）に足す項目（「SSP のメニューからえらばれたとき」の帽子）', // i18n-ignore
+    menuHandwritten: 'On_sakura.recommendsites は手書きの辞書にもあるので、ここには書きません（両方あると YAYA が辞書を読めないため）。', // i18n-ignore
     talk: (n) => `ランダムトーク「${n}」`, // i18n-ignore
     fn: (n) => `トーク「${n}」`, // i18n-ignore
     off: '（無効）', // i18n-ignore
@@ -527,6 +532,8 @@ const TEXT = {
       `${ev} is also in a hand-written dictionary, so no entry is written here (with both, YAYA cannot read the dictionaries).`,
       `To run the blocks too, call Studio.Event('${ev}') inside the hand-written ${ev}.`,
     ],
+    menu: 'items added to the SSP right-click menu (recommended sites), from the "picked from the SSP menu" hats',
+    menuHandwritten: 'On_sakura.recommendsites is also in a hand-written dictionary, so it is not written here (with both, YAYA cannot read the dictionaries).',
     talk: (n) => `random talk "${n}"`,
     fn: (n) => `talk "${n}"`,
     off: ' (disabled)',
@@ -621,6 +628,26 @@ export function toYaya(program, options = {}) {
       continue;
     }
     lines.push('', ev, '{', `\tStudio.Event(${yayaStr(ev)})`, '}');
+  }
+
+  // ---- SSP の右クリックメニューに足す項目
+  // SSP がたずねる sakura.recommendsites は、yaya_base が頭に On_ を付けた関数をよびます（shiori3.dic）
+  // 項目は「名前 [1] URL [1] バナー [1] トーク」を [2] でつなげたもの。URL を script: にすると、えらんだときに
+  // そのさくらスクリプトが動くので、\![raise] で OnStudioMenu を起こし、Reference0 のかたまりの id で動かします
+  // （studio_runtime.dic の Studio.Dispatch）。id に記号が入っているかたまりは、命令がこわれるので出しません
+  const menuItems = scripts.filter((s) => asStr(s.kind, 'event') === 'event' && asStr(s.event) === 'OnStudioMenu'
+    && !asBool(s.disabled, false) && trimC(asStr(s.menu)) && /^[A-Za-z0-9_.-]+$/.test(asStr(s.id)));
+  if (menuItems.length) {
+    lines.push(...sec(T.menu));
+    if (handwritten.has('On_sakura.recommendsites')) {
+      lines.push('', `// ${oneLine(T.menuHandwritten)}`);
+    } else {
+      const items = menuItems.map((s) => {
+        const caption = trimC(asStr(s.menu)).replace(/[\x00-\x1f]/g, '');
+        return `${yayaStr(caption)} + CHR(1) + ${yayaStr(`script:\\![raise,OnStudioMenu,${asStr(s.id)}]`)} + CHR(1) + CHR(1)`;
+      });
+      lines.push('', 'On_sakura.recommendsites', '{', `\t${items.join(' + CHR(2) + ')}`, '}');
+    }
   }
 
   // ---- かたまり

@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/studio_program.dic (3864 バイト)
+---- ghost/master/studio_program.dic (4573 バイト)
 // ukagaka-studio: generated
 //==============================================================================
 // 伺かスタジオが、ブロックから書き出した辞書です（studio_program.dic）。
@@ -21,6 +21,7 @@ Studio.Program.Init : void
 	Studio.Def('s_boot', 'Studio.Script.s_boot', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
 	Studio.Def('s_head', 'Studio.Script.s_head', 'event', 'OnNadeNade', '', '', 1.0, 0, 'Head', 0, '', '', 0)
 	Studio.Def('s_comm', 'Studio.Script.s_comm', 'event', 'OnCommunicate', '', '', 1.0, 0, '', (-1), 'みかん', 'ねえ', 0)
+	Studio.Def('s_menu', 'Studio.Script.s_menu', 'event', 'OnStudioMenu', '', '', 1.0, 0, '', (-1), '', '', 0)
 	Studio.Def('s_mixed', 'Studio.Script.s_mixed', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
 	Studio.Def('s_talk', 'Studio.Script.s_talk', 'talk', '', 'ひとりごと', '', 3.0, 0, '', (-1), '', '', 0)
 	Studio.Def('s_off', 'Studio.Script.s_off', 'talk', '', 'つかわない', '', 1.0, 0, '', (-1), '', '', 1)
@@ -103,6 +104,20 @@ OnCommunicate
 	Studio.Event('OnCommunicate')
 }
 
+OnStudioMenu
+{
+	Studio.Event('OnStudioMenu')
+}
+
+//------------------------------------------------------------------------------
+// SSP の右クリックメニュー（おすすめ）に足す項目（「SSP のメニューからえらばれたとき」の帽子）
+//------------------------------------------------------------------------------
+
+On_sakura.recommendsites
+{
+	'あいさつ' + CHR(1) + 'script:\![raise,OnStudioMenu,s_menu]' + CHR(1) + CHR(1)
+}
+
 //------------------------------------------------------------------------------
 // かたまり
 //------------------------------------------------------------------------------
@@ -126,6 +141,12 @@ Studio.Script.s_head : void
 Studio.Script.s_comm : void
 {
 	Studio.Say(0, 'みかんだ。', 1)
+}
+
+// OnStudioMenu  (s_menu)
+Studio.Script.s_menu : void
+{
+	Studio.Say(0, 'メニューからこんにちは。', 1)
 }
 
 // OnBoot  (s_mixed)

@@ -12,6 +12,7 @@ const EMPTY_EN = path.join(__dirname, 'empty-en');
 const VALUES_EN = path.join(__dirname, 'values-en');
 const MAIN = path.join(__dirname, 'main');
 const TALKS = path.join(__dirname, 'talks');
+const MENU = path.join(__dirname, 'menu');
 
 // 応答 1 件に対する期待。文字列なら Value の完全一致。
 //   { value } Value / { commTo } 話しかけ先 / { status } 応答の種類
@@ -245,6 +246,18 @@ const scenarios = [
       ['OnEmptyOut', { status: '204 No Content', value: '' }],
       ['OnChoiceTest', '\\q[はい,こたえ]\\e'],
       ['OnChoiceSelect:こたえ', '\\0えらばれた\\e'],
+    ],
+  },
+  {
+    name: 'SSP のメニューの項目 — おすすめに出し、えらんだ項目のかたまりだけが動く',
+    dir: MENU,
+    steps: [
+      ['sakura.recommendsites', 'あいさつ\x01script:\\![raise,OnStudioMenu,m_hello]\x01\x01\x02'
+        + 'おやつ\x01script:\\![raise,OnStudioMenu,m_snack]\x01\x01'],
+      ['OnStudioMenu:m_snack', '\\0おやつだ\\e'],
+      ['OnStudioMenu:m_hello', '\\0こんにちは\\e'],
+      ['OnStudioMenu:m_off', { status: '204 No Content', value: '' }],
+      ['OnStudioMenu:nai', { status: '204 No Content', value: '' }],
     ],
   },
 ];
