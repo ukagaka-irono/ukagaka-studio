@@ -463,7 +463,13 @@ function renderPalette(container, catId, project) {
     if (typeof entry === 'object' && entry.button) {
       const b = el('button', 'btn small', entry.label);
       b.style.marginBottom = '10px';
-      b.addEventListener('click', () => Commands.promptNewVariable());
+      b.style.marginRight = '6px';
+      const run = {
+        'add-var': () => Commands.promptNewVariable(),
+        'parts-export': () => Parts.exportFile(Parts.list),
+        'parts-import': () => Parts.importFile(),
+      }[entry.button];
+      if (run) b.addEventListener('click', run);
       container.appendChild(b);
       continue;
     }

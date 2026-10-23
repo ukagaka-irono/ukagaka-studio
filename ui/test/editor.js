@@ -309,6 +309,23 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 7-4: 部品のファイル
+{
+  const { partsToFile, partsFromFile } = require('../js/model/partsfile.js');
+  const parts = [{ id: 'p1', name: 'あいさつ', blocks: [{ type: 'say', who: 0, text: 'やあ' }], variables: [{ name: '好感度', value: 3 }] }];
+  const file = partsToFile(parts);
+  check('書き出したファイルに id は入らない', JSON.parse(file).parts[0].id, undefined);
+  const back = partsFromFile(file, []);
+  check('読みこむと、名前・ブロック・変数がもどる', [back[0].name, back[0].blocks[0].text, back[0].variables[0].value], ['あいさつ', 'やあ', 3]);
+  check('読みこむと、新しい id が付く', typeof back[0].id === 'string' && back[0].id.length > 1, true);
+  check('名前がかぶったら変える', partsFromFile(file, ['あいさつ', 'あいさつ (2)']).map((p) => p.name), ['あいさつ (3)']);
+  const mixed = JSON.stringify({ format: 'ikaga-parts/1', parts: [{ name: '', blocks: [{ type: 'say' }] }, { name: 'から', blocks: [] }, { name: 'よい', blocks: [{ type: 'say' }, 3] }] });
+  check('形のおかしい部品は読みとばす', partsFromFile(mixed).map((p) => [p.name, p.blocks.length]), [['よい', 1]]);
+  let err = '';
+  try { partsFromFile('{"format":"ikaga/1","scripts":[]}'); } catch (e) { err = e.message; }
+  check('部品のファイルでなければ not_parts', err, 'not_parts');
+}
+
 // --- 段階 7-2: キーのしぼり込み
 {
   const { programOf } = require('../js/model/yaya.js');

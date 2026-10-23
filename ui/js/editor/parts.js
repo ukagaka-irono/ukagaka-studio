@@ -10,6 +10,7 @@
  */
 
 import { Model } from '../model/model.js';
+import { partsToFile, partsFromFile } from '../model/partsfile.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
 import { Events } from '../core/events.js';
@@ -77,7 +78,43 @@ async function remove(part) {
   return store(list.filter((p) => p.id !== part.id), t('部品「{name}」を消しました', { name: part.name }));
 }
 
+/** 部品をファイルに書き出す（段階 7-4。WebView2 のダウンロードで保存します） */
+function exportFile(parts) {
+  if (!parts || !parts.length) { toast(t('書き出す部品がありません'), true); return; }
+  const url = URL.createObjectURL(new Blob([partsToFile(parts)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  const base = parts.length === 1 ? String(parts[0].name).replace(/[\\/:*?"<>|]/g, '_') : t('部品');
+  a.download = `${base}.parts.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast(t('部品を {n} こ、ファイルに書き出しました', { n: parts.length }));
+}
+
+/** 部品のファイルをえらんで、部品に足す */
+function importFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    let added;
+    try {
+      added = partsFromFile(await file.text(), list.map((p) => p.name));
+    } catch (e) {
+      toast(e.message === 'not_parts' ? t('伺かスタジオの部品のファイルではありません') : e.message, true);
+      return;
+    }
+    if (!added.length) { toast(t('読みこめる部品がありませんでした'), true); return; }
+    await store(list.concat(added), t('部品を {n} こ読みこみました（{names}）', { n: added.length, names: added.map((p) => p.name).join('、') }));
+  });
+  input.click();
+}
+
 export const Parts = {
   get list() { return list; },
-  make, load, save, rename, remove,
+  make, load, save, rename, remove, exportFile, importFile,
 };

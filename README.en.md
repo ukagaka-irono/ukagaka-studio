@@ -164,6 +164,9 @@ A **part** is an arrangement you use often, kept under a name. Save one with “
 menu of a block (“Save this script as a part” on a hat); it appears under **Parts** in the palette and can be dragged into any project.
 Variables it uses are added, with their initial values, if the project does not have them. Rename or delete a part from its right-click
 menu in the palette.
+“Export parts to a file” and “Import a parts file” at the top of **Parts** in the palette let you share parts as a `.parts.json` file
+(for a single part, use “Export this part to a file” in its right-click menu). Imported parts whose name is taken become “name (2)”.
+As with projects, check parts you got from someone else before using them.
 
 A **note** is a memo you can attach to a block or a script with “Add a note” in the right-click menu. It appears like a sticky
 note to the right of the script and can be edited right there (erasing all its text removes it). It does not affect how the ghost
@@ -441,6 +444,7 @@ ukagaka-studio/
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk
+│       │   ├── partsfile.js parts files (.parts.json) out and in
 │       │   └── sample.js   the template for “New” (built from the parts picked in the starter wizard)
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)

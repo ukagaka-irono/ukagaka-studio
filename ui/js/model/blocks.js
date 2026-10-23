@@ -683,6 +683,9 @@ export const PALETTE = {
   ],
   parts: [
     { note: t('よく使う組みかたを、ブロックの右クリックの「ここから下を部品にする」で保存できます。どのプロジェクトにも置けます。') },
+    // 部品のファイル（段階 7-4。editor/parts.js）
+    { button: 'parts-export', label: t('部品をファイルに書き出す') },
+    { button: 'parts-import', label: t('部品のファイルを読みこむ') },
     '@parts',
   ],
 };

@@ -939,7 +939,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 7-1 | A hat for “on the Nth boot” | done |
 | 7-2 | Filter “when a key is pressed” by key | done |
 | 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | done |
-| 7-4 | Export and import parts as files | |
+| 7-4 | Export and import parts as files | done |
 | 7-5 | Draw random talks 100 times in “Try” | |
 | 7-6 | See what changed since an earlier version | |
 | 7-7 | A diagram of where choices lead | |
@@ -965,6 +965,13 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > In the editor, **☺** appears next to the speech field (`marks` in the block definition) and inserts, where the cursor last was, that
 > character's expressions (0–2 for Sakura, 10–12 for Kero, plus prepared surfaces) and 0.5 s / 1 s pauses. Marks are written in the UI
 > language. 1 parity case (34; Try gives the same answer).
+
+
+> **7-4 is done.** “Export parts to a file” and “Import a parts file” sit at the top of the palette's Parts, and a part's right-click menu
+> gained “Export this part to a file”. The file is `{ "format": "ikaga-parts/1", "parts": [ { name, blocks, variables } ] }` (without ids),
+> written and read by `partsToFile` / `partsFromFile` in `ui/js/model/partsfile.js`. Reading refuses other files (`not_parts`), skips parts
+> without a name or blocks and blocks without a type, gives fresh ids, and renames clashing names to “name (2)”. Export uses the WebView2
+> download, import a file picker. 6 editor checks (178).
 
 ---
 

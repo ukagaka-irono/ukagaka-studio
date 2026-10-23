@@ -129,6 +129,16 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 部品のファイル（段階 7-4）
+  '部品をファイルに書き出す': 'Export parts to a file',
+  '部品のファイルを読みこむ': 'Import a parts file',
+  'この部品をファイルに書き出す': 'Export this part to a file',
+  '書き出す部品がありません': 'There are no parts to export',
+  '部品を {n} こ、ファイルに書き出しました': 'Exported {n} parts to a file',
+  '伺かスタジオの部品のファイルではありません': 'This is not an Ukagaka Studio parts file',
+  '読みこめる部品がありませんでした': 'There were no parts that could be imported',
+  '部品を {n} こ読みこみました（{names}）': 'Imported {n} parts ({names})',
+
   // ---- セリフの表情ボタン（段階 7-3）
   '表情を {id} にする': 'Change the expression to {id}',
   '少し待つ（0.5 秒）': 'Pause a little (0.5 s)',

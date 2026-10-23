@@ -69,6 +69,7 @@ function init() {
       const part = partEl._palettePart;
       open(e.clientX, e.clientY, [
         { label: t('部品の名前を変える'), run: () => Parts.rename(part) },
+        { label: t('この部品をファイルに書き出す'), run: () => Parts.exportFile([part]) },
         '-',
         { label: t('部品を消す'), danger: true, run: () => Parts.remove(part) },
       ]);
