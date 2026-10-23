@@ -151,6 +151,8 @@ PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId
     out.script = answer["script"].asStr();
     out.commTo = answer["commTo"].asStr();
     out.vars = answer["vars"].isObj() ? answer["vars"] : JValue::makeObj();
+    out.draws = answer["draws"].isObj() ? answer["draws"] : JValue::makeObj();
+    out.none = answer["none"].asInt(0);
     return out;
 }
 

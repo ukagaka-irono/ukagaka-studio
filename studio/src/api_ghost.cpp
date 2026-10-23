@@ -43,6 +43,11 @@ void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     o.set("script", JValue::makeStr(r.script));
     o.set("commTo", JValue::makeStr(r.commTo));
     o.set("vars", r.vars);
+    // 「100 回引く」（段階 7-5）
+    if (r.draws.size() || r.none) {
+        o.set("draws", r.draws);
+        o.set("none", JValue::makeNum(r.none));
+    }
     Json(res, 200, o);
 }
 

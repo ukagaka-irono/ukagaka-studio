@@ -129,6 +129,15 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 100 回引く（段階 7-5）
+  '🎲 100 回引く': '🎲 Draw 100',
+  'ランダムトークを 100 回引いて、どれが何回出るかを数えます（トークは動かしません）':
+    'Draw random talks 100 times and count how often each comes up (the talks are not run)',
+  'ランダムトークを {times} 回引きました（いまの時刻と変数で。続けて出さない決まりもふくみます）':
+    'Drew random talks {times} times (with the current time and variables, including the no-repeat rule)',
+  'ランダムトークがありません': 'There are no random talks',
+  '（出せるトークが無かった回: {n}）': '(draws with no talk available: {n})',
+
   // ---- 部品のファイル（段階 7-4）
   '部品をファイルに書き出す': 'Export parts to a file',
   '部品のファイルを読みこむ': 'Import a parts file',

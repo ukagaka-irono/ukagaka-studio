@@ -16,6 +16,7 @@
  *   7. 記念日とアラームが、いまの時刻で動き、記念日は同じ日に 2 回動かないか（起動しなおしても）
  *   8. ランダムトークの時間帯・季節のしぼり込みが、いまの時刻で効くか
  *   9. 続きものが、起動するたびに 1 話ずつ進み、おわったら はじめから／もう話さない になるか
+ *  10. 「100 回引く」（draw:回数）が、えらばれやすさ・しぼり込み・続けて出さない決まりのとおりに数えるか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -434,6 +435,34 @@ async function main() {
     expect('続きもの（はじめから）', loop, '1 1 2 3 1 2');
     expect('続きもの（もう話さない）', stop, '1 1 2 3 - -');
     if (loop === '1 1 2 3 1 2' && stop === '1 1 2 3 - -') ok('続きものが起動ごとに 1 話ずつ進み、おわったあとも決めたとおりです');
+  }
+
+  // ---- 10. 「100 回引く」（段階 7-5） ---------------------------------------------
+  // 続けて出さない数が 1 なので、えらばれやすさ 3 と 1 でも「あ」「い」が交互に出る。重み 0 と、条件に合わないものは出ない
+  {
+    const say = (text) => [{ type: 'say', who: 0, nl: 0, text }];
+    const draw = {
+      format: 'ikaga/1',
+      meta: { name: '引くテスト' },
+      settings: { randomTalkEnabled: true, randomTalkInterval: 180, noRepeatCount: 1 },
+      variables: [{ name: 'x', value: 0 }],
+      scripts: [
+        { id: 'a', kind: 'talk', name: 'あ', weight: 3, blocks: say('あ') },
+        { id: 'i', kind: 'talk', name: 'い', weight: 1, blocks: say('い') },
+        { id: 'zero', kind: 'talk', name: 'ゼロ', weight: 0, blocks: say('ゼロ') },
+        { id: 'cond', kind: 'talk', name: '条件', weight: 5,
+          cond: { type: 'compare', op: '>', a: { type: 'var', name: 'x' }, b: 5 }, blocks: say('条件') },
+      ],
+    };
+    const r = await host.runYayaPreview('draw', draw, 'draw:400', {});
+    const got = JSON.stringify([r.draws && r.draws.a, r.draws && r.draws.i, r.draws && r.draws.zero, r.draws && r.draws.cond, r.none]);
+    expect('100 回引く（交互・重み 0 と条件に合わないものは出ない）', got, JSON.stringify([200, 200, undefined, undefined, 0]));
+    // 変数を「ためす」の続きで渡すと、条件に合うものも出る
+    const r2 = await host.runYayaPreview('draw', draw, 'draw:10', { vars: { x: 10 } });
+    expect('いまの変数で条件を見る', (r2.draws && r2.draws.cond) > 0, true);
+    if (got === JSON.stringify([200, 200, undefined, undefined, 0]) && r2.draws && r2.draws.cond > 0) {
+      ok('「100 回引く」が、SSP と同じえらびかたで数えます');
+    }
   }
 
   // ---- 表示 --------------------------------------------------------------------

@@ -131,7 +131,7 @@ OnGhostUnload.Studio : void
 	_names = ('Studio.uptime', 'Studio.talks', 'Studio.sinceTalk', 'Studio.timerDue', 'Studio.timerName', /
 		'Studio.saoriWaitFile', 'Studio.saoriWaitInto', 'Studio.saoriWaitValue', 'Studio.saoriDoneFile', /
 		'Studio.saoriDoneValue', 'Studio.lastPick', 'Studio.commChain', 'Studio.strokeKey', 'Studio.strokeCount', /
-		'Studio.strokeTick', 'Studio.lastMinute', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
+		'Studio.strokeTick', 'Studio.lastMinute', 'Studio.cand', 'Studio.drawCount', 'Studio.drawNone', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
 		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
 		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', 'Studio.noSaori', /
 		'Studio.argA', 'Studio.argB', /
@@ -828,17 +828,17 @@ Studio.NoRepeatCount
 	_n
 }
 
-Studio.PlayRandomTalk
+// いま出せるランダムトークを Studio.cand に入れる（段階 7-5 で PlayRandomTalk から分けました。「100 回引く」も同じえらびかた）。
+// しぼり込みに合うものから、直近に出したものを外します（外しすぎて空になったら、古いほうから戻す）
+Studio.TalkCandidates : void
 {
+	Studio.cand = IARRAY
 	_all = IARRAY
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
 		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] && Studio.TalkOk(_i) { _all ,= _i }
 	}
-	if ARRAYSIZE(_all) == 0 {
-		''
-		return
-	}
+	if ARRAYSIZE(_all) == 0 { return }
 
 	// 直近に出したものを候補から外す。外しすぎて空になったら、古いほうから戻す
 	_avoid = Studio.NoRepeatCount(ARRAYSIZE(_all))
@@ -859,7 +859,13 @@ Studio.PlayRandomTalk
 		_avoid -= 1
 	}
 	if ARRAYSIZE(_talks) == 0 { _talks = _all }
+	Studio.cand = _talks
+}
 
+Studio.PlayRandomTalk
+{
+	Studio.TalkCandidates
+	_talks = Studio.cand
 	for _attempt = 0; _attempt < 5 && ARRAYSIZE(_talks) > 0; _attempt++ {
 		_p = Studio.PickWeighted(_talks)
 		_k = _talks[_p]
@@ -873,6 +879,27 @@ Studio.PlayRandomTalk
 		_talks = Studio.Without(_talks, _p)
 	}
 	''
+}
+
+// ランダムトークを n 回引いて、かたまりの id ごとの回数を Studio.drawCount に、出せるものが無かった回数を Studio.drawNone に入れる
+// （段階 7-5。「ためす」の「100 回引く」）。トークは動かさず、引いたものを「直近に出したもの」に覚えて、次の回を引きます
+Studio.DrawTalks : void
+{
+	_times = TOINT(_argv[0])
+	Studio.drawCount = IHASH
+	Studio.drawNone = 0
+	for _t = 0; _t < _times; _t++ {
+		Studio.TalkCandidates
+		_talks = Studio.cand
+		if ARRAYSIZE(_talks) == 0 {
+			Studio.drawNone += 1
+			continue
+		}
+		_id = Studio.s.id[_talks[Studio.PickWeighted(_talks)]]
+		if HASH_EXIST(_id, Studio.drawCount) { Studio.drawCount[_id] += 1 }
+		else { Studio.drawCount[_id] = 1 }
+		Studio.RememberTalk(_id)
+	}
 }
 
 Studio.RememberTalk : void

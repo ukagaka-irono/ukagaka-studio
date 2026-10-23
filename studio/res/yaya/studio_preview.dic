@@ -7,12 +7,14 @@
 // 頼みかた（GET SHIORI/3.0、ID: OnStudioPreview）
 //   Reference0 … 動かすかたまりの id。「event:イベント名」なら、SSP と同じえらびかたでそのイベントを動かす
 //                （どのかたまりにするか・しぼり込み・ブロックが無いときの反応。「ためす」の立ち絵をさわったとき）
+//                「draw:回数」なら、ランダムトークをその回数引いて数える（トークは動かさない。「100 回引く」）
 //   Reference1 … {"vars":{…}, "sys":{…}, "refs":[…]} の JSON（1 行）
 //     vars … 続きから動かすときの変数（プロジェクトの初期値の上にかさねる）
 //     sys  … 情報ブロックが返す値（uptime / boots / talks / ghostName / shellName / lastTalk）
 //     refs … イベントの情報（Reference0〜）
 // 答え（Value に 1 行の JSON）
 //   {"script":"…", "commTo":"…", "vars":{…}}  か  {"error":"script_not_found"}
+//   draw: のときは、ほかに "draws":{かたまりの id: 回数}・"none":出せるトークが無かった回数
 //
 // SAORI は呼びません（本物の DLL が要るので、SSP に入れてから確かめてもらいます）。
 //==============================================================================
@@ -26,6 +28,12 @@ OnStudioPreview
 
 	_event = ''
 	if SUBSTR(_id, 0, 6) == 'event:' { _event = SUBSTR(_id, 6, STRLEN(_id) - 6) }
+	_draw = 0
+	if SUBSTR(_id, 0, 5) == 'draw:' {
+		_draw = TOINT(SUBSTR(_id, 5, STRLEN(_id) - 5))
+		if _draw < 1 { _draw = 1 }
+		if _draw > 1000 { _draw = 1000 }
+	}
 	_k = -1
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
@@ -34,7 +42,7 @@ OnStudioPreview
 			break
 		}
 	}
-	if _k < 0 && _event == '' {
+	if _k < 0 && _event == '' && _draw == 0 {
 		_res['error'] = 'script_not_found'
 		Studio.PreviewAnswer(_res)
 		return
@@ -78,6 +86,16 @@ OnStudioPreview
 	}
 
 	Studio.noSaori = 1
+	if _draw > 0 {
+		Studio.DrawTalks(_draw)
+		_res['script'] = ''
+		_res['commTo'] = ''
+		_res['draws'] = Studio.drawCount
+		_res['none'] = Studio.drawNone
+		_res['vars'] = Studio.var
+		Studio.PreviewAnswer(_res)
+		return
+	}
 	_out = ''
 	_close = 0
 	if _event != '' {

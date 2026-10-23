@@ -940,7 +940,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 7-2 | Filter “when a key is pressed” by key | done |
 | 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | done |
 | 7-4 | Export and import parts as files | done |
-| 7-5 | Draw random talks 100 times in “Try” | |
+| 7-5 | Draw random talks 100 times in “Try” | done |
 | 7-6 | See what changed since an earlier version | |
 | 7-7 | A diagram of where choices lead | |
 
@@ -972,6 +972,15 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > written and read by `partsToFile` / `partsFromFile` in `ui/js/model/partsfile.js`. Reading refuses other files (`not_parts`), skips parts
 > without a name or blocks and blocks without a type, gives fresh ids, and renames clashing names to “name (2)”. Export uses the WebView2
 > download, import a file picker. 6 editor checks (178).
+
+
+> **7-5 is done.** “Try” gained “🎲 Draw 100”. The draws happen inside YAYA: the candidate selection of `Studio.PlayRandomTalk` in
+> `studio_runtime.dic` was split out as `Studio.TalkCandidates` (filters and the no-repeat rule), and `Studio.DrawTalks` uses it to pick by
+> weight and remember each pick as recently played (the talks are not run). The Try entry (`studio_preview.dic`) gained `draw:count` (1–1000),
+> whose answer carries `draws` (count per script id) and `none` (draws with no talk available); the exe passes them on to the UI, which shows a
+> bar per random talk (including those drawn 0 times). Filters use the current time and the continuing Try variables. The YAYA test checks that
+> weights 3 and 1 still alternate under the no-repeat rule, that weight 0 and non-matching talks are never drawn, and that passing variables lets
+> the conditional talk in (31 checks). The path through the exe (`/api/preview` passing `draws` on) builds, but has not yet been tried in a running exe.
 
 ---
 

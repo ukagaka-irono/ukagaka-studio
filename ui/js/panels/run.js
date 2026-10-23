@@ -119,6 +119,33 @@ async function runEvent(event, refs) {
   showResult(res);
 }
 
+/**
+ * ランダムトークを 100 回引いて、どれが何回出るかを見せる（段階 7-5）。引くのは SSP と同じ YAYA のえらびかた
+ * （studio_runtime.dic の Studio.DrawTalks。しぼり込み・えらばれやすさ・続けて出さない決まり）で、トークは動かしません。
+ * しぼり込みは、いまの時刻と、いまの変数（「ためす」の続き）で見ます
+ */
+async function drawTalks(times = 100) {
+  let res;
+  try {
+    res = await previewRequest('draw:' + times, []);
+  } catch (e) {
+    toast(e.message, true);
+    return;
+  }
+  const draws = res.draws || {};
+  const talks = (Model.project.scripts || []).filter((s) => s.kind === 'talk' && !s.disabled);
+  const rows = talks.map((s) => ({ title: s.name || Model.scriptTitle(s), n: Number(draws[s.id]) || 0 }))
+    .sort((a, b) => b.n - a.n);
+  const lines = [t('ランダムトークを {times} 回引きました（いまの時刻と変数で。続けて出さない決まりもふくみます）', { times }), ''];
+  if (!rows.length) lines.push(t('ランダムトークがありません'));
+  for (const r of rows) {
+    const bar = '█'.repeat(Math.round((r.n / times) * 15));   // せまい欄でも 1 行に収まるように
+    lines.push(`${String(r.n).padStart(4)}  ${bar}${bar ? ' ' : ''}${r.title}`);
+  }
+  if (res.none) lines.push('', t('（出せるトークが無かった回: {n}）', { n: res.none }));
+  $('#script-preview').textContent = lines.join('\n');
+}
+
 function showResult(res) {
   Session.vars = res.vars || {};
   let preview = res.script || t('（なにも出力されませんでした）');
@@ -214,6 +241,7 @@ async function ghostLog(action) {
 function init() {
   provide({ runScript });
 
+  $('#btn-draw').addEventListener('click', () => drawTalks(100));
   $('#btn-run').addEventListener('click', () => {
     const s = currentScript();
     if (s) runScript(s);

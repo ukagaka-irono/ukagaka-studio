@@ -23,6 +23,8 @@ struct PreviewResult {
     std::string script;    // 出てきたさくらスクリプト
     std::string commTo;    // 話しかける相手（いれば）
     JValue vars;           // 動かしたあとの変数
+    JValue draws;          // 「draw:回数」のとき、かたまりの id ごとの回数（段階 7-5）
+    int none = 0;          // 「draw:回数」のとき、出せるトークが無かった回数
 };
 
 // dic … 画面が訳した studio_program.dic、input … {"vars":…, "sys":…, "refs":…} の JSON
