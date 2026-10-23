@@ -309,6 +309,26 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 5-9: 記念日とアラーム
+{
+  const one = (s) => Object.assign({ meta: {}, variables: [],
+    scripts: [Object.assign({ id: 'a', kind: 'event', blocks: [{ type: 'say', who: 0, text: 'やあ' }] }, s)] });
+  check('ない時刻は言う', issuesOf(one({ event: 'OnStudioAlarm', hour: 24, minute: 0 }), 'は、ありません'), ['warn']);
+  check('ある時刻なら言わない', issuesOf(one({ event: 'OnStudioAlarm', hour: 23, minute: 59 }), 'は、ありません'), []);
+  check('ない日づけは言う', issuesOf(one({ event: 'OnStudioAnniversary', month: 4, day: 31 }), 'は、ありません'), ['warn']);
+  check('2 月 29 日はある', issuesOf(one({ event: 'OnStudioAnniversary', month: 2, day: 29 }), 'は、ありません'), []);
+  const p = Model.normalize({ scripts: [
+    { id: 'x', kind: 'event', event: 'OnStudioAlarm', when: '07:05', blocks: [] },
+    { id: 'y', kind: 'event', event: 'OnStudioAnniversary', when: '12-25', blocks: [] },
+    { id: 'z', kind: 'event', event: 'OnStudioAlarm', blocks: [] },
+  ] });
+  check('書き出した when を、時刻と日づけにほどく',
+    p.scripts.map((s) => [s.hour, s.minute, s.month, s.day, 'when' in s]),
+    [[7, 5, undefined, undefined, false], [undefined, undefined, 12, 25, false], [12, 0, undefined, undefined, false]]);
+  check('アラームの帽子の名前', Model.scriptTitle(p.scripts[0]), '毎日 07:05 になったとき');
+  check('記念日の帽子の名前', Model.scriptTitle(p.scripts[1]), '毎年 12 月 25 日（記念日）');
+}
+
 // --- 段階 5-8: SSP のメニューの項目
 {
   const menu = (items, extra) => Object.assign({

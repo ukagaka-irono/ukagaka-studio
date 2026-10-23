@@ -119,6 +119,21 @@ Lint.run = function (project, ctx = {}) {
       issue(out, 'error', t('イベント名が空のかたまりがあります'),
         t('イベントをえらぶか、名前を直接入力してください。'), s);
     }
+    if (s.kind === 'event' && s.event === 'OnStudioAlarm') {
+      const h = Number(s.hour), m = Number(s.minute);
+      if (!Number.isInteger(h) || h < 0 || h > 23 || !Number.isInteger(m) || m < 0 || m > 59) {
+        issue(out, 'warn', t('{title}の時刻（{hour} 時 {minute} 分）は、ありません', { title, hour: s.hour, minute: s.minute }),
+          t('0〜23 時、0〜59 分で入れてください。書き出すときは、近い時刻に寄せます。'), s);
+      }
+    }
+    if (s.kind === 'event' && s.event === 'OnStudioAnniversary') {
+      const mo = Number(s.month), d = Number(s.day);
+      const last = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mo - 1];
+      if (!Number.isInteger(mo) || !last || !Number.isInteger(d) || d < 1 || d > last) {
+        issue(out, 'warn', t('{title}の日づけ（{month} 月 {day} 日）は、ありません', { title, month: s.month, day: s.day }),
+          t('月と日をたしかめてください。ない日の記念日は来ません。'), s);
+      }
+    }
     if (s.kind === 'event' && s.event === 'OnStudioMenu' && !String(s.menu || '').trim()) {
       issue(out, 'error', t('{title}の、メニューに出す名前が空です', { title }),
         t('SSP の右クリックメニューに出す名前を入れてください。空だと、メニューに出ません。'), s);

@@ -129,6 +129,19 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 記念日とアラーム（段階 5-9）
+  '毎日決めた時刻になったとき': 'At a set time every day',
+  '記念日になったとき': 'On an anniversary',
+  '%event %hour 時 %minute 分': '%event %hour : %minute',
+  '%event %month 月 %day 日': '%event month %month day %day',
+  '毎日 {time} になったとき': 'Every day at {time}',
+  '毎年 {month} 月 {day} 日（記念日）': 'Every year on {month}/{day} (anniversary)',
+  '{title}の時刻（{hour} 時 {minute} 分）は、ありません': '{title}: {hour}:{minute} is not a real time',
+  '0〜23 時、0〜59 分で入れてください。書き出すときは、近い時刻に寄せます。':
+    'Use hours 0–23 and minutes 0–59. On export it is moved to the nearest valid time.',
+  '{title}の日づけ（{month} 月 {day} 日）は、ありません': '{title}: {month}/{day} is not a real date',
+  '月と日をたしかめてください。ない日の記念日は来ません。': 'Check the month and day. An anniversary on a day that does not exist never comes.',
+
   // ---- SSP のメニューの項目（段階 5-8）
   'SSP のメニューからえらばれたとき': 'When picked from the SSP menu',
   '%menu を %event': '%event: %menu',

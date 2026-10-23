@@ -41,6 +41,8 @@ OnGhostLoad.Studio : void
 	if GETTYPE(Studio.var) != 5 { Studio.var = IHASH }
 	if ISVAR('Studio.boots') == 0 { Studio.boots = 0 }
 	if GETTYPE(Studio.recent) != 4 { Studio.recent = IARRAY }
+	// 記念日のかたまりを動かした日（かたまりの id → 'YYYY-MM-DD'）。同じ日に 2 回動かさないため
+	if GETTYPE(Studio.annivDone) != 5 { Studio.annivDone = IHASH }
 
 	// 起動しているあいだだけのもの
 	Studio.uptime = 0
@@ -58,6 +60,7 @@ OnGhostLoad.Studio : void
 	Studio.strokeKey = ''
 	Studio.strokeCount = 0
 	Studio.strokeTick = 0
+	Studio.lastMinute = ''
 	Studio.shellName = ''
 	Studio.ghostName = ''
 	Studio.lastTalk = ''
@@ -83,6 +86,7 @@ OnGhostLoad.Studio : void
 	Studio.s.from = IARRAY
 	Studio.s.contains = IARRAY
 	Studio.s.off = IARRAY
+	Studio.s.when = IARRAY
 	if ISFUNC('Studio.Program.Init') { Studio.Program.Init }
 
 	// ブロックにランダムトークがあるときは、yaya_base のランダムトーク（AI トーク）を止めます
@@ -124,14 +128,14 @@ OnGhostUnload.Studio : void
 	_names = ('Studio.uptime', 'Studio.talks', 'Studio.sinceTalk', 'Studio.timerDue', 'Studio.timerName', /
 		'Studio.saoriWaitFile', 'Studio.saoriWaitInto', 'Studio.saoriWaitValue', 'Studio.saoriDoneFile', /
 		'Studio.saoriDoneValue', 'Studio.lastPick', 'Studio.commChain', 'Studio.strokeKey', 'Studio.strokeCount', /
-		'Studio.strokeTick', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
+		'Studio.strokeTick', 'Studio.lastMinute', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
 		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
 		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', 'Studio.noSaori', /
 		'Studio.argA', 'Studio.argB', /
 		'Studio.meta.name', 'Studio.meta.sakuraName', 'Studio.meta.lang', 'Studio.set.interval', /
 		'Studio.set.enabled', 'Studio.set.noRepeat', 'Studio.s.id', 'Studio.s.fn', 'Studio.s.kind', /
 		'Studio.s.event', 'Studio.s.name', 'Studio.s.group', 'Studio.s.weight', 'Studio.s.every', /
-		'Studio.s.area', 'Studio.s.who', 'Studio.s.from', 'Studio.s.contains', 'Studio.s.off', /
+		'Studio.s.area', 'Studio.s.who', 'Studio.s.from', 'Studio.s.contains', 'Studio.s.off', 'Studio.s.when', /
 		'Studio.MAX_OUT', 'Studio.MAX_VALUE', 'Studio.MAX_LOOP', 'Studio.MAX_STEPS')
 	foreach _names; _n { ERASEVAR(_n) }
 }
@@ -141,7 +145,7 @@ OnGhostUnload.Studio : void
 //------------------------------------------------------------------------------
 
 // かたまりを 1 つ登録する
-//   (id, 関数名, 種類, イベント, 名前, まとまり, 重み, ◯秒ごと, 場所, だれ, 相手, ふくむ言葉, 無効)
+//   (id, 関数名, 種類, イベント, 名前, まとまり, 重み, ◯秒ごと, 場所, だれ, 相手, ふくむ言葉, 無効, 時刻か日づけ)
 Studio.Def : void
 {
 	Studio.s.id ,= _argv[0]
@@ -157,6 +161,7 @@ Studio.Def : void
 	Studio.s.from ,= _argv[10]
 	Studio.s.contains ,= _argv[11]
 	Studio.s.off ,= TOINT(_argv[12])
+	Studio.s.when ,= TOSTR(_argv[13])
 }
 
 // 変数の初期値。保存されている値があれば、そちらが勝ちます
@@ -270,6 +275,16 @@ Studio.Dispatch
 
 		_canTalk = 1
 		if ARRAYSIZE(Studio.refs) > 1 && Studio.refs[1] != '' { _canTalk = (Studio.refs[1] == '1') }
+
+		// 記念日とアラーム。しゃべれないあいだは見ない（しゃべれるようになったら、その分のうちに動かす）
+		if _canTalk {
+			_aout = Studio.RunTimed
+			if _aout != '' {
+				Studio.sinceTalk = 0
+				_aout
+				return
+			}
+		}
 
 		_out = Studio.RunHandlers(_id)
 		if _out != '' {
@@ -421,6 +436,39 @@ Studio.RunHandlers
 		_list = Studio.Without(_list, _p)
 	}
 	''
+}
+
+// 記念日（OnStudioAnniversary・when は 'MM-DD'）とアラーム（OnStudioAlarm・when は 'HH:MM'）。
+// 分が変わったときだけ見て、当たったものをみんな動かします（記念日が先）。
+// 記念日は、その日のうちに 1 回だけ（起動したのがお昼でも、その日なら動く）
+Studio.RunTimed
+{
+	_t = GETTIME
+	_hm = STRFORM('$02d:$02d', _t[4], _t[5])
+	if _hm == Studio.lastMinute {
+		''
+		return
+	}
+	Studio.lastMinute = _hm
+	_md = STRFORM('$02d-$02d', _t[1], _t[2])
+	_today = STRFORM('$04d-', _t[0]) + _md
+	_out = ''
+	_n = ARRAYSIZE(Studio.s.id)
+	for _k = 0; _k < _n; _k++ {
+		if Studio.s.kind[_k] != 'event' || Studio.s.off[_k] || Studio.s.event[_k] != 'OnStudioAnniversary' { continue }
+		if Studio.s.when[_k] != _md { continue }
+		_key = Studio.s.id[_k]
+		if HASH_EXIST(_key, Studio.annivDone) {
+			if Studio.annivDone[_key] == _today { continue }
+		}
+		Studio.annivDone[_key] = _today
+		_out += Studio.RunOne(_k)
+	}
+	for _k = 0; _k < _n; _k++ {
+		if Studio.s.kind[_k] != 'event' || Studio.s.off[_k] || Studio.s.event[_k] != 'OnStudioAlarm' { continue }
+		if Studio.s.when[_k] == _hm { _out += Studio.RunOne(_k) }
+	}
+	_out
 }
 
 // このかたまりを、今回の要求で動かしてよいか

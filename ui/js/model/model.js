@@ -236,6 +236,22 @@ const Model = {
         if (typeof script.contains !== 'string') script.contains = '';
         // SSP のメニューに出す名前（「SSP のメニューからえらばれたとき」）
         if (typeof script.menu !== 'string') script.menu = '';
+        // 書き出した ghost.json の when（アラームの 'HH:MM'・記念日の 'MM-DD'）を、編集できる形にほどく
+        if (typeof s.when === 'string') {
+          const hm = /^(\d\d):(\d\d)$/.exec(s.when);
+          const md = /^(\d\d)-(\d\d)$/.exec(s.when);
+          if (hm && script.event === 'OnStudioAlarm') { script.hour = Number(hm[1]); script.minute = Number(hm[2]); }
+          if (md && script.event === 'OnStudioAnniversary') { script.month = Number(md[1]); script.day = Number(md[2]); }
+          delete script.when;
+        }
+        if (script.event === 'OnStudioAlarm') {
+          if (typeof script.hour !== 'number') script.hour = 12;
+          if (typeof script.minute !== 'number') script.minute = 0;
+        }
+        if (script.event === 'OnStudioAnniversary') {
+          if (typeof script.month !== 'number') script.month = 1;
+          if (typeof script.day !== 'number') script.day = 1;
+        }
         // くりかえしの間隔（1 なら毎秒）
         script.everySec = Math.max(1, Math.floor(Number(script.everySec) || 1));
         // 読み込んだゴーストの filter を、編集できる形にほどく
@@ -361,6 +377,13 @@ const Model = {
       if (s.event === 'OnCommunicate' && (s.from || s.contains)) {
         const who = s.from ? s.from : t('だれか');
         label = s.contains ? t('{who}に「{contains}」と{label}', { who, contains: s.contains, label }) : t('{who}に{label}', { who, label });
+      }
+      const pad = (n) => String(Math.floor(Number(n) || 0)).padStart(2, '0');
+      if (s.event === 'OnStudioAlarm') {
+        label = t('毎日 {time} になったとき', { time: pad(s.hour == null ? 12 : s.hour) + ':' + pad(s.minute) });
+      }
+      if (s.event === 'OnStudioAnniversary') {
+        label = t('毎年 {month} 月 {day} 日（記念日）', { month: Number(s.month) || 1, day: Number(s.day) || 1 });
       }
       if (s.event === 'OnStudioMenu' && String(s.menu || '').trim()) {
         label = t('メニューの「{menu}」がえらばれたとき', { menu: String(s.menu).trim() });

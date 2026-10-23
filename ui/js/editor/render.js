@@ -121,7 +121,14 @@ function buildField(owner, name, argDef, project, blockEl) {
       const wrap = el('span', 'field-wrap');
       const isKnown = EVENTS.some(([, v]) => v === owner[name]);
       const sel = buildSelect(EVENTS, isKnown ? owner[name] : '__custom__', (v) => {
-        Model.act(() => { owner[name] = v === '__custom__' ? (isKnown ? '' : owner[name]) : v; });
+        Model.act(() => {
+          owner[name] = v === '__custom__' ? (isKnown ? '' : owner[name]) : v;
+          // 形が変わる帽子（時刻・日づけなど）の欄が無ければ、最初の値を入れておく
+          const def = owner.kind === 'event' ? BLOCKS[hatKeyFor(owner)] : null;
+          for (const [k, a] of Object.entries((def && def.args) || {})) {
+            if (owner[k] === undefined && a.def !== undefined) owner[k] = a.def;
+          }
+        });
       });
       wrap.appendChild(sel);
       if (!isKnown) {
@@ -315,6 +322,8 @@ function hatKeyFor(script) {
     if (script.event === 'OnSecondChange') return '@event.every';
     if (script.event === 'OnCommunicate') return '@event.comm';
     if (script.event === 'OnStudioMenu') return '@event.menu';
+    if (script.event === 'OnStudioAlarm') return '@event.alarm';
+    if (script.event === 'OnStudioAnniversary') return '@event.anniv';
   }
   return HAT_DEF[script.kind];
 }

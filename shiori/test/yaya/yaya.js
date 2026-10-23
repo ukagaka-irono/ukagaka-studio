@@ -13,6 +13,7 @@
  *      手書きの YAYA ゴーストにつないで書き出しても、手書きのファイルがバイトのままか
  *   5. ブロックとかたまりのメモ（// のコメントになる）が、動きを変えないか
  *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか。記録（studio_debug.txt）
+ *   7. 記念日とアラームが、いまの時刻で動き、記念日は同じ日に 2 回動かないか（起動しなおしても）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -342,6 +343,38 @@ async function main() {
   expect('はじめての起動（回数/起動回数）', (first[1] || {}).value, '\\01/1\\e');
   expect('起動しなおしても、変数と起動回数が残る', (second[1] || {}).value, '\\02/2\\e');
   if ((second[1] || {}).value === '\\02/2\\e') ok('変数と起動回数が、次の起動に残ります');
+
+  // ---- 7. 記念日とアラーム（段階 5-9） --------------------------------------------
+  // YAYA の GETTIME は PC の時計なので、いまの時刻からゴーストを作る。分がまたいでもよいように、
+  // アラームは「いまの分」と「次の分」の 2 つ（どちらも同じセリフ）
+  {
+    const now = new Date();
+    const next = new Date(now.getTime() + 60000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const say = (text) => [{ type: 'say', who: 0, nl: 0, text }];
+    const timed = {
+      format: 'ikaga/1',
+      meta: { name: '時刻テスト' },
+      settings: { randomTalkEnabled: false },
+      variables: [],
+      scripts: [
+        { id: 'al1', kind: 'event', event: 'OnStudioAlarm', when: `${pad(now.getHours())}:${pad(now.getMinutes())}`, blocks: say('アラーム') },
+        { id: 'al2', kind: 'event', event: 'OnStudioAlarm', when: `${pad(next.getHours())}:${pad(next.getMinutes())}`, blocks: say('アラーム') },
+        { id: 'an', kind: 'event', event: 'OnStudioAnniversary', when: `${pad(now.getMonth() + 1)}-${pad(now.getDate())}`, blocks: say('記念日') },
+        { id: 'off', kind: 'event', event: 'OnStudioAnniversary', when: `${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+          disabled: true, blocks: say('でない') },
+      ],
+    };
+    const tick = 'OnSecondChange:0,1,0,1';
+    const a = await host.runYayaProgram('timed', timed, [tick, tick]);
+    const b = await host.runYayaProgram('timed', timed, [tick], true);
+    expect('記念日とアラームが、分が変わったときに動く', (a[0] || {}).value, '\\0記念日\\0アラーム\\e');
+    expect('同じ分のうちは、もう動かない', (a[1] || {}).status, '204 No Content');
+    expect('起動しなおしても、同じ日の記念日は動かない（アラームは動く）', (b[0] || {}).value, '\\0アラーム\\e');
+    if ((a[0] || {}).value === '\\0記念日\\0アラーム\\e' && (b[0] || {}).value === '\\0アラーム\\e') {
+      ok('記念日とアラームが動き、記念日は 1 日 1 回です');
+    }
+  }
 
   // ---- 表示 --------------------------------------------------------------------
   console.log('');

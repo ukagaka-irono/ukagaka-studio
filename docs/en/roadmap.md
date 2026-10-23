@@ -800,7 +800,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | done |
 | 5-7 | Fold scripts on the canvas | done |
 | 5-8 | Add items to SSP's right-click menu | done |
-| 5-9 | Anniversary and alarm hat blocks | |
+| 5-9 | Anniversary and alarm hat blocks | done |
 | 5-10 | Pick hand-written function names | |
 | 5-11 | Set the ghost's thumbnail and readme on screen | |
 | 5-12 | A starter ghost wizard | |
@@ -853,6 +853,16 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > disabled scripts or unknown ids). Disabled scripts and scripts whose id has symbols are left out of the menu. When the linked hand-written
 > ghost has `On_sakura.recommendsites`, it is not written and the Check tab says so; empty and duplicate names are flagged too. Try passes the
 > script's id as Reference0. 1 behavior scenario (20 scenarios, 103 checks), a menu script in the export fixture, 5 editor checks (140).
+
+
+> **5-9 is done.** New events “At a set time every day” (`OnStudioAlarm`) and “On an anniversary” (`OnStudioAnniversary`) turn the hat into
+> hour/minute (`@event.alarm`) or month/day (`@event.anniv`) fields (picking the event again fills missing fields with their defaults).
+> The exported ghost.json carries `when` (`'HH:MM'` or `'MM-DD'`, out-of-range values moved to the nearest edge; same shape from the UI and the
+> exe), and loading it unpacks it again. `Studio.Def` gains a 14th argument (`when`); `Studio.RunTimed` in `studio_runtime.dic` runs every
+> matching script when the minute changes during OnSecondChange (anniversaries first), and not while the ghost cannot talk. Anniversaries
+> remember the day they ran in `Studio.annivDone` (saved), so they run once a day. The Check tab flags times and dates that do not exist.
+> The YAYA test builds a ghost from the current time (3 checks, 26 in all); the export fixture has one alarm and one anniversary; 7 editor
+> checks (147).
 
 ---
 

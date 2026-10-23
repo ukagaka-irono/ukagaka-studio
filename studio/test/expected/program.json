@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/ghost.json (2736 バイト)
+---- ghost/master/ghost.json (3274 バイト)
 {
   "format": "ikaga/1",
   "meta": {
@@ -85,6 +85,34 @@
           "type": "say",
           "who": 0,
           "text": "メニューからこんにちは。",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_alarm",
+      "kind": "event",
+      "event": "OnStudioAlarm",
+      "when": "07:59",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "おはよう。",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_anniv",
+      "kind": "event",
+      "event": "OnStudioAnniversary",
+      "when": "12-25",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "メリークリスマス。",
           "nl": 1
         }
       ]

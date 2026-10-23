@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/studio_program.dic (4573 バイト)
+---- ghost/master/studio_program.dic (5203 バイト)
 // ukagaka-studio: generated
 //==============================================================================
 // 伺かスタジオが、ブロックから書き出した辞書です（studio_program.dic）。
@@ -18,14 +18,16 @@ Studio.Program.Init : void
 	Studio.set.interval = 120
 	Studio.set.enabled = 1
 	Studio.set.noRepeat = 3
-	Studio.Def('s_boot', 'Studio.Script.s_boot', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
-	Studio.Def('s_head', 'Studio.Script.s_head', 'event', 'OnNadeNade', '', '', 1.0, 0, 'Head', 0, '', '', 0)
-	Studio.Def('s_comm', 'Studio.Script.s_comm', 'event', 'OnCommunicate', '', '', 1.0, 0, '', (-1), 'みかん', 'ねえ', 0)
-	Studio.Def('s_menu', 'Studio.Script.s_menu', 'event', 'OnStudioMenu', '', '', 1.0, 0, '', (-1), '', '', 0)
-	Studio.Def('s_mixed', 'Studio.Script.s_mixed', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0)
-	Studio.Def('s_talk', 'Studio.Script.s_talk', 'talk', '', 'ひとりごと', '', 3.0, 0, '', (-1), '', '', 0)
-	Studio.Def('s_off', 'Studio.Script.s_off', 'talk', '', 'つかわない', '', 1.0, 0, '', (-1), '', '', 1)
-	Studio.Def('s_func', 'Studio.Script.s_func', 'function', '', 'こたえる', '', 1.0, 0, '', (-1), '', '', 0)
+	Studio.Def('s_boot', 'Studio.Script.s_boot', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0, '')
+	Studio.Def('s_head', 'Studio.Script.s_head', 'event', 'OnNadeNade', '', '', 1.0, 0, 'Head', 0, '', '', 0, '')
+	Studio.Def('s_comm', 'Studio.Script.s_comm', 'event', 'OnCommunicate', '', '', 1.0, 0, '', (-1), 'みかん', 'ねえ', 0, '')
+	Studio.Def('s_menu', 'Studio.Script.s_menu', 'event', 'OnStudioMenu', '', '', 1.0, 0, '', (-1), '', '', 0, '')
+	Studio.Def('s_alarm', 'Studio.Script.s_alarm', 'event', 'OnStudioAlarm', '', '', 1.0, 0, '', (-1), '', '', 0, '07:59')
+	Studio.Def('s_anniv', 'Studio.Script.s_anniv', 'event', 'OnStudioAnniversary', '', '', 1.0, 0, '', (-1), '', '', 0, '12-25')
+	Studio.Def('s_mixed', 'Studio.Script.s_mixed', 'event', 'OnBoot', '', '', 1.0, 0, '', (-1), '', '', 0, '')
+	Studio.Def('s_talk', 'Studio.Script.s_talk', 'talk', '', 'ひとりごと', '', 3.0, 0, '', (-1), '', '', 0, '')
+	Studio.Def('s_off', 'Studio.Script.s_off', 'talk', '', 'つかわない', '', 1.0, 0, '', (-1), '', '', 1, '')
+	Studio.Def('s_func', 'Studio.Script.s_func', 'function', '', 'こたえる', '', 1.0, 0, '', (-1), '', '', 0, '')
 	Studio.InitVar('好感度', 5.0)
 	Studio.InitVar('こたえ', '')
 }
@@ -109,6 +111,16 @@ OnStudioMenu
 	Studio.Event('OnStudioMenu')
 }
 
+OnStudioAlarm
+{
+	Studio.Event('OnStudioAlarm')
+}
+
+OnStudioAnniversary
+{
+	Studio.Event('OnStudioAnniversary')
+}
+
 //------------------------------------------------------------------------------
 // SSP の右クリックメニュー（おすすめ）に足す項目（「SSP のメニューからえらばれたとき」の帽子）
 //------------------------------------------------------------------------------
@@ -147,6 +159,18 @@ Studio.Script.s_comm : void
 Studio.Script.s_menu : void
 {
 	Studio.Say(0, 'メニューからこんにちは。', 1)
+}
+
+// OnStudioAlarm  (s_alarm)
+Studio.Script.s_alarm : void
+{
+	Studio.Say(0, 'おはよう。', 1)
+}
+
+// OnStudioAnniversary  (s_anniv)
+Studio.Script.s_anniv : void
+{
+	Studio.Say(0, 'メリークリスマス。', 1)
 }
 
 // OnBoot  (s_mixed)

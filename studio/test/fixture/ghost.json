@@ -151,6 +151,16 @@
       "blocks": [{ "type": "say", "who": 0, "text": "メニューからこんにちは。", "nl": 1 }]
     },
     {
+      "id": "s_alarm", "kind": "event", "event": "OnStudioAlarm", "hour": 7, "minute": 75,
+      "_": "アラームなので when が付き、分は 59 に寄せるはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "おはよう。", "nl": 1 }]
+    },
+    {
+      "id": "s_anniv", "kind": "event", "event": "OnStudioAnniversary", "month": 12, "day": 25,
+      "_": "記念日なので when が 12-25 になるはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "メリークリスマス。", "nl": 1 }]
+    },
+    {
       "id": "s_mixed", "kind": "event", "event": "OnBoot",
       "area": "Head", "from": "みかん",
       "_": "マウスでも通信でもないので、どちらの条件も付かないはず",

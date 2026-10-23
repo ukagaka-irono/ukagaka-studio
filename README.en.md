@@ -544,6 +544,8 @@ What you can do:
 * Choices (`\q`) and where they go, links (`\_a`), sounds (`\_v`)
 * Variables (affection, flags, …), conditions, loops, random branches, calling talks
 * Talking between ghosts (`OnCommunicate`) — reacting when talked to, and talking to others
+* **Anniversaries and alarms** — the “On an anniversary: month/day” and “At a set time every day: hour:minute” hats.
+  An anniversary runs once on that day whenever the ghost is running (not only in the morning; restarting the same day does not repeat it)
 * **Adding items to SSP's right-click menu** — the “When picked from the SSP menu: …” hat. Once exported, an item with that
   name appears under “Recommended” in SSP's right-click menu (picking it runs the blocks under the hat)
 * Switching to a third or later character (`\p[n]`)

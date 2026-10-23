@@ -78,6 +78,15 @@ std::string RuntimeProgramJson(const JValue& project) {
             // SSP のメニューに出す名前（空なら書かない）
             std::string menu = (ev == "OnStudioMenu") ? Trim(src["menu"].asStr()) : std::string();
             if (!menu.empty()) one.set("menu", JValue::makeStr(menu));
+            // アラームの時刻（'HH:MM'）と記念日の日づけ（'MM-DD'）。範囲の外は、はしに寄せる
+            auto clamp = [](int n, int lo, int hi) { return n < lo ? lo : (n > hi ? hi : n); };
+            char when[16] = "";
+            if (ev == "OnStudioAlarm") {
+                sprintf_s(when, "%02d:%02d", clamp(src["hour"].asInt(12), 0, 23), clamp(src["minute"].asInt(0), 0, 59));
+            } else if (ev == "OnStudioAnniversary") {
+                sprintf_s(when, "%02d-%02d", clamp(src["month"].asInt(1), 1, 12), clamp(src["day"].asInt(1), 1, 31));
+            }
+            if (when[0]) one.set("when", JValue::makeStr(when));
         }
         if (kind == "talk" || kind == "function") one.set("name", JValue::makeStr(src["name"].asStr()));
         if (kind == "talk") {

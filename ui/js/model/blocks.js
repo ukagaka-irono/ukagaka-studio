@@ -28,6 +28,8 @@ export const EVENTS = [
   [t('ホイールを回されたとき'), 'OnMouseWheel'],
   [t('1時間ごと'), 'OnHourChange'],
   [t('1分ごと'), 'OnMinuteChange'],
+  [t('毎日決めた時刻になったとき'), 'OnStudioAlarm'],
+  [t('記念日になったとき'), 'OnStudioAnniversary'],
   [t('ずっとくりかえす'), 'OnSecondChange'],
   [t('選択肢がえらばれたとき'), 'OnChoiceSelect'],
   [t('話しかけられたとき'), 'OnCommunicate'],
@@ -186,6 +188,28 @@ def({
   args: {
     menu: { kind: 'input', mode: 'text', def: t('あいさつ'), long: true },
     event: { kind: 'eventname', def: 'OnStudioMenu' },
+  },
+  hat: true, kind: 'event',
+});
+// 「毎日決めた時刻になったとき」（アラーム）と「記念日になったとき」を選ぶと、時刻・日づけを入れる形に変わる。
+// 書き出すと when（'HH:MM' か 'MM-DD'）になり、studio_runtime.dic の Studio.RunTimed が、分が変わるたびに見ます
+def({
+  key: '@event.alarm', type: '@event', cat: 'events', shape: 'hat',
+  spec: t('%event %hour 時 %minute 分'),
+  args: {
+    event: { kind: 'eventname', def: 'OnStudioAlarm' },
+    hour: { kind: 'input', mode: 'number', def: 12 },
+    minute: { kind: 'input', mode: 'number', def: 0 },
+  },
+  hat: true, kind: 'event',
+});
+def({
+  key: '@event.anniv', type: '@event', cat: 'events', shape: 'hat',
+  spec: t('%event %month 月 %day 日'),
+  args: {
+    event: { kind: 'eventname', def: 'OnStudioAnniversary' },
+    month: { kind: 'input', mode: 'number', def: 1 },
+    day: { kind: 'input', mode: 'number', def: 1 },
   },
   hat: true, kind: 'event',
 });
@@ -591,7 +615,8 @@ def({
 export const PALETTE = {
   events: [
     { note: t('ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。') },
-    '@event', '@event.touch', '@event.every', '@event.comm', '@event.menu', '@talk', '@function',
+    '@event', '@event.touch', '@event.every', '@event.alarm', '@event.anniv', '@event.comm', '@event.menu',
+    '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
   looks: ['surface', 'chara', 'anim', 'dress', 'balloon', 'sound'],

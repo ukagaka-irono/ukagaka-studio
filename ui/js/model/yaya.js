@@ -467,6 +467,15 @@ export function programOf(project) {
       // SSP のメニューに出す名前（空なら書かない）
       const menu = ev === 'OnStudioMenu' ? trimC(asStr(src.menu)) : '';
       if (menu) one.menu = menu;
+      // アラームの時刻（'HH:MM'）と記念日の日づけ（'MM-DD'）。範囲の外は、はしに寄せる
+      const clamp = (n, lo, hi) => (n < lo ? lo : (n > hi ? hi : n));
+      const pad2 = (n) => (n < 10 ? '0' : '') + n;
+      if (ev === 'OnStudioAlarm') {
+        one.when = pad2(clamp(asInt(src.hour, 12), 0, 23)) + ':' + pad2(clamp(asInt(src.minute, 0), 0, 59));
+      }
+      if (ev === 'OnStudioAnniversary') {
+        one.when = pad2(clamp(asInt(src.month, 1), 1, 12)) + '-' + pad2(clamp(asInt(src.day, 1), 1, 31));
+      }
     }
     if (kind === 'talk' || kind === 'function') one.name = asStr(src.name);
     if (kind === 'talk') {
@@ -593,6 +602,7 @@ export function toYaya(program, options = {}) {
       yayaStr(asStr(s.name)), yayaStr(asStr(s.group)), yayaNum(asNum(s.weight, 1)),
       yayaInt(asInt(s.everySec, 0)), yayaStr(asStr(f.area)), yayaInt(asInt(f.who, -1)),
       yayaStr(asStr(f.from)), yayaStr(asStr(f.contains)), asBool(s.disabled, false) ? '1' : '0',
+      yayaStr(asStr(s.when)),
     ];
     lines.push(`\tStudio.Def(${args.join(', ')})`);
   });
