@@ -48,6 +48,7 @@ async function ensureInspected() {
     pending = null;
   }
   renderStatus();
+  Model.emit();   // 描きなおして、「YAYA の関数をよぶ」ブロックに関数のえらびを出す（調べ終わったものは、もうたずねない）
   return Session.yayaGhost;
 }
 

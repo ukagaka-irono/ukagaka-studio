@@ -424,7 +424,8 @@ def({
   type: 'yaya_call', cat: 'control', shape: 'stack',
   spec: t('YAYA の関数 %name を %a %b でよぶ'),
   args: {
-    name: { kind: 'input', mode: 'text', def: '', literal: true },
+    // pick: つないだ手書きのゴーストの関数から、えらべるようにする（editor/render.js）
+    name: { kind: 'input', mode: 'text', def: '', literal: true, pick: 'yayaFunctions' },
     a: { kind: 'input', mode: 'text', def: '', long: true },
     b: { kind: 'input', mode: 'text', def: '', long: true },
   },

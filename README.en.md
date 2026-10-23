@@ -257,6 +257,7 @@ You can add talks made with blocks to a ghost written by hand in YAYA (one made 
 Hand-written YAYA can read and write block variables as `Studio.var['name']`.
 The other way round, blocks use hand-written YAYA through “**call YAYA function F with A B**” (Control) and
 “**value of YAYA expression C**” (Operators) (no blocks can go into the function name and expression fields).
+While linked, **▾** next to the function name lets you pick from the functions in the hand-written dictionaries (events and system functions are left out).
 No .nar is made while linked. Unlinking brings back the usual export.
 
 ### Where things are saved

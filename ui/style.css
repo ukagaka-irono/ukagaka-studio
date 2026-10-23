@@ -287,6 +287,8 @@ button, input, select, textarea { font-family: inherit; }
   background: var(--surface); color: var(--text-2); cursor: pointer;
 }
 .fold-summary:hover { background: var(--surface-hover); }
+/* 「YAYA の関数をよぶ」の名前の横の、関数をえらぶ ▾（editor/render.js） */
+.field-pick { margin-left: 4px; max-width: 34px; }
 #canvas-hint {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-faint); font-size: 14px; line-height: 1.9;

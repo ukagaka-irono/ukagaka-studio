@@ -129,6 +129,9 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 手書きの関数をえらぶ（段階 5-10）
+  'つないだゴーストの関数からえらぶ': 'Pick from the linked ghost\'s functions',
+
   // ---- 記念日とアラーム（段階 5-9）
   '毎日決めた時刻になったとき': 'At a set time every day',
   '記念日になったとき': 'On an anniversary',

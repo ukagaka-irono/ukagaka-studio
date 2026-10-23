@@ -558,6 +558,18 @@ function initialValue(v) {
 }
 
 /**
+ * 「YAYA の関数をよぶ」ブロックでえらべる、手書きの関数の名前（つないだゴーストの関数の一覧から）。
+ * イベントやリソースの入り口（On〜）と、しくみの関数（Studio.〜・SHIORI3FW.〜 など）は、よぶものではないので外します。
+ */
+export function yayaCallChoices(functions) {
+  const skip = /^(On[A-Z_]|Studio\.|SHIORI3FW\.|SHIORI3EV\.)/;
+  const names = (Array.isArray(functions) ? functions : [])
+    .map((f) => String(f || '').trim())
+    .filter((f) => f && !skip.test(f));
+  return [...new Set(names)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/**
  * 書き出す ghost.json の形（format / meta / settings / variables / scripts）から、
  * studio_program.dic の中身を作る。
  */

@@ -801,7 +801,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-7 | Fold scripts on the canvas | done |
 | 5-8 | Add items to SSP's right-click menu | done |
 | 5-9 | Anniversary and alarm hat blocks | done |
-| 5-10 | Pick hand-written function names | |
+| 5-10 | Pick hand-written function names | done |
 | 5-11 | Set the ghost's thumbnail and readme on screen | |
 | 5-12 | A starter ghost wizard | |
 
@@ -863,6 +863,12 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > remember the day they ran in `Studio.annivDone` (saved), so they run once a day. The Check tab flags times and dates that do not exist.
 > The YAYA test builds a ghost from the current time (3 checks, 26 in all); the export fixture has one alarm and one anniversary; 7 editor
 > checks (147).
+
+
+> **5-10 is done.** Next to the function name of “call YAYA function F with A B” (`pick: 'yayaFunctions'`), a **▾** appears while a
+> hand-written ghost is linked, to pick from that ghost's functions (typing still works). The list comes from `yayaCallChoices` in
+> `model/yaya.js`, which leaves out event and resource entry points (`On…`) and system functions (`Studio.…`, `SHIORI3FW.…`, `SHIORI3EV.…`)
+> and sorts by name. The canvas is redrawn once the linked ghost has been inspected, so it shows up right after opening. 2 editor checks (149).
 
 ---
 

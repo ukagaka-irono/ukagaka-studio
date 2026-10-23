@@ -2,7 +2,9 @@
 
 import { AREAS, BLOCKS, EVENTS, MOUSE_EVENTS, PALETTE, createBlock, getDef } from '../model/blocks.js';
 import { Model } from '../model/model.js';
+import { yayaCallChoices } from '../model/yaya.js';
 import { Commands } from '../core/commands.js';
+import { Session } from '../core/session.js';
 import { updateTitle } from '../core/title.js';
 import { Scripts } from './scripts.js';
 import { Notes } from './notes.js';
@@ -203,8 +205,22 @@ function buildField(owner, name, argDef, project, blockEl) {
       });
     }
 
-    default:
-      return buildSlot(owner, name, argDef, project, blockEl);
+    default: {
+      const slot = buildSlot(owner, name, argDef, project, blockEl);
+      // つないだ手書きのゴーストの関数から、えらべるようにする（書くこともできます）
+      const choices = argDef.pick === 'yayaFunctions' && !(owner[name] && typeof owner[name] === 'object')
+        ? yayaCallChoices((Session.yayaGhost || {}).functions) : [];
+      if (!choices.length) return slot;
+      const wrap = el('span', 'field-wrap');
+      wrap.appendChild(slot);
+      const pick = buildSelect([['▾', ''], ...choices.map((n) => [n, n])], '', (v) => {
+        if (v) Model.act(() => { owner[name] = v; });
+      });
+      pick.classList.add('field-pick');
+      pick.title = t('つないだゴーストの関数からえらぶ');
+      wrap.appendChild(pick);
+      return wrap;
+    }
   }
 }
 

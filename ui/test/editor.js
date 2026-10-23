@@ -309,6 +309,15 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 5-10: 手書きの関数をえらぶ
+{
+  const { yayaCallChoices } = require('../js/model/yaya.js');
+  check('えらべる手書きの関数（入り口としくみは外し、並べる）',
+    yayaCallChoices(['Hand.Greet', 'OnBoot', 'On_homeurl', 'Studio.Event', 'SHIORI3FW.Init', 'aitalk', 'Hand.Greet', 'Once']),
+    ['Hand.Greet', 'Once', 'aitalk']);
+  check('つないでいなければ、えらぶものはない', yayaCallChoices(undefined), []);
+}
+
 // --- 段階 5-9: 記念日とアラーム
 {
   const one = (s) => Object.assign({ meta: {}, variables: [],
