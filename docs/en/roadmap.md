@@ -890,7 +890,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 
 ---
 
-## Stage 6 — Richer ghost behaviour
+## Stage 6 — Richer ghost behaviour (done)
 
 On 2026-10-23, the three items that save authors the most work were picked from ten candidates, to be done from the top
 (they were 6-1, 6-2 and 6-6 in the candidate list).
@@ -926,6 +926,23 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 > in a free spot and scrolls to it. These do not count toward the Check tab badge. 2 editor checks (165).
 >
 > **Stage 6 is now complete.**
+
+
+---
+
+## Stage 7 — Easier to write, easier to check
+
+On 2026-10-23, the seven candidates not picked for stage 6, to be done from the top.
+
+| | What | |
+|---|---|---|
+| 7-1 | A hat for “on the Nth boot” | |
+| 7-2 | Filter “when a key is pressed” by key | |
+| 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | |
+| 7-4 | Export and import parts as files | |
+| 7-5 | Draw random talks 100 times in “Try” | |
+| 7-6 | See what changed since an earlier version | |
+| 7-7 | A diagram of where choices lead | |
 
 ---
 
