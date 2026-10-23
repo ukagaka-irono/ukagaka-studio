@@ -250,6 +250,8 @@ button, input, select, textarea { font-family: inherit; }
 .lines-who { flex: 0 0 64px; font-size: 11.5px; color: var(--text-muted); padding-top: 5px; }
 .lines-text { flex: 1 1 auto; resize: none; overflow: hidden; min-height: 26px; font: inherit; font-size: 13px; }
 .lines-ro { flex: 1 1 auto; font-size: 12px; color: var(--text-faint); padding-top: 5px; cursor: pointer; }
+.replace-row { margin-top: 6px; display: flex; gap: 6px; }
+.replace-row input { flex: 1 1 auto; }
 .palette-note {
   font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 6px 8px 2px 0;
 }

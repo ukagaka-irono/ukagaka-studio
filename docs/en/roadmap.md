@@ -796,7 +796,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-2 | Show this script's YAYA | done |
 | 5-3 | Reflect into SSP on every save | done |
 | 5-4 | A speech list page (read and edit together, CSV in and out) | done |
-| 5-5 | Search and replace | |
+| 5-5 | Search and replace | done |
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | |
 | 5-7 | Fold scripts on the canvas | |
 | 5-8 | Add items to SSP's right-click menu | |
@@ -825,6 +825,11 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > **5-4 is done.** A “Speech” page was added below the top bar. It lists the speech of every “says” block, grouped by script, editable in place
 > (with a filter; clicking a script name jumps to it on the canvas; `ui/js/panels/lines.js`). CSV is exported as UTF-8 with a BOM, and on import
 > rows are matched by key (script id and block position) so only changed lines are written back (`ui/js/model/lines.js`). 4 editor checks (123).
+
+
+> **5-5 is done.** The Search tab gained “Replace with” and “Replace all (number found)”. Only text fields of blocks (text fields of
+> `kind: 'input'`, including blocks dropped into slots) are replaced; `literal` fields (YAYA function names and expressions) and variable names
+> are not (`ui/js/model/replace.js`). It asks first and replaces in one undo step. 3 editor checks (126).
 
 ---
 

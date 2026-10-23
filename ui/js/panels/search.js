@@ -4,10 +4,12 @@
  */
 
 import { getDef } from '../model/blocks.js';
+import { countText, replaceText } from '../model/replace.js';
 import { Model } from '../model/model.js';
 import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
 import { Session } from '../core/session.js';
+import { toast } from '../core/toast.js';
 import { Render } from '../editor/render.js';
 import { Tabs } from './tabs.js';
 import { Pages } from './pages.js';
@@ -102,6 +104,7 @@ function noteHit(owner, q) {
 }
 
 function renderSearch() {
+  updateReplaceButton();
   const list = $('#search-list');
   if (!list) return;
   const q = ($('#search-input').value || '').trim().toLowerCase();
@@ -169,10 +172,32 @@ function jumpTo(it) {
   setTimeout(() => flashEl.classList.remove('flash'), 2600);
 }
 
+/** さがす言葉を、ブロックの文字の欄の中でまとめて置きかえる（model/replace.js） */
+function replaceAll() {
+  const from = $('#search-input').value;
+  const to = $('#replace-input').value;
+  const n = countText(Model.project, from);
+  if (!n) { toast(t('置きかえるところがありません'), true); return; }
+  if (!confirm(t('「{from}」を「{to}」に、{n} か所まとめて置きかえますか？', { from, to, n }))) return;
+  let done = 0;
+  Model.act(() => { done = replaceText(Model.project, from, to); });
+  toast(t('{n} か所置きかえました（元にもどすで、まとめて戻せます）', { n: done }));
+}
+
+function updateReplaceButton() {
+  const btn = $('#btn-replace-all');
+  if (!btn) return;
+  const n = countText(Model.project, $('#search-input').value);
+  btn.disabled = !n;
+  btn.textContent = n ? t('すべて置きかえる（{n}）', { n }) : t('すべて置きかえる');
+}
+
 function init() {
   const searchInput = $('#search-input');
   if (!searchInput) return;
   searchInput.addEventListener('input', renderSearch);
+  searchInput.addEventListener('input', updateReplaceButton);
+  $('#btn-replace-all').addEventListener('click', replaceAll);
   searchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') searchInput.blur(); });
 }
 

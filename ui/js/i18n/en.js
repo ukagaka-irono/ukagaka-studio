@@ -129,6 +129,16 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ui/js/panels/search.js（置きかえる）
+  '置きかえるところがありません': 'Nothing to replace',
+  '「{from}」を「{to}」に、{n} か所まとめて置きかえますか？': 'Replace “{from}” with “{to}” in {n} places?',
+  '{n} か所置きかえました（元にもどすで、まとめて戻せます）': 'Replaced {n} places (undo puts them all back)',
+  'すべて置きかえる（{n}）': 'Replace all ({n})',
+  'すべて置きかえる': 'Replace all',
+  '置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）だけです。YAYA のコードの欄と変数の名前は置きかえません。':
+    'Only text fields of blocks (speech, choices and so on) are replaced. YAYA code fields and variable names are not.',
+  '置きかえる言葉': 'Replace with',
+
   // ---- ui/js/panels/lines.js
   '{n} / {all} 件': '{n} / {all}',
   '{n} 件': '{n}',

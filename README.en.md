@@ -129,7 +129,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    (frames are lined up from left to right, each with a preview).
    Set “when” and they play by themselves; you can also start one with the “play animation N” block.
    Each frame has its own drawing method and position, and you can add “areas you can touch only while it plays”.
-5. In the **Search** tab (Ctrl+F) you can find blocks by speech text or variable name.
+5. In the **Search** tab (Ctrl+F) you can find blocks by speech text or variable name. Enter “Replace with” and press “Replace all” to
+   replace inside the text fields of blocks (speech, choices and so on; YAYA code fields and variable names are left alone).
    Click a result to jump there. Copy blocks with **Ctrl+C / Ctrl+V**.
    What you copy can be pasted into another project, even after restarting. Variables the blocks use are added, with their
    initial values, if the project you paste into does not have them.
@@ -428,6 +429,7 @@ ukagaka-studio/
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   ├── lines.js    the speech list and CSV in/out
+│       │   ├── replace.js  replacing text in bulk
 │       │   └── sample.js   the template for “New”
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)

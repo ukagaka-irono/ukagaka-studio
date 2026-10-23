@@ -499,6 +499,27 @@ section('セリフの一覧と CSV (lines)');
   check('key と text の列が無い CSV は読まない', applyCsv(Model.project, parseCsv('a,b\n1,2')).error, 'no_columns');
 }
 
+section('さがして置きかえる (replace)');
+{
+  const { countText, replaceText } = require('../js/model/replace.js');
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'R' },
+    scripts: [{ id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'say', who: 0, text: 'ねこが好き。ねこ！', nl: 1 },
+      { type: 'say', who: 0, text: { type: 'join', a: 'ねこ', b: 'と犬' }, nl: 0 },
+      { type: 'yaya_call', name: 'Hand.ねこ', a: 'ねこ', b: '' },
+      { type: 'wait', ms: 500 },
+    ] }],
+  });
+  check('はめこんだブロックの中もふくめて数える（YAYA の関数の名前の欄は数えない）', countText(Model.project, 'ねこ'), 4);
+  const n = replaceText(Model.project, 'ねこ', 'いぬ$&');
+  const b = Model.project.scripts[0].blocks;
+  check('置きかえた数と中身（$& はそのまま文字として入る）',
+    [n, b[0].text, b[1].text.a, b[2].name, b[2].a, b[3].ms],
+    [4, 'いぬ$&が好き。いぬ$&！', 'いぬ$&', 'Hand.ねこ', 'いぬ$&', 500]);
+  check('空の言葉では何もしない', [countText(Model.project, ''), replaceText(Model.project, '', 'x')], [0, 0]);
+}
+
 section('このソフトについて (about)');
 {
   // もとにしたプロジェクトの表示は、ライセンス（なしライセンス 1.1 の 3 節）のための決まった文。
