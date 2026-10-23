@@ -134,7 +134,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
    Click a result to jump there. Copy blocks with **Ctrl+C / Ctrl+V**.
    What you copy can be pasted into another project, even after restarting. Variables the blocks use are added, with their
    initial values, if the project you paste into does not have them.
-6. The **Check** tab lists empty speech, missing variables, choices that go nowhere and so on.
+6. The **Check** tab lists empty speech, missing variables, choices that go nowhere and so on. It also points out overlong speech,
+   talks that are never called, and variables that are unused (or set but never read).
    If it shows a red number, fix those before exporting. Click an item and
    the canvas scrolls there and the block flashes.
 
@@ -424,7 +425,7 @@ ukagaka-studio/
 │       ├── model/          data and rules (no DOM)
 │       │   ├── blocks.js   block definitions (add here to add a block)
 │       │   ├── model.js    project data and undo
-│       │   ├── lint.js     the Check tab (empty speech, missing variables, choices that go nowhere)
+│       │   ├── lint.js     the Check tab (empty speech, missing variables, choices that go nowhere, talks never called)
 │       │   ├── blockindex.js  searching blocks by text (the / “find and place”)
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary

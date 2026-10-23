@@ -299,6 +299,33 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 5-6: 長すぎるセリフ・よばれないトーク・読まれない変数
+check('長すぎるセリフは言う',
+  issuesOf(withScript([{ type: 'say', who: 0, text: 'あ'.repeat(201) }]), '文字の長いセリフ'), ['warn']);
+check('200 文字までのセリフは言わない',
+  issuesOf(withScript([{ type: 'say', who: 0, text: 'あ'.repeat(200) }]), '文字の長いセリフ'), []);
+{
+  const fn = (blocks) => withScript(blocks, {
+    scripts: [
+      { id: 's1', kind: 'event', event: 'OnBoot', blocks },
+      { id: 's2', kind: 'function', name: 'おまけ', blocks: [{ type: 'say', who: 0, text: 'やあ' }] },
+    ],
+  });
+  check('どこからもよばれないトークは言う',
+    issuesOf(fn([{ type: 'say', who: 0, text: 'やあ' }]), 'どこからもよばれていません'), ['warn']);
+  check('よぶブロックがあれば言わない',
+    issuesOf(fn([{ type: 'call', name: 'おまけ' }]), 'どこからもよばれていません'), []);
+  check('選択肢の行き先も「よんでいる」に数える',
+    issuesOf(fn([{ type: 'choice', label: 'はい', target: 'おまけ' }]), 'どこからもよばれていません'), []);
+  check('◯秒後によぶ先も「よんでいる」に数える',
+    issuesOf(fn([{ type: 'later', sec: 5, name: 'おまけ' }]), 'どこからもよばれていません'), []);
+}
+check('値を入れるだけの変数は言う',
+  issuesOf(withScript([{ type: 'set', name: 'こたえ', value: 1 }]), '値を入れるだけ'), ['warn']);
+check('読んでいれば言わない',
+  issuesOf(withScript([{ type: 'set', name: 'こたえ', value: 1 },
+    { type: 'say', who: 0, text: { type: 'var', name: 'こたえ' } }]), '値を入れるだけ'), []);
+
 check('どこでも使われていない変数は言う',
   issuesOf(withScript([{ type: 'say', who: 0, text: 'やあ' }]), 'どこでも使われていません'),
   ['warn']);

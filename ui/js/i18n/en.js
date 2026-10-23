@@ -129,6 +129,17 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ui/js/model/lint.js（段階 5-6）
+  '{title}に、{n} 文字の長いセリフがあります': '{title} has a speech {n} characters long',
+  'バルーンからあふれて、読みにくくなります。いくつかのセリフに分けるか、とちゅうで待つブロックを入れてください。':
+    'It overflows the balloon and is hard to read. Split it into several speeches, or put a wait block in between.',
+  '{title}は、どこからもよばれていません': '{title} is never called',
+  '「よぶ」ブロック・選択肢・「◯秒後によぶ」から使うと動きます。手書きの YAYA からよんでいるなら、そのままでかまいません。':
+    'It runs only from a “call” block, a choice or “call after … seconds”. If hand-written YAYA calls it, leave it as is.',
+  '変数「{name}」は、値を入れるだけで、どこでも読んでいません': 'Variable “{name}” is set but never read',
+  'セリフや「もし」に変数のブロックをはめると、入れた値を使えます。手書きの YAYA で読んでいるなら、そのままでかまいません。':
+    'Drop the variable block into a speech or an “if” to use the value. If hand-written YAYA reads it, leave it as is.',
+
   // ---- ui/js/panels/search.js（置きかえる）
   '置きかえるところがありません': 'Nothing to replace',
   '「{from}」を「{to}」に、{n} か所まとめて置きかえますか？': 'Replace “{from}” with “{to}” in {n} places?',

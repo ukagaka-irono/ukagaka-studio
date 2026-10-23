@@ -10,6 +10,9 @@ import { t } from '../i18n/i18n.js';
 
 const Lint = {};
 
+// これより長いセリフは、バルーンからあふれて読みにくい（文字の数）
+const LONG_SAY = 200;
+
 function issue(list, level, message, hint, script, block) {
   list.push({ level, message, hint: hint || '', script: script || null, block: block || null });
 }
@@ -171,6 +174,9 @@ Lint.run = function (project, ctx = {}) {
           if (isEmptyText(b.text)) {
             issue(out, 'warn', t('{title}に、なにも言わないセリフがあります', { title }),
               t('文章を入れるか、ブロックを削除してください。'), s, b);
+          } else if (typeof b.text === 'string' && b.text.length > LONG_SAY) {
+            issue(out, 'warn', t('{title}に、{n} 文字の長いセリフがあります', { title, n: b.text.length }),
+              t('バルーンからあふれて、読みにくくなります。いくつかのセリフに分けるか、とちゅうで待つブロックを入れてください。'), s, b);
           }
           break;
         case 'dress':
@@ -345,11 +351,28 @@ Lint.run = function (project, ctx = {}) {
     }
   }
 
-  // ---- 使われていない変数
+  // ---- よばれないトーク（名前でよぶトークは、よぶブロック・選択肢・◯秒後によぶ からしか動かない）
+  const called = {};
+  for (const s of project.scripts || []) {
+    if (s.disabled) continue;
+    walk(s, (b) => {
+      if ((b.type === 'call' || b.type === 'later') && typeof b.name === 'string') called[b.name] = true;
+      if (b.type === 'choice' && typeof b.target === 'string') called[b.target] = true;
+    });
+  }
+  for (const s of project.scripts || []) {
+    if (s.kind !== 'function' || s.disabled || !String(s.name || '').trim() || called[s.name]) continue;
+    issue(out, 'warn', t('{title}は、どこからもよばれていません', { title: nameOf(s) }),
+      t('「よぶ」ブロック・選択肢・「◯秒後によぶ」から使うと動きます。手書きの YAYA からよんでいるなら、そのままでかまいません。'), s);
+  }
+
+  // ---- 使われていない変数・読まれない変数
   const used = {};
+  const read = {};
   for (const s of project.scripts || []) {
     walk(s, (b) => {
       if ((b.type === 'var' || b.type === 'set' || b.type === 'change') && b.name) used[b.name] = true;
+      if (b.type === 'var' && b.name) read[b.name] = true;
       if (b.type === 'saori_call' && b.into) used[b.into] = true;
       if (b.type === 'ask' && b.into) used[b.into] = true;
     });
@@ -358,6 +381,9 @@ Lint.run = function (project, ctx = {}) {
     if (!used[name]) {
       issue(out, 'warn', t('変数「{name}」はどこでも使われていません', { name }),
         t('いらなければ変数タブで削除できます。'));
+    } else if (!read[name]) {
+      issue(out, 'warn', t('変数「{name}」は、値を入れるだけで、どこでも読んでいません', { name }),
+        t('セリフや「もし」に変数のブロックをはめると、入れた値を使えます。手書きの YAYA で読んでいるなら、そのままでかまいません。'));
     }
   }
 

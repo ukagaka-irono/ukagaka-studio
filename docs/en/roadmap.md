@@ -797,7 +797,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-3 | Reflect into SSP on every save | done |
 | 5-4 | A speech list page (read and edit together, CSV in and out) | done |
 | 5-5 | Search and replace | done |
-| 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | |
+| 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | done |
 | 5-7 | Fold scripts on the canvas | |
 | 5-8 | Add items to SSP's right-click menu | |
 | 5-9 | Anniversary and alarm hat blocks | |
@@ -830,6 +830,13 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > **5-5 is done.** The Search tab gained “Replace with” and “Replace all (number found)”. Only text fields of blocks (text fields of
 > `kind: 'input'`, including blocks dropped into slots) are replaced; `literal` fields (YAYA function names and expressions) and variable names
 > are not (`ui/js/model/replace.js`). It asks first and replaces in one undo step. 3 editor checks (126).
+
+
+> **5-6 is done.** The Check tab (`ui/js/model/lint.js`) points out three new things (all warnings): speech longer than 200 characters;
+> named talks (the “talk” hat) that no “call” block, choice or “call after … seconds” calls (random talks are picked automatically, so they
+> are not flagged; calls from disabled scripts do not count); and variables that are set but never read by a variable block (variables never
+> used at all were already flagged). The hint says it is fine to leave them when hand-written YAYA uses them. No example is flagged.
+> 8 editor checks (134).
 
 ---
 
