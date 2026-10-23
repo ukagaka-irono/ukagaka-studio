@@ -111,7 +111,22 @@ async function sendCommToSsp() {
   }
 }
 
-async function installToSsp() {
+// 「保存するたびに SSP に入れる」（この PC の WebView2 の保存場所に覚えます）
+const AUTO_KEY = 'ikaga.sspAuto';
+function autoEnabled() {
+  try { return localStorage.getItem(AUTO_KEY) === '1'; } catch { return false; }
+}
+
+/** 手で保存したら、SSP が動いていれば入れなおす（panels/dialog.js の 'saved' の知らせ） */
+async function onSaved(detail) {
+  if (!autoEnabled() || (detail && detail.auto)) return;
+  const ssp = await refreshSsp();
+  if (!ssp || !ssp.running || !ssp.ghostDir) return;   // SSP が止まっているときは入れない
+  installToSsp({ quiet: true });
+}
+
+async function installToSsp(opts) {
+  const quiet = !!(opts && opts.quiet);
   const box = $('#ssp-result');
   box.textContent = t('SSP に入れています…');
   try {
@@ -136,7 +151,7 @@ async function installToSsp() {
     box.innerHTML =
       t('<b>{folder}</b> を入れました（{files} ファイル）<br>', { folder: escapeHtml(r.folder), files: r.files }) +
       `<code>${escapeHtml(r.root)}</code><br>${escapeHtml(notes[r.action] || '')}`;
-    toast(t('SSP に入れました'));
+    toast(quiet ? t('保存して、SSP にも入れました') : t('SSP に入れました'));
     Events.emit('installed');
     refreshSsp();
   } catch (e) {
@@ -150,7 +165,13 @@ function init() {
   $('#btn-run-ssp').addEventListener('click', sendScriptToSsp);
   $('#btn-send-event').addEventListener('click', sendEventToSsp);
   $('#btn-send-comm').addEventListener('click', sendCommToSsp);
-  $('#btn-ssp-install').addEventListener('click', installToSsp);
+  $('#btn-ssp-install').addEventListener('click', () => installToSsp());
+  const auto = $('#ssp-auto');
+  auto.checked = autoEnabled();
+  auto.addEventListener('change', () => {
+    try { localStorage.setItem(AUTO_KEY, auto.checked ? '1' : '0'); } catch { /* 覚えられなくても、この画面の中では使える */ }
+  });
+  Events.on('saved', onSaved);
   $('#btn-ssp-refresh').addEventListener('click', async () => {
     await refreshSsp();
     toast(t('SSP の状態を確認しました'));

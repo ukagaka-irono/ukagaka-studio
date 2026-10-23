@@ -291,6 +291,9 @@
           <button id="btn-ssp-launch" class="btn">SSP を起動</button>
           <button id="btn-ssp-refresh" class="btn small" title="SSP の状態を確認しなおす">再確認</button>
         </div>
+        <label class="field row"><span>保存するたびに SSP に入れる</span><input id="ssp-auto" type="checkbox"></label>
+        <p class="hint">入れておくと、手で保存したとき（Ctrl+S など）に、SSP が動いていれば「SSP に入れて動かす」と同じことをします。
+          1 分ごとの自動保存では入れません。</p>
         <div id="ssp-result" class="export-result"></div>
         <label class="field field-gap">
           <span>SSP の場所（自動で見つからないとき）</span>

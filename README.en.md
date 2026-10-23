@@ -167,6 +167,8 @@ Just press “**Run it in SSP**” on the **Export** page.
 * It exports straight into SSP's `ghost\` folder and **switches SSP to the ghost**.
 * If that ghost was already running, it **only reloads the SHIORI** after exporting (no switch, instant).
 * If SSP is not running, “Start SSP” starts it.
+* With “**Put into SSP on every save**” on, saving by hand (Ctrl+S and so on) does the same whenever SSP is running
+  (the one-minute autosave does not). Handy when you go back and forth between editing and checking in SSP.
 
 To package it for sharing, use “Make .nar” on the same page.
 Drag and drop the `.nar` onto the SSP window to install it.

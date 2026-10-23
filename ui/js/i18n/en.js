@@ -681,6 +681,9 @@ export const en = {
   '右の「ためす」で、しゃべるようすとさくらスクリプトを見られます。': 'In “Try” on the right you can see how it talks and its Sakura Script.',
   '▶ ためす': '▶ Try',
   'SSP に入れて動かす': 'Run it in SSP',
+  '保存するたびに SSP に入れる': 'Put into SSP on every save',
+  '入れておくと、手で保存したとき（Ctrl+S など）に、SSP が動いていれば「SSP に入れて動かす」と同じことをします。 1 分ごとの自動保存では入れません。':
+    'When on, saving by hand (Ctrl+S and so on) does the same as “Run it in SSP” if SSP is running. The one-minute autosave does not.',
   '「書き出し」の画面から、SSP にそのまま入れたり、配るための .nar を作ったりできます。': 'From the Export page you can install it into SSP directly or make a .nar to share.',
   '書き出しへ': 'Go to Export',
   'はじめての方へ': 'First steps',
@@ -747,6 +750,7 @@ export const en = {
   '書き出しましたが、SSP への指示は届きませんでした。': "Exported, but the instruction didn't reach SSP.",
   '<b>{folder}</b> を入れました（{files} ファイル）<br>': 'Installed <b>{folder}</b> ({files} files)<br>',
   'SSP に入れました': 'Installed into SSP',
+  '保存して、SSP にも入れました': 'Saved, and put into SSP too',
   'SSP の状態を確認しました': 'Checked SSP',
   'SSP を起動しました': 'Started SSP',
   'SSP の場所を覚えました': 'Saved the SSP location',

@@ -794,7 +794,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 |---|---|---|
 | 5-1 | Click the surface in “Try” to see the reaction (events by hit area) | done |
 | 5-2 | Show this script's YAYA | done |
-| 5-3 | Reflect into SSP on every save | |
+| 5-3 | Reflect into SSP on every save | done |
 | 5-4 | A speech list page (read and edit together, CSV in and out) | |
 | 5-5 | Search and replace | |
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | |
@@ -815,6 +815,11 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > **5-2 is done.** “Show YAYA” in a script hat's right-click menu shows that script's YAYA function (with a copy button;
 > `ui/js/panels/yayaview.js`). It is cut out of the same `toYaya` output so it never differs from the export (`scriptYaya`),
 > and says where the function is called from (through `Studio.Event`, overridden by hand-written code, called from talks). 3 editor checks (119).
+
+
+> **5-3 is done.** The Export page has “Put into SSP on every save”. When on, saving by hand does the same as “Run it in SSP” if SSP is
+> running. Autosaves and the save on closing do not (`panels/dialog.js` sends the `saved` notice and `panels/ssp.js` receives it).
+> The setting is kept in this PC's WebView2 storage.
 
 ---
 

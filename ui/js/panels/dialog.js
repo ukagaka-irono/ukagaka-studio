@@ -28,6 +28,8 @@ async function saveProject(silent, auto = false) {
     Model.dirty = false;
     updateTitle();
     if (!silent) toast(t('「{name}」を保存しました', { name: r.saved }));
+    // 手で保存したときだけ知らせる（自動保存・閉じるときの保存では、SSP に入れない。panels/ssp.js）
+    if (!silent) Events.emit('saved', { auto });
     return true;
   } catch (e) {
     toast(e.message, true);
