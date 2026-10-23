@@ -803,7 +803,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-9 | Anniversary and alarm hat blocks | done |
 | 5-10 | Pick hand-written function names | done |
 | 5-11 | Set the ghost's thumbnail and readme on screen | done |
-| 5-12 | A starter ghost wizard | |
+| 5-12 | A starter ghost wizard | done |
 
 > **5-1 is done.** Clicking a surface on the stage runs OnMouseClick, double-clicking runs OnMouseDoubleClick, and moving over the same spot
 > 8 times runs OnNadeNade, chosen the same way as in SSP (filters and default reactions; `ui/js/panels/touch.js`). Where you touched is decided
@@ -876,6 +876,16 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > `thumbnail.png` (next to install.txt, as in UKADOC's ghost layout). The readme is kept in `meta.readme`; when set, it replaces the top part of
 > readme.txt (name, author, version, description), with line breaks made CRLF and the YAYA note below kept. ghost/master/descript.txt also gains
 > `readme.charset,UTF-8` (readme.txt is UTF-8, but without it SSP reads it in the OS encoding). 3 export checks (39).
+
+
+> **5-12 is done.** “New” in the top bar opens the starter wizard (`ui/js/panels/starter.js`): the names of the ghost and its two characters,
+> the author, and the parts to start with (startup and closing greetings, double click, pats, 3 random talks, a noon alarm, today as an
+> anniversary, “Talk to me” in SSP's menu). `starterProject(opts)` in `ui/js/model/sample.js` places only the picked parts, creates the
+> affection variable only when a part uses it, and turns automatic talk off without random talks; the greetings use the entered names.
+> The startup template (`sampleProject`) is built from the parts checked by default. Editor checks make sure no combination trips the Check tab
+> (affection is read when patted, so the line changes as you keep patting) (6 checks, 155).
+>
+> **Stage 5 is now complete.**
 
 ---
 

@@ -105,6 +105,10 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 
 ### 2. Build with blocks
 
+**New** in the top bar opens the starter wizard. Enter the names of the ghost and its two characters, pick what to start with
+(greetings, reactions to double clicks and pats, random talks, an alarm, an anniversary, an item in SSP's menu), and you start with
+those blocks already placed. With nothing picked, you start from an empty canvas.
+
 Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
 The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
 spreadsheet and open it again to write back only the lines that changed.
@@ -435,7 +439,7 @@ ukagaka-studio/
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk
-│       │   └── sample.js   the template for “New”
+│       │   └── sample.js   the template for “New” (built from the parts picked in the starter wizard)
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)
 │       └── panels/         pages (Talk, Characters, Ghost info, Export, Help)
@@ -450,6 +454,7 @@ ukagaka-studio/
 │           ├── chara.js    “Characters” (surfaces, placeholder shell colors, balloon, animations)
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
+│           ├── starter.js  the starter wizard behind “New” in the top bar
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page
 ├── tools/

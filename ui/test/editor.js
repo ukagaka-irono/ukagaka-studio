@@ -309,6 +309,25 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 5-12: ひな形ウィザード
+{
+  const { STARTER_PARTS, starterProject } = require('../js/model/sample.js');
+  const all = Object.fromEntries(STARTER_PARTS.map((x) => [x.key, true]));
+  const none = Object.fromEntries(STARTER_PARTS.map((x) => [x.key, false]));
+  const lintOf = (p) => { Model.project = p; return Lint.run(p).map((i) => `${i.level}: ${i.message}`); };
+  check('ひな形: 全部入れても、チェックに引っかからない', lintOf(starterProject({ parts: all })), []);
+  check('ひな形: いつもの部品でも、チェックに引っかからない', lintOf(starterProject()), []);
+  check('ひな形: なにも入れなければ、からっぽで自動でしゃべらない',
+    (() => { const p = starterProject({ parts: none }); return [p.scripts.length, p.variables.length, p.settings.randomTalkEnabled]; })(),
+    [0, 0, false]);
+  check('ひな形: 部品ごとに入れる', lintOf(starterProject({ parts: Object.assign({}, none, { menu: true }) })), []);
+  const named = starterProject({ name: 'みかん', sakuraName: 'みか', keroName: 'かん', parts: Object.assign({}, none, { greet: true }) });
+  check('ひな形: 名前がゴーストとあいさつに入る',
+    [named.meta.name, named.meta.sakuraName, named.scripts[0].blocks[1].text], ['みかん', 'みか', 'はじめまして。みかです。']);
+  const anniv = starterProject({ parts: Object.assign({}, none, { anniv: true }), today: new Date(2026, 9, 23) });
+  check('ひな形: 記念日は今日の日づけ', [anniv.scripts[0].month, anniv.scripts[0].day], [10, 23]);
+}
+
 // --- 段階 5-10: 手書きの関数をえらぶ
 {
   const { yayaCallChoices } = require('../js/model/yaya.js');

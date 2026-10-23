@@ -43,6 +43,7 @@ import { YayaLink } from './panels/yayalink.js';
 import { About } from './panels/about.js';
 import { Touch } from './panels/touch.js';
 import { YayaView } from './panels/yayaview.js';
+import { Starter } from './panels/starter.js';
 import { Lines } from './panels/lines.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
@@ -93,12 +94,7 @@ function renderAll() {
 
 // ------------------------------------------------------------ 上のボタン
 function initTopbar() {
-  $('#btn-new').addEventListener('click', () => {
-    if (Model.dirty && !confirm(t('保存していない変更があります。新しく作りますか？'))) return;
-    Model.init(sampleProject());
-    Session.vars = {};
-    toast(t('新しいゴーストを作りました'));
-  });
+  $('#btn-new').addEventListener('click', Starter.open);   // ひな形ウィザード（panels/starter.js）
   $('#btn-open').addEventListener('click', Dialog.openProjectDialog);
   $('#btn-save').addEventListener('click', () => Dialog.saveProject(false));
   $('#btn-undo').addEventListener('click', () => Model.undo());

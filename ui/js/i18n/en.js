@@ -129,6 +129,36 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ひな形ウィザード（段階 5-12）
+  '起動したときのあいさつ（はじめての起動も）': 'Greeting on startup (and on the very first start)',
+  '終了するときのあいさつ': 'Greeting on closing',
+  'ダブルクリックされたときの反応': 'Reaction to a double click',
+  '頭をなでられたときの反応（好感度つき）': 'Reaction to head pats (with affection)',
+  'ランダムトーク 3 つ': '3 random talks',
+  'お昼の 12 時のアラーム': 'An alarm at 12 noon',
+  '今日を記念日にする（毎年、今日の日づけに話す）': 'Make today an anniversary (talks on this date every year)',
+  'SSP の右クリックメニューに「おはなしして」': '“Talk to me” in SSP\'s right-click menu',
+  'はじめまして。{name}です。': 'Nice to meet you. I\'m {name}.',
+  '{name}だよ。よろしくね。': 'And I\'m {name}. Let\'s get along!',
+  'またね。': 'See you.',
+  'おつかれさま。': 'Good work today.',
+  'えへへ、もっとなでて。': 'Hehe, pat me more.',
+  'おやつの話': 'Snack talk',
+  'おなかすいたなあ。': 'I\'m hungry.',
+  'さっき食べたでしょ。': 'You just ate.',
+  'ひまの話': 'Bored talk',
+  'ひまだなあ。': 'I\'m bored.',
+  'お昼の時間だよ。': 'It\'s lunchtime.',
+  '今日は、はじめて会った日だね。': 'Today is the day we first met.',
+  'おはなしして': 'Talk to me',
+  'なにを話そうかな。': 'What shall I talk about?',
+  '今日もいい日だね。': 'Today is a nice day too.',
+  'はじめから入れておくもの': 'Start with',
+  'あとから、ブロックで自由に直せます。なにも入れないと、からっぽのキャンバスではじまります。':
+    'You can change everything with blocks later. With nothing checked, you start from an empty canvas.',
+  'やめる': 'Cancel',
+  '作る': 'Create',
+
   // ---- サムネイルと readme（段階 5-11）
   'サムネイルと readme': 'Thumbnail and readme',
   '画像をえらぶ': 'Choose image',
@@ -598,8 +628,6 @@ export const en = {
 
   // ---- ui\js\model\sample.js（「新規」のひな形）
   '好感度': 'affection',
-  'はじめまして。': 'Nice to meet you.',
-  'よろしくね。': "Let's get along.",
   'おかえりなさい。': 'Welcome back.',
   'なあに？': 'What is it?',
   'どうしたの？': "What's up?",
