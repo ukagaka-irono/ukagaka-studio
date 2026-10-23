@@ -491,6 +491,8 @@ export function programOf(project) {
       if (ev === 'OnStudioAnniversary') {
         one.when = pad2(clamp(asInt(src.month, 1), 1, 12)) + '-' + pad2(clamp(asInt(src.day, 1), 1, 31));
       }
+      // 決めた回数めの起動（段階 7-1）。1 回目から
+      if (ev === 'OnStudioNthBoot') one.when = String(clamp(asInt(src.nth, 10), 1, 999999));
     }
     if (kind === 'talk' || kind === 'function') one.name = asStr(src.name);
     if (kind === 'talk') {

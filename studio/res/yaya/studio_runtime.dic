@@ -357,6 +357,16 @@ Studio.Dispatch
 		}
 	}
 
+	// 「決めた回数めの起動のとき」（段階 7-1）。その回数のかたまりがあれば、ふつうの起動のかわりに動かす
+	if _id == 'OnBoot' || _id == 'OnFirstBoot' {
+		_nout = Studio.RunNthBoot
+		if _nout != '' {
+			Studio.sinceTalk = 0
+			_nout
+			return
+		}
+	}
+
 	_out = Studio.RunHandlers(_id)
 	if _out == '' && !Studio.found { _out = Studio.BuiltinDefault(_id) }
 	if _out != '' { Studio.sinceTalk = 0 }
@@ -472,6 +482,24 @@ Studio.RunTimed
 		if Studio.s.when[_k] == _hm { _out += Studio.RunOne(_k) }
 	}
 	_out
+}
+
+// いまの起動回数（Studio.boots）と同じ回数の「決めた回数めの起動のとき」を動かす（段階 7-1）。
+// いくつもあれば、上から順にためして、はじめに何か言ったもの
+Studio.RunNthBoot
+{
+	_now = TOSTR(Studio.boots)
+	_n = ARRAYSIZE(Studio.s.id)
+	for _k = 0; _k < _n; _k++ {
+		if Studio.s.kind[_k] != 'event' || Studio.s.off[_k] || Studio.s.event[_k] != 'OnStudioNthBoot' { continue }
+		if Studio.s.when[_k] != _now { continue }
+		_out = Studio.RunOne(_k)
+		if _out != '' {
+			_out
+			return
+		}
+	}
+	''
 }
 
 // 続きもの（段階 6-2）。(名前, 話の数, おわったらはじめからなら 1) → いま出す話の番号（0 から）か、もう話さないなら -1。

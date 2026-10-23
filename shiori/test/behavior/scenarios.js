@@ -15,6 +15,7 @@ const TALKS = path.join(__dirname, 'talks');
 const MENU = path.join(__dirname, 'menu');
 const TALK_FILTER = path.join(__dirname, 'talkfilter');
 const TALK_GROUP = path.join(__dirname, 'talkgroup');
+const NTH_BOOT = path.join(__dirname, 'nthboot');
 
 // 応答 1 件に対する期待。文字列なら Value の完全一致。
 //   { value } Value / { commTo } 話しかけ先 / { status } 応答の種類
@@ -259,6 +260,16 @@ const scenarios = [
       ['OnSet', { status: '204 No Content' }],
       ['OnSecondChange:0,1,3', { status: '204 No Content' }],
       ['OnSecondChange:0,1,4', '\\0なかよし\\e'],
+    ],
+  },
+  {
+    name: '決めた回数めの起動 — その回だけ、ふつうの起動のかわりに動く',
+    dir: NTH_BOOT,
+    steps: [
+      ['OnBoot', '\\0ふつう\\e'],
+      ['OnBoot', '\\0にかいめ\\e'],
+      ['OnBoot', '\\0ふつう\\e'],
+      ['OnBoot', '\\0ふつう\\e'],
     ],
   },
   {

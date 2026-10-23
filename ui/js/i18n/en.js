@@ -129,6 +129,13 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 決めた回数めの起動（段階 7-1）
+  '決めた回数めの起動のとき': 'On a chosen boot',
+  '%event %nth 回目': '%event number %nth',
+  '{n} 回目に起動したとき': 'On boot number {n}',
+  '{title}の回数（{n}）は、使えません': '{title}: {n} cannot be used as a count',
+  '1 以上の整数を入れてください。書き出すときは、近い数に寄せます。': 'Enter a whole number of 1 or more. On export it is moved to the nearest valid number.',
+
   // ---- まだ反応していないイベント（段階 6-3）
   'まだ反応していないイベント': 'Events without a reaction yet',
   'ひとつも無いので、自動ではしゃべりません': 'There are none, so the ghost does not talk on its own',

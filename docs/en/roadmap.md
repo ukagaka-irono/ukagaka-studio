@@ -936,13 +936,20 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 
 | | What | |
 |---|---|---|
-| 7-1 | A hat for “on the Nth boot” | |
+| 7-1 | A hat for “on the Nth boot” | done |
 | 7-2 | Filter “when a key is pressed” by key | |
 | 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | |
 | 7-4 | Export and import parts as files | |
 | 7-5 | Draw random talks 100 times in “Try” | |
 | 7-6 | See what changed since an earlier version | |
 | 7-7 | A diagram of where choices lead | |
+
+
+> **7-1 is done.** A new event, “On a chosen boot” (`OnStudioNthBoot`), turns the hat into one with a count (`@event.nthboot`). The exported
+> ghost.json carries the count in `when` (values below 1 become 1; same shape from the UI and the exe), and loading unpacks it again.
+> On every OnBoot and OnFirstBoot, `Studio.RunNthBoot` in `studio_runtime.dic` tries the scripts whose count equals the boot count
+> (`Studio.boots`) from the top, and if one says something, returns it instead of the usual “on boot”. The Check tab flags unusable counts.
+> 1 behavior scenario (23 scenarios, 115 checks), one script in the export fixture, 4 editor checks (169).
 
 ---
 

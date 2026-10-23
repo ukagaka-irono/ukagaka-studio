@@ -339,6 +339,7 @@ function hatKeyFor(script) {
     if (script.event === 'OnCommunicate') return '@event.comm';
     if (script.event === 'OnStudioMenu') return '@event.menu';
     if (script.event === 'OnStudioAlarm') return '@event.alarm';
+    if (script.event === 'OnStudioNthBoot') return '@event.nthboot';
     if (script.event === 'OnStudioAnniversary') return '@event.anniv';
   }
   return HAT_DEF[script.kind];

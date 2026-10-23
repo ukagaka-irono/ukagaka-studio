@@ -309,6 +309,17 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 7-1: 決めた回数めの起動
+{
+  const one = (s) => Object.assign({ meta: {}, variables: [],
+    scripts: [Object.assign({ id: 'a', kind: 'event', event: 'OnStudioNthBoot', blocks: [{ type: 'say', who: 0, text: 'やあ' }] }, s)] });
+  check('使えない回数は言う', issuesOf(one({ nth: 0 }), 'は、使えません'), ['warn']);
+  check('使える回数なら言わない', issuesOf(one({ nth: 3 }), 'は、使えません'), []);
+  const p = Model.normalize({ scripts: [{ id: 'x', kind: 'event', event: 'OnStudioNthBoot', when: '7', blocks: [] }] });
+  check('書き出した when を回数にほどく', [p.scripts[0].nth, 'when' in p.scripts[0]], [7, false]);
+  check('回数めの起動の帽子の名前', Model.scriptTitle(p.scripts[0]), '7 回目に起動したとき');
+}
+
 // --- 段階 6-3: まだ反応していないイベント
 {
   const keys = (list) => list.map((m) => (m.kind === 'talk' ? 'talk' : m.event + (m.builtin ? '*' : '')));

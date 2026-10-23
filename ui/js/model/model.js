@@ -243,12 +243,14 @@ const Model = {
           const md = /^(\d\d)-(\d\d)$/.exec(s.when);
           if (hm && script.event === 'OnStudioAlarm') { script.hour = Number(hm[1]); script.minute = Number(hm[2]); }
           if (md && script.event === 'OnStudioAnniversary') { script.month = Number(md[1]); script.day = Number(md[2]); }
+          if (/^\d+$/.test(s.when) && script.event === 'OnStudioNthBoot') script.nth = Number(s.when);
           delete script.when;
         }
         if (script.event === 'OnStudioAlarm') {
           if (typeof script.hour !== 'number') script.hour = 12;
           if (typeof script.minute !== 'number') script.minute = 0;
         }
+        if (script.event === 'OnStudioNthBoot' && typeof script.nth !== 'number') script.nth = 10;
         if (script.event === 'OnStudioAnniversary') {
           if (typeof script.month !== 'number') script.month = 1;
           if (typeof script.day !== 'number') script.day = 1;
@@ -383,6 +385,7 @@ const Model = {
       if (s.event === 'OnStudioAlarm') {
         label = t('毎日 {time} になったとき', { time: pad(s.hour == null ? 12 : s.hour) + ':' + pad(s.minute) });
       }
+      if (s.event === 'OnStudioNthBoot') label = t('{n} 回目に起動したとき', { n: Number(s.nth) || 10 });
       if (s.event === 'OnStudioAnniversary') {
         label = t('毎年 {month} 月 {day} 日（記念日）', { month: Number(s.month) || 1, day: Number(s.day) || 1 });
       }

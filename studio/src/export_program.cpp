@@ -85,6 +85,9 @@ std::string RuntimeProgramJson(const JValue& project) {
                 sprintf_s(when, "%02d:%02d", clamp(src["hour"].asInt(12), 0, 23), clamp(src["minute"].asInt(0), 0, 59));
             } else if (ev == "OnStudioAnniversary") {
                 sprintf_s(when, "%02d-%02d", clamp(src["month"].asInt(1), 1, 12), clamp(src["day"].asInt(1), 1, 31));
+            } else if (ev == "OnStudioNthBoot") {
+                // 決めた回数めの起動（段階 7-1）。1 回目から
+                sprintf_s(when, "%d", clamp(src["nth"].asInt(10), 1, 999999));
             }
             if (when[0]) one.set("when", JValue::makeStr(when));
         }

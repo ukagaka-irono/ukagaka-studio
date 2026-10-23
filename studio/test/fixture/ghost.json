@@ -157,6 +157,11 @@
       "blocks": [{ "type": "say", "who": 0, "text": "おはよう、今日もよろしくね。", "nl": 1 }]
     },
     {
+      "id": "s_nth", "kind": "event", "event": "OnStudioNthBoot", "nth": 100,
+      "_": "決めた回数めの起動なので when が 100 になるはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "100 回目だね。", "nl": 1 }]
+    },
+    {
       "id": "s_alarm", "kind": "event", "event": "OnStudioAlarm", "hour": 7, "minute": 75,
       "_": "アラームなので when が付き、分は 59 に寄せるはず",
       "blocks": [{ "type": "say", "who": 0, "text": "おはよう。", "nl": 1 }]

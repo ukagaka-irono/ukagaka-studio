@@ -29,6 +29,7 @@ export const TALK_WHEN = [
 export const EVENTS = [
   [t('起動したとき'), 'OnBoot'],
   [t('はじめて起動したとき'), 'OnFirstBoot'],
+  [t('決めた回数めの起動のとき'), 'OnStudioNthBoot'],
   [t('終了するとき'), 'OnClose'],
   [t('ダブルクリックされたとき'), 'OnMouseDoubleClick'],
   [t('クリックされたとき'), 'OnMouseClick'],
@@ -202,6 +203,17 @@ def({
 });
 // 「毎日決めた時刻になったとき」（アラーム）と「記念日になったとき」を選ぶと、時刻・日づけを入れる形に変わる。
 // 書き出すと when（'HH:MM' か 'MM-DD'）になり、studio_runtime.dic の Studio.RunTimed が、分が変わるたびに見ます
+// 「決めた回数めの起動のとき」（段階 7-1）。その回数めの起動では、ふつうの「起動したとき」のかわりに動く
+// （書き出すと when に回数が入り、studio_runtime.dic の Studio.RunNthBoot が見ます）
+def({
+  key: '@event.nthboot', type: '@event', cat: 'events', shape: 'hat',
+  spec: t('%event %nth 回目'),
+  args: {
+    event: { kind: 'eventname', def: 'OnStudioNthBoot' },
+    nth: { kind: 'input', mode: 'number', def: 10 },
+  },
+  hat: true, kind: 'event',
+});
 def({
   key: '@event.alarm', type: '@event', cat: 'events', shape: 'hat',
   spec: t('%event %hour 時 %minute 分'),
@@ -640,7 +652,7 @@ def({
 export const PALETTE = {
   events: [
     { note: t('ゴーストの動きは、ここからはじまります。キャンバスにドラッグしてください。') },
-    '@event', '@event.touch', '@event.every', '@event.alarm', '@event.anniv', '@event.comm', '@event.menu',
+    '@event', '@event.touch', '@event.every', '@event.nthboot', '@event.alarm', '@event.anniv', '@event.comm', '@event.menu',
     '@talk', '@function',
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],

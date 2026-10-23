@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/ghost.json (3754 バイト)
+---- ghost/master/ghost.json (4016 バイト)
 {
   "format": "ikaga/1",
   "meta": {
@@ -109,6 +109,20 @@
           "type": "say",
           "who": 0,
           "text": "おはよう、今日もよろしくね。",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_nth",
+      "kind": "event",
+      "event": "OnStudioNthBoot",
+      "when": "100",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "100 回目だね。",
           "nl": 1
         }
       ]

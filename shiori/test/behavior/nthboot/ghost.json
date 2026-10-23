@@ -1,0 +1,61 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "決めた回数めの起動（段階 7-1）。2 回目の起動だけ「にかいめ」、ほかは「ふつう」。止めた 3 回目は動かない。"
+  ],
+  "meta": {
+    "name": "回数テスト",
+    "sakuraName": "さくら",
+    "keroName": "うにゅう"
+  },
+  "settings": {
+    "randomTalkEnabled": false,
+    "randomTalkInterval": 180,
+    "noRepeatCount": 0
+  },
+  "variables": [],
+  "scripts": [
+    {
+      "id": "b",
+      "kind": "event",
+      "event": "OnBoot",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "ふつう",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "n2",
+      "kind": "event",
+      "event": "OnStudioNthBoot",
+      "when": "2",
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "にかいめ",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "n3",
+      "kind": "event",
+      "event": "OnStudioNthBoot",
+      "when": "3",
+      "disabled": true,
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "でない",
+          "nl": 0
+        }
+      ]
+    }
+  ]
+}

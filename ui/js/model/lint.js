@@ -129,6 +129,10 @@ Lint.run = function (project, ctx = {}) {
           t('0〜23 時、0〜59 分で入れてください。書き出すときは、近い時刻に寄せます。'), s);
       }
     }
+    if (s.kind === 'event' && s.event === 'OnStudioNthBoot' && !(Number.isInteger(Number(s.nth)) && Number(s.nth) >= 1)) {
+      issue(out, 'warn', t('{title}の回数（{n}）は、使えません', { title, n: s.nth }),
+        t('1 以上の整数を入れてください。書き出すときは、近い数に寄せます。'), s);
+    }
     if (s.kind === 'event' && s.event === 'OnStudioAnniversary') {
       const mo = Number(s.month), d = Number(s.day);
       const last = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mo - 1];
