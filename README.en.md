@@ -448,6 +448,7 @@ ukagaka-studio/
 │       │   ├── replace.js  replacing text in bulk
 │       │   ├── partsfile.js parts files (.parts.json) out and in
 │       │   ├── diff.js     differences between an earlier version and the project now
+│       │   ├── graph.js    how choices and calls connect
 │       │   └── sample.js   the template for “New” (built from the parts picked in the starter wizard)
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)
@@ -464,6 +465,7 @@ ukagaka-studio/
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
 │           ├── starter.js  the starter wizard behind “New” in the top bar
+│           ├── graph.js    “Links” below the canvas (the diagram of where choices lead)
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page
 ├── tools/
@@ -586,6 +588,8 @@ What you can do:
   arithmetic, comparisons and text operations
 * **Filtering** random talks — pick a time of day (morning, afternoon, evening, night) or a season in “any time ▾” on the hat, and drop
   a condition block (“affection > 10”, “boot count > 5”, …) into “if ⬡”; the talk only comes up when they match (also when called from a group)
+* **A diagram of where choices lead** — “Links” below the canvas (also in the right-click menu of empty space) draws where choices lead
+  and which talks are called (“call”, “call after … seconds”). Missing talks show as red boxes; click a box to jump to that script
 * **Drawing random talks 100 times** — “🎲 Draw 100” in “Try” counts how often each talk comes up (the talks are not run), using the same
   YAYA selection as SSP (weights, filters and the no-repeat rule) with the current time and variables
 * **Serial talks** — put episodes in order in “serial … episode 1 …” (Control) and the ghost moves one episode further on each boot

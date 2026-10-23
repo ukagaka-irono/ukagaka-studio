@@ -309,6 +309,27 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 7-7: 選択肢のつながり
+{
+  const { choiceGraph } = require('../js/model/graph.js');
+  const g = choiceGraph({ scripts: [
+    { id: 'boot', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'choice', label: 'はい', target: 'yes' },
+      { type: 'choice', label: 'いいえ', target: 'nai' },
+    ] },
+    { id: 'y', kind: 'function', name: 'yes', blocks: [{ type: 'call', name: 'end' }] },
+    { id: 'e', kind: 'function', name: 'end', blocks: [{ type: 'later', sec: 5, name: 'yes' }] },
+    { id: 'off', kind: 'function', name: 'off', disabled: true, blocks: [{ type: 'call', name: 'yes' }] },
+    { id: 'lone', kind: 'event', event: 'OnClose', blocks: [] },
+  ] });
+  check('つながりの線（選択肢・よぶ・◯秒後によぶ。止めたかたまりは入れない）',
+    g.edges.map((e) => [e.from, e.to, e.kind, e.label]),
+    [['boot', 'y', 'choice', 'はい'], ['boot', 'missing:nai', 'choice', 'いいえ'], ['y', 'e', 'call', ''], ['e', 'y', 'call', '']]);
+  check('点の列と行（輪になっていても止まる・つながりの無いかたまりは出さない）',
+    g.nodes.map((n) => [n.id, n.depth, n.row]), [['boot', 0, 0], ['y', 1, 0], ['e', 2, 0], ['missing:nai', 1, 1]]);
+  check('つながりが無ければ線も点も無い', choiceGraph({ scripts: [{ id: 'a', kind: 'event', event: 'OnBoot', blocks: [] }] }).nodes.length, 0);
+}
+
 // --- 段階 7-6: 前の版とのちがい
 {
   const { diffProjects, diffIsEmpty, countBlocks } = require('../js/model/diff.js');

@@ -46,10 +46,11 @@ async function requestSaveAndClose() {
   if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('saved');
 }
 
-function modal(title, bodyEl, buttons) {
+// opts.wide … 図のような広いものを出すときに、窓を広くする（panels/graph.js）
+function modal(title, bodyEl, buttons, opts = {}) {
   const root = $('#modal-root');
   root.textContent = '';
-  const box = Render.div('modal');
+  const box = Render.div('modal' + (opts.wide ? ' modal-wide' : ''));
   box.appendChild(Render.el('h3', null, title));
   const body = Render.div('modal-body');
   body.appendChild(bodyEl);

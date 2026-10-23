@@ -43,6 +43,7 @@ import { YayaLink } from './panels/yayalink.js';
 import { About } from './panels/about.js';
 import { Touch } from './panels/touch.js';
 import { YayaView } from './panels/yayaview.js';
+import { Graph } from './panels/graph.js';
 import { Starter } from './panels/starter.js';
 import { Lines } from './panels/lines.js';
 import { Shortcuts } from './shortcuts.js';
@@ -181,6 +182,7 @@ async function boot() {
   About.init(state);
   Touch.init();
   YayaView.init();   // かたまりの帽子の右クリック「YAYA を見る」
+  Graph.init();      // キャンバスの「つながり」（選択肢のつながりの図）
   Lines.init();      // 「セリフ」の画面      // 「ためす」の立ち絵をさわって、マウスのイベントをためす
   Parts.load();      // 部品（exe のとなりの parts.json）。読めたらパレットの「部品」を描きなおす
   Shortcuts.init();

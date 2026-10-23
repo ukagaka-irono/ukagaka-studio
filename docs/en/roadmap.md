@@ -942,7 +942,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 7-4 | Export and import parts as files | done |
 | 7-5 | Draw random talks 100 times in “Try” | done |
 | 7-6 | See what changed since an earlier version | done |
-| 7-7 | A diagram of where choices lead | |
+| 7-7 | A diagram of where choices lead | done |
 
 
 > **7-1 is done.** A new event, “On a chosen boot” (`OnStudioNthBoot`), turns the hat into one with a count (`@event.nthboot`). The exported
@@ -988,6 +988,16 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > (added, changed, removed; moving or folding alone does not count; changed ones show their block counts), variables by name (initial
 > values), plus the ghost info and settings fields. Clicking an added or changed script in the list jumps to it and highlights it.
 > 6 editor checks (184).
+
+
+> **7-7 is done.** “Links” sits below the canvas, and the right-click menu of empty space gained “See where choices lead (diagram)” (through
+> `Commands.showGraph`). `choiceGraph` in `ui/js/model/graph.js` collects lines from choices (targets), “call” and “call after … seconds”
+> (disabled scripts are left out), turns missing talks into missing nodes, and assigns columns and rows by walking from nodes nothing leads to
+> (it stops on loops). `ui/js/panels/graph.js` draws it as SVG (choices as solid lines with labels, calls dotted, missing talks as red dashed
+> boxes, lines going back left curve below the boxes), and clicking a box jumps to the script. `Dialog.modal` gained a wide window (`wide`)
+> for the diagram. 3 editor checks (187).
+>
+> **Stage 7 is now complete.**
 
 ---
 

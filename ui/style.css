@@ -781,6 +781,21 @@ button.diff-row:hover { background: var(--surface-hover); }
   box-shadow: 0 14px 40px var(--shadow-pop); overflow: hidden;
 }
 .modal h3 { margin: 0; padding: 14px 18px; font-size: 14px; border-bottom: 1px solid var(--line); }
+.modal.modal-wide { max-width: min(92vw, 1100px); }
+/* 選択肢のつながりの図（panels/graph.js） */
+.graph-scroll { overflow: auto; max-height: 52vh; border: 1px solid var(--line); border-radius: 8px; margin-top: 8px; }
+.graph-svg { display: block; font: 12px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif; }
+.graph-node rect { fill: var(--surface-2); stroke: var(--line-strong); }
+.graph-node text { fill: var(--text); }
+.graph-node:not(.is-missing) { cursor: pointer; }
+.graph-node:not(.is-missing):hover rect { stroke: var(--accent); }
+.graph-node.is-missing rect { stroke: var(--danger); stroke-dasharray: 4 3; }
+.graph-node.is-missing text { fill: var(--danger); }
+.graph-edge { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.graph-edge.is-call { stroke: var(--text-faint); stroke-dasharray: 5 4; }
+.graph-arrowhead { fill: var(--text-2); }
+.graph-label-bg { fill: var(--surface); stroke: var(--line); }
+.graph-label { fill: var(--text-2); font-size: 11px; }
 .modal-body { padding: 14px 18px; max-height: 60vh; overflow: auto; }
 .modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
 .proj-row {

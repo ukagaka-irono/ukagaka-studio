@@ -161,7 +161,7 @@ ui/js/
 ├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
-└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff / graph
 ```
 
 **import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**

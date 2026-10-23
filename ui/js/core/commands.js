@@ -19,6 +19,8 @@ export const Commands = {
   promptNewVariable: notYet('promptNewVariable'),
   /** かたまりの YAYA を見せる（panels/yayaview.js） */
   showYaya: notYet('showYaya'),
+  /** 選択肢のつながりの図を見せる（panels/graph.js） */
+  showGraph: notYet('showGraph'),
 };
 
 /** 持ち主が中身を入れる。知らない名前は入れさせない（書きまちがいで黙って増えないように） */

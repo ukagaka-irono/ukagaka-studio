@@ -129,6 +129,17 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 選択肢のつながり（段階 7-7）
+  'つながり': 'Links',
+  '選択肢と「よぶ」のつながりを図で見る': 'See how choices and calls connect, as a diagram',
+  '選択肢のつながりを図で見る': 'See where choices lead (diagram)',
+  '選択肢のつながり': 'Where choices lead',
+  '選択肢も「よぶ」も、まだありません。選択肢の行き先や、よぶトークを決めると、ここにつながりが出ます。':
+    'There are no choices or calls yet. Once choices have targets or talks are called, the links show up here.',
+  '実線は選択肢、点線は「よぶ」「◯秒後によぶ」です。赤い箱は、無いトークです。箱を押すと、そのかたまりへ動きます。':
+    'Solid lines are choices, dotted lines are “call” and “call after … seconds”. Red boxes are talks that do not exist. Click a box to jump to it.',
+  '（無い）{name}': '(missing) {name}',
+
   // ---- 前の版とのちがい（段階 7-6）
   'いまとくらべる': 'Compare with now',
   'はい': 'yes',

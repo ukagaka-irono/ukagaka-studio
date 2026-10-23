@@ -90,6 +90,7 @@ function init() {
         { label: t('整列'), run: () => { Scripts.tidy(); toast(t('整列しました')); } },
         { label: t('すべてたたむ'), run: () => Scripts.foldAll(true) },
         { label: t('すべてひろげる'), run: () => Scripts.foldAll(false) },
+        { label: t('選択肢のつながりを図で見る'), run: () => Commands.showGraph() },
       ]);
       return;
     }
