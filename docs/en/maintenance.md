@@ -43,6 +43,8 @@ per script it tries (about 0.1 s each; the very first run after startup can take
 The folder is deleted when the exe closes, and one left behind by a forced quit is deleted at the next startup.
 `studio_preview.dic` never goes into an exported ghost (it would let outsiders rewrite variables).
 “Try” does not call SAORI (`Studio.noSaori`).
+When a surface on the stage is touched (`panels/touch.js`), `event:<event name>` is passed instead of a script id, and `Studio.Dispatch`
+chooses the same way as in SSP. The automatic hit areas come from the exe's `DefaultHitAreas` (`GET /api/shell/areas`), the same as the export.
 
 > `ui/js/sim.js` used to write the same rules again in JavaScript.
 > Fixing only one side showed up later as “it works in the editor but not in SSP”,

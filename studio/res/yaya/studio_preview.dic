@@ -5,7 +5,8 @@
 // （ゴーストに入っていると、外から変数を書きかえられてしまうため）。
 //
 // 頼みかた（GET SHIORI/3.0、ID: OnStudioPreview）
-//   Reference0 … 動かすかたまりの id
+//   Reference0 … 動かすかたまりの id。「event:イベント名」なら、SSP と同じえらびかたでそのイベントを動かす
+//                （どのかたまりにするか・しぼり込み・ブロックが無いときの反応。「ためす」の立ち絵をさわったとき）
 //   Reference1 … {"vars":{…}, "sys":{…}, "refs":[…]} の JSON（1 行）
 //     vars … 続きから動かすときの変数（プロジェクトの初期値の上にかさねる）
 //     sys  … 情報ブロックが返す値（uptime / boots / talks / ghostName / shellName / lastTalk）
@@ -23,6 +24,8 @@ OnStudioPreview
 	if GETTYPE(_in) != 5 { _in = IHASH }
 	_res = IHASH
 
+	_event = ''
+	if SUBSTR(_id, 0, 6) == 'event:' { _event = SUBSTR(_id, 6, STRLEN(_id) - 6) }
 	_k = -1
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
@@ -31,7 +34,7 @@ OnStudioPreview
 			break
 		}
 	}
-	if _k < 0 {
+	if _k < 0 && _event == '' {
 		_res['error'] = 'script_not_found'
 		Studio.PreviewAnswer(_res)
 		return
@@ -75,9 +78,18 @@ OnStudioPreview
 	}
 
 	Studio.noSaori = 1
-	_out = Studio.RunOne(_k)
-	_ev = Studio.s.event[_k]
-	_close = (Studio.s.kind[_k] == 'event' && (_ev == 'OnClose' || _ev == 'OnCloseAll'))
+	_out = ''
+	_close = 0
+	if _event != '' {
+		Studio.reqCommTo = ''
+		_out = Studio.Dispatch(_event)
+		_close = (_event == 'OnClose' || _event == 'OnCloseAll')
+	}
+	else {
+		_out = Studio.RunOne(_k)
+		_ev = Studio.s.event[_k]
+		_close = (Studio.s.kind[_k] == 'event' && (_ev == 'OnClose' || _ev == 'OnCloseAll'))
+	}
 	_res['script'] = Studio.CloseScript(_out, _close)
 	_res['commTo'] = Studio.commTo
 	_res['vars'] = Studio.var

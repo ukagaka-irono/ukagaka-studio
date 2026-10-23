@@ -60,6 +60,7 @@ private:
 
     // api_shell.cpp
     void RenderShell(const HttpRequest& req, HttpResponse& res);
+    void ShellAreas(const HttpRequest& req, HttpResponse& res);      // 自動の当たり判定（「ためす」で立ち絵をさわるとき）
     void PickShellImages(const HttpRequest& req, HttpResponse& res);
     void GetShellFile(const HttpRequest& req, HttpResponse& res);
 

@@ -22,6 +22,7 @@ export const en = {
   'プロジェクトがありません': 'No project was sent',
   'プロジェクトが見つかりません': 'Project not found',
   'その前の版が見つかりません': 'That earlier version was not found',
+  '絵の大きさが読めません': 'Could not read the picture size',
   '名前がありません': 'No name given',
   '保存できませんでした': 'Could not save',
   'パスがありません': 'No path given',
@@ -685,6 +686,11 @@ export const en = {
   '（まだブロックがありません）': '(no blocks yet)',
   'ほかのゴースト': 'another ghost',
   '（ためせませんでした: {message}）': '(could not run: {message})',
+  '{event}{where} をためしました': 'Tried {event}{where}',
+
+  // ---- ui/js/panels/touch.js
+  '{area}（クリック・ダブルクリック・なでるとためせます）': '{area} (click, double-click or stroke to try it)',
+  '立ち絵をクリック・ダブルクリック・なでると、そのイベントをためせます': 'Click, double-click or stroke the surface to try that event',
   '（なにも出力されませんでした）': '(no output)',
   '\n\n（「{commTo}」に届きます）': '\n\n(goes to “{commTo}”)',
   'まだ変数がありません': 'No variables yet',

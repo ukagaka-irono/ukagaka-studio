@@ -40,6 +40,8 @@ node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろ
 Windows の検査で 1〜2 秒かかることがあります）。フォルダは exe を閉じるときに消し、強制終了で残ったものは次に起動したときに消します。
 `studio_preview.dic` は書き出すゴーストには入れません（外から変数を書きかえられてしまうため）。
 「ためす」は SAORI を呼びません（`Studio.noSaori`）。
+ステージの立ち絵をさわったとき（`panels/touch.js`）は、かたまりの id のかわりに `event:イベント名` を渡し、`Studio.Dispatch` で
+SSP と同じえらびかたをします。自動の当たり判定は exe の `DefaultHitAreas`（`GET /api/shell/areas`）で、書き出しと同じものです。
 
 > むかしは `ui/js/sim.js` に同じ規則を JavaScript でもう一度書いていました。
 > 片方だけ直すと、エディタでは思ったとおりなのに SSP では違う、という形で

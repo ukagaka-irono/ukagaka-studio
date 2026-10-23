@@ -21,6 +21,7 @@ function setSurface(who, surfaceId) {
     if ([0, 1, 2, 10, 11, 12].indexOf(id) < 0) id = who === 1 ? 10 : 0;
   }
   const url = shellUrl(id);
+  img.dataset.surface = String(id);   // さわったときに、どの立ち絵の当たり判定を使うか（panels/touch.js）
   if (img.getAttribute('src') !== url) img.setAttribute('src', url);
 }
 

@@ -61,13 +61,18 @@ function refsFor(script) {
  * 動かしてもらいます（studio/src/yaya_preview.cpp）。動きの決まりを画面側に書かないためです。
  */
 async function runPreview(script) {
+  return previewRequest(script.id, refsFor(script));
+}
+
+/** scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす） */
+function previewRequest(scriptId, refs) {
   const meta = Model.project.meta || {};
   return api('/api/preview', {
     method: 'POST',
     body: {
       dic: toYaya(programOf(Model.project)),
-      scriptId: script.id,
-      refs: refsFor(script),
+      scriptId,
+      refs,
       vars: Session.vars,
       sys: { ghostName: meta.name || '', shellName: 'master' },
     },
@@ -87,6 +92,27 @@ async function runScript(script) {
     toast(e.message, true);
     return;
   }
+  showResult(res);
+}
+
+/**
+ * イベントを、SSP と同じえらびかたで動かす（「ためす」の立ち絵をさわったとき。panels/touch.js）。
+ * どのかたまりも合わなければ、ブロックが無いときの反応が返ります。
+ */
+async function runEvent(event, refs) {
+  let res;
+  try {
+    res = await previewRequest('event:' + event, refs || []);
+  } catch (e) {
+    toast(e.message, true);
+    return;
+  }
+  const where = refs && refs[4] ? `（${refs[4]}）` : '';
+  toast(t('{event}{where} をためしました', { event, where }));
+  showResult(res);
+}
+
+function showResult(res) {
   Session.vars = res.vars || {};
   let preview = res.script || t('（なにも出力されませんでした）');
   // 話しかけ先はさくらスクリプトに出ないので、ここで見せる
@@ -199,4 +225,4 @@ function init() {
   $('#btn-log-clear').addEventListener('click', () => ghostLog('clear'));
 }
 
-export const Run = { init, render: renderTargets, currentScript, refsFor, runPreview, runScript, renderVars };
+export const Run = { init, render: renderTargets, currentScript, refsFor, runPreview, runScript, runEvent, renderVars };

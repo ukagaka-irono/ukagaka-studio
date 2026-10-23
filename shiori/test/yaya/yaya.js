@@ -96,6 +96,28 @@ async function main() {
     }
   }
 
+  // ---- 4b. 「ためす」で立ち絵をさわったとき（event:イベント名 は SSP と同じえらびかた） ------
+  {
+    const touch = {
+      format: 'ikaga/1', meta: { name: 'さわる' },
+      scripts: [
+        { id: 'a', kind: 'event', event: 'OnMouseDoubleClick', blocks: [{ type: 'say', who: 0, text: 'どこか', nl: 0 }] },
+        { id: 'b', kind: 'event', event: 'OnMouseDoubleClick', filter: { area: 'Head', who: 0 },
+          blocks: [{ type: 'say', who: 0, text: 'あたま', nl: 0 }] },
+      ],
+    };
+    const r = (refs) => host.runYayaPreview('touch', touch, 'event:OnMouseDoubleClick', { refs });
+    const head = await r(['10', '20', '0', '0', 'Head', '0']);
+    const face = await r(['10', '20', '0', '0', 'Face', '0']);
+    const none = await host.runYayaPreview('touch', touch, 'event:OnMouseClick', { refs: ['1', '1', '0', '0', '', '0'] });
+    checks++;
+    if (head.script !== '\\0あたま\\e' || face.script !== '\\0どこか\\e' || none.error || typeof none.script !== 'string') {
+      fails.push(`「ためす」で立ち絵をさわったとき\n      Head → ${head.script} / Face → ${face.script} / ブロックの無いイベント → ${JSON.stringify(none)}`);
+    } else {
+      ok('「ためす」で立ち絵をさわると、しぼり込みをふくめて SSP と同じえらびかたで動きます');
+    }
+  }
+
   // ---- 4c. 書き出す形（ghost.json）を、画面と exe で同じに作るか -----------------
   {
     const { programOf } = await host.yayaTranslator();

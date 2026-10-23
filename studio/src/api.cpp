@@ -164,6 +164,7 @@ const Api::Route Api::kRoutes[] = {
     { "POST", "/api/import",         &Api::ImportProject },
     // api_shell.cpp
     { "GET",  "/api/shell",          &Api::RenderShell },
+    { "GET",  "/api/shell/areas",    &Api::ShellAreas },
     { "POST", "/api/shell/pick",     &Api::PickShellImages },
     { "GET",  "/api/shell/file",     &Api::GetShellFile },
     // api_ghost.cpp

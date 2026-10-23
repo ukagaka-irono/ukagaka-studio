@@ -18,6 +18,7 @@ const ERRORS = {
   no_project: () => t('プロジェクトがありません'),
   project_not_found: () => t('プロジェクトが見つかりません'),
   version_not_found: () => t('その前の版が見つかりません'),
+  bad_size: () => t('絵の大きさが読めません'),
   no_name: () => t('名前がありません'),
   save_failed: () => t('保存できませんでした'),
   no_path: () => t('パスがありません'),

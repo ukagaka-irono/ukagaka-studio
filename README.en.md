@@ -113,7 +113,8 @@ You build with blocks on the **Talk** page. How to use it and the keyboard short
 3. With ▶ in the **Try** tab on the right, you see how it talks and its Sakura Script.
    **Current variables** are shown below. If something like affection gets stuck at a strange value,
    start over with “Reset these variables” (inside the editor only) or “Clear the ghost's memory”
-   (the exported ghost's `yaya_variable.cfg`).
+   (the exported ghost's `yaya_variable.cfg`). **Click, double-click or stroke a surface** on the stage to try the mouse event
+   for the hit area you touched, chosen the same way as in SSP.
 4. On the **Characters** page, under “Surfaces”, you can assign your own PNG images to surface numbers
    (numbers you leave out get a simple picture drawn in the colors you choose).
    With “**Hit areas**” on each surface, drag on the picture to draw the places that can be touched (head, face, … or names of your own).

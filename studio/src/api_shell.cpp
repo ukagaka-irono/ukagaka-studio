@@ -27,6 +27,26 @@ void Api::RenderShell(const HttpRequest& req, HttpResponse& res) {
     res.body = RenderSurfacePng(id, hair, cloth);
 }
 
+// GET /api/shell/areas?w=…&h=… … その大きさの絵の、自動の当たり判定（書き出しと同じ DefaultHitAreas）
+void Api::ShellAreas(const HttpRequest& req, HttpResponse& res) {
+    std::map<std::string, std::string>::const_iterator it;
+    int w = 0, h = 0;
+    if ((it = req.query.find("w")) != req.query.end()) w = atoi(it->second.c_str());
+    if ((it = req.query.find("h")) != req.query.end()) h = atoi(it->second.c_str());
+    if (w < 1 || h < 1 || w > 10000 || h > 10000) { JsonError(res, 400, "bad_size"); return; }
+    JValue list = JValue::makeArr();
+    for (const HitArea& a : DefaultHitAreas(w, h)) {
+        JValue one = JValue::makeObj();
+        one.set("name", JValue::makeStr(a.name));
+        one.set("x1", JValue::makeNum(a.x1)); one.set("y1", JValue::makeNum(a.y1));
+        one.set("x2", JValue::makeNum(a.x2)); one.set("y2", JValue::makeNum(a.y2));
+        list.arr.push_back(one);
+    }
+    JValue o = JValue::makeObj();
+    o.set("areas", list);
+    Json(res, 200, o);
+}
+
 // POST /api/shell/pick … 用意した PNG を選ぶ（Windows のいつものダイアログを出す）
 void Api::PickShellImages(const HttpRequest&, HttpResponse& res) {
     std::vector<std::wstring> picked = PickPngFiles();

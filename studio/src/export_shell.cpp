@@ -90,7 +90,7 @@ static std::string DrawCharacter(int w, int h, const std::string& hairHex,
 
 // DrawCharacter の配置に合わせた当たり判定。
 // なでなで／クリックのイベントは、ここで付けた名前で絞り込みます。
-static std::string CollisionLines(int w, int h) {
+std::vector<HitArea> DefaultHitAreas(int w, int h) {
     // 頭は中心 y=0.33h・半径 0.30w、体はその下から。
     const double headY = h * 0.33, headR = w * 0.30;
     const double eyeY = headY + headR * 0.16;
@@ -105,14 +105,26 @@ static std::string CollisionLines(int w, int h) {
         { "Hand",  w * 0.18, bodyTop + h * 0.10,   w * 0.30, bodyTop + h * 0.26 },
         { "Hand",  w * 0.70, bodyTop + h * 0.10,   w * 0.82, bodyTop + h * 0.26 },
     };
+    std::vector<HitArea> out;
+    for (int i = 0; i < (int)(sizeof(areas) / sizeof(areas[0])); i++) {
+        HitArea a;
+        a.name = areas[i].name;
+        a.x1 = (int)areas[i].x1;
+        a.y1 = areas[i].y1 < 0 ? 0 : (int)areas[i].y1;
+        a.x2 = (int)areas[i].x2;
+        a.y2 = (int)areas[i].y2;
+        out.push_back(a);
+    }
+    return out;
+}
 
+static std::string CollisionLines(int w, int h) {
     char buf[256];
     std::string out;
-    for (int i = 0; i < (int)(sizeof(areas) / sizeof(areas[0])); i++) {
-        int y1 = (int)areas[i].y1;
-        if (y1 < 0) y1 = 0;
-        sprintf_s(buf, "collision%d,%d,%d,%d,%d,%s\r\n", i,
-                  (int)areas[i].x1, y1, (int)areas[i].x2, (int)areas[i].y2, areas[i].name);
+    std::vector<HitArea> areas = DefaultHitAreas(w, h);
+    for (size_t i = 0; i < areas.size(); i++) {
+        sprintf_s(buf, "collision%d,%d,%d,%d,%d,%s\r\n", (int)i,
+                  areas[i].x1, areas[i].y1, areas[i].x2, areas[i].y2, areas[i].name.c_str());
         out += buf;
     }
     return out;

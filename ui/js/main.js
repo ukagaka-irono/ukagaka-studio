@@ -41,6 +41,7 @@ import { Guide } from './panels/guide.js';
 import { Language } from './panels/language.js';
 import { YayaLink } from './panels/yayalink.js';
 import { About } from './panels/about.js';
+import { Touch } from './panels/touch.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
 
@@ -177,6 +178,7 @@ async function boot() {
   Picker.init();
   Guide.init();
   About.init(state);
+  Touch.init();      // 「ためす」の立ち絵をさわって、マウスのイベントをためす
   Parts.load();      // 部品（exe のとなりの parts.json）。読めたらパレットの「部品」を描きなおす
   Shortcuts.init();
   if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面

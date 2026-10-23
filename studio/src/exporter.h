@@ -52,6 +52,10 @@ std::string RuntimeProgramJson(const JValue& project);
 // それ以外の id は同じ系統の「通常」に丸める。空文字なら既定色。
 std::string RenderSurfacePng(int surfaceId, const std::string& hairHex, const std::string& clothHex);
 
+// 絵の大きさから作る、自動の当たり判定（あたま・かお・むね・スカート・て）。書き出しと「ためす」で同じものを使う
+struct HitArea { std::string name; int x1 = 0, y1 = 0, x2 = 0, y2 = 0; };
+std::vector<HitArea> DefaultHitAreas(int w, int h);
+
 // プロジェクトでその番号に割り当てた画像ファイルのパス（無ければ空）
 std::string ShellImagePath(const JValue& project, int surfaceId);
 

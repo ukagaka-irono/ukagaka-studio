@@ -539,6 +539,7 @@ button, input, select, textarea { font-family: inherit; }
   filter: drop-shadow(0 2px 3px var(--shadow-color));
 }
 #stage .chara.small { left: auto; right: 10px; height: 96px; }
+#stage .chara { cursor: pointer; }   /* さわってイベントをためせる（panels/touch.js） */
 /* 「キャラと絵」の立ち絵（番号ごとのカード） */
 .shell-slots {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

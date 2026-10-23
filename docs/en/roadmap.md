@@ -42,6 +42,7 @@ Stage 1  Internal cleanup    reorganize the UI code (to make the UI easier to re
 Stage 2  UI redesign         rework the look and the layout of pages
 Stage 3  On to YAYA          replace ikaga SHIORI with YAYA; become a helper tool for YAYA ghosts
 Stage 4  New features        new blocks, shell features, the rest of SERIKO
+Stage 5  More features       trying, editing in bulk, ghost contents, getting started
 ```
 
 Stage 3 (the move to YAYA) was decided after stage 2 was done and placed before the new features,
@@ -782,6 +783,33 @@ Every candidate listed here is done (2026-10-22). New ideas will be added here a
 > * Tests: the YAYA test now checks that adding notes to all 176 blocks and every script of the parity ghost leaves all 30 answers unchanged
 >   (with notes containing a trailing `/`, `*/`, a `#globaldefine` name and an empty line; this also confirmed that YAYA does not join the next
 >   line onto a comment line ending in `/`). The export test's input got a note too (the copy's shape matches between the UI and the exe).
+
+---
+
+## Stage 5 — More features
+
+On 2026-10-23, twelve items centered on what people use every day were listed, to be done from the top.
+
+| | What | |
+|---|---|---|
+| 5-1 | Click the surface in “Try” to see the reaction (events by hit area) | done |
+| 5-2 | Show this script's YAYA | |
+| 5-3 | Reflect into SSP on every save | |
+| 5-4 | A speech list page (read and edit together, CSV in and out) | |
+| 5-5 | Search and replace | |
+| 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | |
+| 5-7 | Fold scripts on the canvas | |
+| 5-8 | Add items to SSP's right-click menu | |
+| 5-9 | Anniversary and alarm hat blocks | |
+| 5-10 | Pick hand-written function names | |
+| 5-11 | Set the ghost's thumbnail and readme on screen | |
+| 5-12 | A starter ghost wizard | |
+
+> **5-1 is done.** Clicking a surface on the stage runs OnMouseClick, double-clicking runs OnMouseDoubleClick, and moving over the same spot
+> 8 times runs OnNadeNade, chosen the same way as in SSP (filters and default reactions; `ui/js/panels/touch.js`). Where you touched is decided
+> by the drawn hit areas, or by the automatic ones the exe makes from the picture size (`GET /api/shell/areas`, split out as the same
+> `DefaultHitAreas` the export uses), and the References are passed in SSP's order. The Try entry (`studio_preview.dic`) runs the event through
+> `Studio.Dispatch` when it receives `event:<event name>`. The YAYA test checks that filters work (23 checks).
 
 ---
 
