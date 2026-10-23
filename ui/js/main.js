@@ -43,6 +43,7 @@ import { YayaLink } from './panels/yayalink.js';
 import { About } from './panels/about.js';
 import { Touch } from './panels/touch.js';
 import { YayaView } from './panels/yayaview.js';
+import { Lines } from './panels/lines.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
 
@@ -78,6 +79,9 @@ function renderAll() {
       break;
     case 'chara':
       Chara.render();
+      break;
+    case 'lines':
+      Lines.render();
       break;
     default:
       break;
@@ -180,7 +184,8 @@ async function boot() {
   Guide.init();
   About.init(state);
   Touch.init();
-  YayaView.init();   // かたまりの帽子の右クリック「YAYA を見る」      // 「ためす」の立ち絵をさわって、マウスのイベントをためす
+  YayaView.init();   // かたまりの帽子の右クリック「YAYA を見る」
+  Lines.init();      // 「セリフ」の画面      // 「ためす」の立ち絵をさわって、マウスのイベントをためす
   Parts.load();      // 部品（exe のとなりの parts.json）。読めたらパレットの「部品」を描きなおす
   Shortcuts.init();
   if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面

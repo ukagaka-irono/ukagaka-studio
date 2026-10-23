@@ -469,6 +469,36 @@ section('このかたまりの YAYA を見る (scriptYaya)');
   check('書き出さないかたまり（帽子の無いもの）は null', scriptYaya(program, 'a3'), null);
 }
 
+section('セリフの一覧と CSV (lines)');
+{
+  const { collectLines, linesToCsv, parseCsv, applyCsv } = require('../js/model/lines.js');
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'L' },
+    scripts: [
+      { id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+        { type: 'say', who: 0, text: 'こんにちは', nl: 1 },
+        { type: 'if', cond: { type: 'bool', value: true }, then: [{ type: 'say', who: 1, text: 'ふむ, "なるほど"\n2 行目', nl: 0 }] },
+        { type: 'random_one', branches: [[{ type: 'say', who: 0, text: 'A', nl: 0 }], [{ type: 'say', who: 0, text: { type: 'var', name: 'x' } }]] },
+      ] },
+      { id: 'L', kind: 'loose', blocks: [{ type: 'say', who: 0, text: 'はぐれ', nl: 0 }] },
+    ],
+  });
+  const lines = collectLines(Model.project);
+  check('口の中・えらび先の中まで集め、帽子の無いかたまりは外す',
+    lines.map((l) => [l.key, l.who, l.readonly]),
+    [['s1/0', 0, false], ['s1/1/then/0', 1, false], ['s1/2/branches.0/0', 0, false], ['s1/2/branches.1/0', 0, true]]);
+  const csv = linesToCsv(lines, (s) => s.event);
+  const rows = parseCsv(csv);
+  check('CSV は BOM つきで、カンマ・引用符・改行をふくむセリフも、読みもどすと同じになる',
+    [csv.charCodeAt(0) === 0xfeff, rows.length, rows[2][3]], [true, 4, 'ふむ, "なるほど"\n2 行目']);
+  rows[1][3] = 'やあ';                                  // 1 つだけ直す
+  rows.push(['s9/0', 'もう無い', '0', 'x']);            // もう無いブロック
+  const r = applyCsv(Model.project, rows);
+  check('変わったセリフだけ書きもどし、もう無いブロックは数える',
+    [r.changed, r.same, r.unknown, Model.project.scripts[0].blocks[0].text], [1, 2, ['s9/0'], 'やあ']);
+  check('key と text の列が無い CSV は読まない', applyCsv(Model.project, parseCsv('a,b\n1,2')).error, 'no_columns');
+}
+
 section('このソフトについて (about)');
 {
   // もとにしたプロジェクトの表示は、ライセンス（なしライセンス 1.1 の 3 節）のための決まった文。

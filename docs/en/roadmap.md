@@ -795,7 +795,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-1 | Click the surface in “Try” to see the reaction (events by hit area) | done |
 | 5-2 | Show this script's YAYA | done |
 | 5-3 | Reflect into SSP on every save | done |
-| 5-4 | A speech list page (read and edit together, CSV in and out) | |
+| 5-4 | A speech list page (read and edit together, CSV in and out) | done |
 | 5-5 | Search and replace | |
 | 5-6 | A stronger Check tab (overlong speech, talks never called, unused variables) | |
 | 5-7 | Fold scripts on the canvas | |
@@ -820,6 +820,11 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > **5-3 is done.** The Export page has “Put into SSP on every save”. When on, saving by hand does the same as “Run it in SSP” if SSP is
 > running. Autosaves and the save on closing do not (`panels/dialog.js` sends the `saved` notice and `panels/ssp.js` receives it).
 > The setting is kept in this PC's WebView2 storage.
+
+
+> **5-4 is done.** A “Speech” page was added below the top bar. It lists the speech of every “says” block, grouped by script, editable in place
+> (with a filter; clicking a script name jumps to it on the canvas; `ui/js/panels/lines.js`). CSV is exported as UTF-8 with a BOM, and on import
+> rows are matched by key (script id and block position) so only changed lines are written back (`ui/js/model/lines.js`). 4 editor checks (123).
 
 ---
 

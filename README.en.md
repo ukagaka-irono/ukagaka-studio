@@ -105,7 +105,9 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 
 ### 2. Build with blocks
 
-Right below the top bar you switch between the **Talk / Characters / Ghost info / Export** pages.
+Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
+The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
+spreadsheet and open it again to write back only the lines that changed.
 You build with blocks on the **Talk** page. How to use it and the keyboard shortcuts are under the **?** at the top right.
 
 1. From **Events** on the left, drag something like “When started” onto the canvas.
@@ -425,6 +427,7 @@ ukagaka-studio/
 │       │   ├── blockindex.js  searching blocks by text (the / “find and place”)
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
+│       │   ├── lines.js    the speech list and CSV in/out
 │       │   └── sample.js   the template for “New”
 │       ├── core/           UI foundation (API, notices, UI state, hooks for upper layers, event notices)
 │       ├── editor/         canvas and palette (drawing, dragging, zoom, right-click, find and place, copy, notes, parts)

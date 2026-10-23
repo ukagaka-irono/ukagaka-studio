@@ -129,6 +129,24 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ui/js/panels/lines.js
+  '{n} / {all} 件': '{n} / {all}',
+  '{n} 件': '{n}',
+  'まだ「話す」ブロックがありません。トークの画面で置いてください。': 'No “says” blocks yet. Place some on the Talk page.',
+  '（ブロックがはめこんであるので、ここでは直せません）': '(a block is dropped in here, so it cannot be edited here)',
+  '書き出すセリフがありません': 'There is no speech to export',
+  'セリフを CSV に書き出しました（{n} 件）': 'Exported the speech to CSV ({n} lines)',
+  'key と text の列がある CSV を読みこんでください': 'Open a CSV that has key and text columns',
+  '{n} 件のセリフを書きもどしました': 'Wrote back {n} lines of speech',
+  '（{n} 件は、もう無いブロックなので使いませんでした）': ' ({n} rows were for blocks that no longer exist, so they were skipped)',
+  'セリフの一覧': 'Speech list',
+  '「話す」ブロックのセリフを、かたまりごとにならべています。ここで直すと、そのままブロックに入ります。 CSV に書き出して表計算で直し、読みこむと、変わったセリフだけを書きもどします。':
+    'The speech of every “says” block, grouped by script. Edits here go straight into the blocks. Export to CSV, edit it in a spreadsheet and open it again to write back only the lines that changed.',
+  'CSV に書き出す': 'Export CSV',
+  '{name}-セリフ.csv': '{name}-speech.csv',
+  'CSV を読みこむ': 'Open CSV',
+  'セリフ・かたまりの名前でしぼる': 'Filter by speech or script name',
+
   // ---- ui/js/panels/yayaview.js
   '帽子ブロックの無いかたまりは、書き出さないので YAYA になりません。': 'A script without a hat block is not exported, so it has no YAYA.',
   "{event} は手書きの辞書にもあるので、手書きのほうが動きます。ブロックも動かすときは、手書きの {event} の中で Studio.Event('{event}') をよびます。":

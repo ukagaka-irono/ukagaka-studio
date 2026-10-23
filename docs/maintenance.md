@@ -158,10 +158,10 @@ WebView2 も node も、書いたファイルをそのまま読みます。
 ui/js/
 ├── main.js        組み立て（各部品の init() を呼ぶ・まとめて描きなおす）
 ├── shortcuts.js   キーボード（いろいろな層を呼ぶので、組み立ての側）
-├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
+├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
-└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya / lines
 ```
 
 **import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**
@@ -196,6 +196,8 @@ ui/js/
   `renderAll()` が描きなおすのは、いつも見えているもの（上のバーとチェックの数）と、**いま見えている画面だけ**です。
   画面を切りかえたら `Pages.onShow` でその画面を描きます。新しい画面を足すときは、`index.html` に
   `<div class="page" data-page="…">` を、`#mode-bar` にボタンを、`renderAll()` の `switch` に描く部品を足します。
+* 「セリフ」の画面（`panels/lines.js`）は、`model/lines.js` が集めた「話す」ブロックを出します。CSV の key は
+  「かたまりの id/何番目/口の名前/…」なので、ブロックの並びを変えると、前に書き出した CSV の key は合わなくなります（読みこむと数えて知らせます）。
 * 画面の部品は、プロジェクトを `Model.act` / `Model.pushUndo` で変えるだけにして、自分で描きなおさないでください
   （見えていれば `renderAll()` が描きなおします。2 回描くと、打ちかけの欄がとぶことがあります）。
 * キャンバスは描きなおすたびに作りなおすので、えらんでいたブロックの見た目も新しくなります。

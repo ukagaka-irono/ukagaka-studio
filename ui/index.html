@@ -36,6 +36,7 @@
   <!-- いちばん大きな切りかえ。中身は下の .page（panels/pages.js） -->
   <nav id="mode-bar">
     <button class="mode-tab is-active" data-page="talk">トーク</button>
+    <button class="mode-tab" data-page="lines">セリフ</button>
     <button class="mode-tab" data-page="chara">キャラと絵</button>
     <button class="mode-tab" data-page="ghost">ゴースト情報</button>
     <button class="mode-tab" data-page="export">書き出し</button>
@@ -232,6 +233,27 @@
         </div>
         <div id="anim-list" class="anim-list"></div>
         <button id="btn-anim-add" class="btn small">＋ うごきを作る</button>
+      </section>
+    </div>
+  </div>
+
+  <!-- ========================================================= セリフ -->
+  <div class="page page-scroll" data-page="lines">
+    <div class="page-inner">
+      <section class="card">
+        <div class="card-head">
+          <h2>セリフの一覧</h2>
+          <p class="hint">「話す」ブロックのセリフを、かたまりごとにならべています。ここで直すと、そのままブロックに入ります。
+            CSV に書き出して表計算で直し、読みこむと、変わったセリフだけを書きもどします。</p>
+        </div>
+        <div class="lines-tools">
+          <input id="lines-filter" type="search" placeholder="セリフ・かたまりの名前でしぼる">
+          <span id="lines-count" class="hint"></span>
+          <button id="btn-lines-csv" class="btn small">CSV に書き出す</button>
+          <button id="btn-lines-import" class="btn small">CSV を読みこむ</button>
+          <input id="lines-csv-file" type="file" accept=".csv,text/csv" hidden>
+        </div>
+        <div id="lines-list" class="lines-list"></div>
       </section>
     </div>
   </div>

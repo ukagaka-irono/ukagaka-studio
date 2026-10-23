@@ -162,10 +162,10 @@ WebView2 and node both read the files as written.
 ui/js/
 ├── main.js        assembly (calls each part's init(), redraws everything)
 ├── shortcuts.js   keyboard (calls into many layers, so it sits with the assembly)
-├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about
+├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
-└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya
+└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / lines
 ```
 
 **Imports point downward only.** Files in the same layer may import each other, but **never in a cycle**
@@ -201,6 +201,8 @@ ui/js/
   `renderAll()` redraws only what is always visible (the top bar and the Check count) and **the page currently shown**.
   Switching pages draws that page through `Pages.onShow`. To add a page, add
   `<div class="page" data-page="…">` to `index.html`, a button to `#mode-bar`, and the part to draw to the `switch` in `renderAll()`.
+* The Speech page (`panels/lines.js`) shows the “says” blocks collected by `model/lines.js`. The CSV key is
+  “script id/index/mouth name/…”, so reordering blocks makes keys in an earlier CSV stop matching (they are counted and reported on import).
 * UI parts only change the project through `Model.act` / `Model.pushUndo` and do not redraw themselves
   (`renderAll()` redraws whatever is visible; drawing twice can lose a field you are typing in).
 * The canvas is rebuilt on every redraw, so the selected block gets a new element too.

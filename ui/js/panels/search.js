@@ -184,4 +184,4 @@ function focus() {
   if (searchInput) { searchInput.focus(); searchInput.select(); }
 }
 
-export const Search = { init, focus, renderCheck, renderSearch };
+export const Search = { init, focus, renderCheck, renderSearch, jumpTo };
