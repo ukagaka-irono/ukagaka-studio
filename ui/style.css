@@ -233,6 +233,11 @@ button, input, select, textarea { font-family: inherit; }
 .areas-rect span { position: absolute; left: 0; top: -18px; font-size: 11px; padding: 0 4px; border-radius: 3px; background: var(--accent); color: var(--on-accent); white-space: nowrap; }
 .areas-row { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
 .areas-row input { width: 64px; }
+/* かたまりの YAYA（panels/yayaview.js） */
+.yaya-view {
+  margin: 10px 0 0; padding: 10px 12px; background: var(--code-bg); border-radius: 6px; overflow: auto; max-height: 50vh;
+  font: 12px/1.6 "Cascadia Mono", Consolas, monospace; color: var(--text); white-space: pre; tab-size: 4; user-select: text;
+}
 .palette-note {
   font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 6px 8px 2px 0;
 }

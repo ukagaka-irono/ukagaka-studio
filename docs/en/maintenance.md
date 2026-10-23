@@ -183,8 +183,8 @@ ui/js/
 
 * **When a lower layer needs to trigger something in an upper layer** (the ▶ button on a block running “Try”, say),
   go through `Commands` in `core/commands.js`. Add a name there, and the owner fills it in from its `init()`
-  with `provide({ … })`. There are only two today: `runScript` (`panels/run.js`) and
-  `promptNewVariable` (`panels/vars.js`). **Before adding one, consider moving that function down a layer.**
+  with `provide({ … })`. There are only three today: `runScript` (`panels/run.js`),
+  `promptNewVariable` (`panels/vars.js`) and `showYaya` (`panels/yayaview.js`). **Before adding one, consider moving that function down a layer.**
 * **When an upper layer should hear that “something is done”** (an example was opened, ▶ ran, an export finished →
   a ✓ in the first-steps guide), use `Events.emit('name')` in `core/events.js`. The listener waits with
   `Events.on('name', fn)`. Unlike `Commands`, the sender does not care whether anyone listens.

@@ -450,6 +450,25 @@ section('プロジェクトをまたいだコピー (clipboard)');
   delete globalThis.localStorage;
 }
 
+section('このかたまりの YAYA を見る (scriptYaya)');
+{
+  const { toYaya, programOf, scriptYaya } = require('../js/model/yaya.js');
+  const program = programOf(Model.normalize({
+    format: 'ikaga/1', meta: { name: 'Y' },
+    scripts: [
+      { id: 'a1', kind: 'event', event: 'OnBoot', note: 'あいさつ', blocks: [{ type: 'say', who: 0, text: 'やあ', nl: 1 }] },
+      { id: 'a2', kind: 'talk', name: 'ひとり', blocks: [{ type: 'say', who: 1, text: 'ふむ', nl: 0 }] },
+      { id: 'a3', kind: 'loose', blocks: [{ type: 'say', who: 0, text: 'はぐれ', nl: 0 }] },
+    ],
+  }));
+  const one = scriptYaya(program, 'a1');
+  check('書き出す辞書と 1 字もちがわない（そのまま中にある）', toYaya(program).includes(one), true);
+  check('そのかたまりの関数だけを切り出す（メモのコメントもふくむ）',
+    [one.split('\r\n')[0], one.includes('// メモ: あいさつ'), one.includes('やあ'), one.includes('ふむ'), one.endsWith('}')],
+    ['// OnBoot  (a1)', true, true, false, true]);
+  check('書き出さないかたまり（帽子の無いもの）は null', scriptYaya(program, 'a3'), null);
+}
+
 section('このソフトについて (about)');
 {
   // もとにしたプロジェクトの表示は、ライセンス（なしライセンス 1.1 の 3 節）のための決まった文。

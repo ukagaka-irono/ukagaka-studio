@@ -639,3 +639,17 @@ export function toYaya(program, options = {}) {
   lines.push('');
   return lines.join('\r\n');
 }
+
+/**
+ * かたまり 1 つぶんの YAYA（toYaya が書き出すものから、そのかたまりの関数だけを切り出す。画面の「YAYA を見る」）。
+ * 書き出すものと 1 字もちがわないように、同じ toYaya の出力から取ります。書き出さないかたまり（帽子の無いものなど）は null
+ */
+export function scriptYaya(program, id, options = {}) {
+  const lines = toYaya(program, options).split('\r\n');
+  const mark = `  (${oneLine(asStr(id))})`;
+  const start = lines.findIndex((l) => l.startsWith('// ') && l.endsWith(mark));
+  if (start < 0) return null;
+  let end = start;
+  while (end < lines.length && lines[end] !== '}') end++;
+  return lines.slice(start, end + 1).join('\r\n');
+}

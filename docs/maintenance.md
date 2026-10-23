@@ -177,8 +177,8 @@ ui/js/
 
 * **下の層から、上の層の操作を呼びたいとき**（ブロックの ▶ ボタンから「ためす」を動かす、など）は、
   `core/commands.js` の `Commands` を通します。ここに名前を足し、持ち主が `init()` の中で
-  `provide({ … })` で中身を入れます。いまあるのは `runScript`（`panels/run.js`）と
-  `promptNewVariable`（`panels/vars.js`）の 2 つだけです。**増やす前に、その関数を下の層へ
+  `provide({ … })` で中身を入れます。いまあるのは `runScript`（`panels/run.js`）・
+  `promptNewVariable`（`panels/vars.js`）・`showYaya`（`panels/yayaview.js`）の 3 つだけです。**増やす前に、その関数を下の層へ
   動かせないかを先に考えてください。**
 * **「何かが済んだ」ことを上の層に知らせたいとき**（お手本を開いた・▶ で動かした・書き出した →
   はじめてガイドの ✓）は、`core/events.js` の `Events.emit('名前')` を使います。受ける側が

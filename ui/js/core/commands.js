@@ -17,6 +17,8 @@ export const Commands = {
   runScript: notYet('runScript'),
   /** 名前を聞いて変数を作る。作った名前か null を返す（panels/vars.js） */
   promptNewVariable: notYet('promptNewVariable'),
+  /** かたまりの YAYA を見せる（panels/yayaview.js） */
+  showYaya: notYet('showYaya'),
 };
 
 /** 持ち主が中身を入れる。知らない名前は入れさせない（書きまちがいで黙って増えないように） */

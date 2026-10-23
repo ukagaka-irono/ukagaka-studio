@@ -1,7 +1,7 @@
 /* 伺かスタジオ - キャンバスの右クリックメニュー
  *
  * 3 つあります。どれも、キーボードで同じことができるものは右にキーを出します。
- *   ・かたまり（帽子）の上 … 実行・複製・メモ・部品にする・削除
+ *   ・かたまり（帽子）の上 … 実行・複製・メモ・部品にする・YAYA を見る・削除
  *   ・ブロックの上         … コピー・切り取り・複製・部品にする・無効にする・メモ・削除
  *   ・パレットの部品の上   … 名前を変える・消す
  *   ・何もないところ       … ブロックを探して置く・はりつけ・整列
@@ -100,6 +100,7 @@ function init() {
         { label: t('複製する'), run: () => Scripts.duplicateScript(script) },
         ...noteItems(script),
         { label: t('このかたまりを部品にする'), run: () => Parts.save(script.blocks, Model.scriptTitle(script)) },
+        { label: t('YAYA を見る'), run: () => Commands.showYaya(script) },
         '-',
         { label: t('削除する'), danger: true, run: () => Scripts.deleteScript(script) },
       ]);

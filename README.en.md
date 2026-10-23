@@ -141,8 +141,11 @@ below the selected block, and you can type straight into the new block's text fi
 to keep building downward.
 
 **Right-click** a block for copy, cut, paste, duplicate, save as a part, disable, note and delete; a script's hat for run, duplicate,
-note, save as a part and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
+note, save as a part, **show YAYA** and delete; empty space for “Find and place a block here”, “Paste here” and “Tidy up”.
 The list of keys is on the How to use page, opened with **?** or **F1**.
+
+“**Show YAYA**” shows the YAYA function the script becomes when exported, exactly as it is written out.
+It is a model to follow when you move on to writing YAYA by hand.
 
 A **part** is an arrangement you use often, kept under a name. Save one with “Save this and below as a part” in the right-click
 menu of a block (“Save this script as a part” on a hat); it appears under **Parts** in the palette and can be dragged into any project.

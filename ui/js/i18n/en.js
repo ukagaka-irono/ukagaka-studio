@@ -127,6 +127,17 @@ export const en = {
   '部品を消す': 'Delete the part',
   'このかたまりを部品にする': 'Save this script as a part',
   'ここから下を部品にする': 'Save this and below as a part',
+  'YAYA を見る': 'Show YAYA',
+
+  // ---- ui/js/panels/yayaview.js
+  '帽子ブロックの無いかたまりは、書き出さないので YAYA になりません。': 'A script without a hat block is not exported, so it has no YAYA.',
+  "{event} は手書きの辞書にもあるので、手書きのほうが動きます。ブロックも動かすときは、手書きの {event} の中で Studio.Event('{event}') をよびます。":
+    "{event} is also in a hand-written dictionary, so the hand-written one runs. To run the blocks too, call Studio.Event('{event}') inside the hand-written {event}.",
+  "SSP から {event} が来ると、Studio.Event('{event}') を通って、この関数がよばれます。":
+    "When {event} comes from SSP, this function is called through Studio.Event('{event}').",
+  'トークや「◯◯をよぶ」ブロックから、この関数がよばれます。': 'This function is called from talks and from “call …” blocks.',
+  'Studio.〜 の中身は、しくみの辞書 studio_runtime.dic にあります。': 'The Studio.* functions are in the runtime dictionary studio_runtime.dic.',
+  'YAYA を見る: {title}': 'YAYA: {title}',
 
   // ---- ui\js\editor\parts.js
   '部品の名前は？': 'Name of the part?',
@@ -947,7 +958,7 @@ export const en = {
   'コピー・切り取り・すぐ下にはりつけ・複製・ここから下を部品にする・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
     'Copy, cut, paste below, duplicate, save this and below as a part, disable for now, add a note, delete, delete this and everything below',
   'かたまりの帽子の上': "On a script's hat",
-  '実行してみる・複製・メモを付ける・このかたまりを部品にする・削除': 'Run, duplicate, add a note, save this script as a part, delete',
+  '実行してみる・複製・メモを付ける・このかたまりを部品にする・YAYA を見る・削除': 'Run, duplicate, add a note, save this script as a part, show YAYA, delete',
   'パレットの部品の上': 'On a part in the palette',
   '部品の名前を変える・部品を消す': 'Rename the part, delete the part',
   '何もないところ': 'On empty space',
