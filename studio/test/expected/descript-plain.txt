@@ -1,5 +1,5 @@
 == folder: plain / 22 ファイル
----- ghost/master/descript.txt (221 バイト)
+---- ghost/master/descript.txt (243 バイト)
 charset,UTF-8
 type,ghost
 name,すなお
@@ -9,6 +9,7 @@ craftman,unknown
 craftmanw,unknown
 craftmanurl,
 shiori,yaya.dll
+readme.charset,UTF-8
 sakura.seriko.defaultsurface,0
 kero.seriko.defaultsurface,10
 

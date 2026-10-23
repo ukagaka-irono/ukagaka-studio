@@ -129,6 +129,20 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- サムネイルと readme（段階 5-11）
+  'サムネイルと readme': 'Thumbnail and readme',
+  '画像をえらぶ': 'Choose image',
+  'はずす': 'Remove',
+  'SSP のゴーストの一覧などに出る絵（thumbnail.png）です。えらんだ PNG を、書き出すときにいちばん上のフォルダに入れます。':
+    'The picture shown in SSP\'s ghost list and elsewhere (thumbnail.png). The chosen PNG goes into the top folder on export.',
+  'readme.txt に書くこと': 'Text for readme.txt',
+  '空なら、名前・作者・バージョン・説明から作ります': 'If empty, it is made from the name, author, version and description',
+  'インストールするときや、SSP のメニューから開かれる説明です。書いたものの下に、YAYA で動いていることの説明を足します。':
+    'The description opened on install and from SSP\'s menu. A note that the ghost runs on YAYA is added below your text.',
+  '（えらんでいません）': '(none chosen)',
+  '{name}（{w}×{h}）': '{name} ({w}×{h})',
+  'サムネイルを「{name}」にしました': 'Thumbnail set to “{name}”',
+
   // ---- 手書きの関数をえらぶ（段階 5-10）
   'つないだゴーストの関数からえらぶ': 'Pick from the linked ghost\'s functions',
 

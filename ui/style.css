@@ -289,6 +289,14 @@ button, input, select, textarea { font-family: inherit; }
 .fold-summary:hover { background: var(--surface-hover); }
 /* 「YAYA の関数をよぶ」の名前の横の、関数をえらぶ ▾（editor/render.js） */
 .field-pick { margin-left: 4px; max-width: 34px; }
+/* ゴースト情報のサムネイル（panels/ghost.js） */
+.thumb-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 6px; }
+.thumb-preview {
+  min-width: 96px; min-height: 64px; padding: 6px; border: 1px dashed var(--line-strong); border-radius: 8px;
+  color: var(--text-faint); font-size: 12px; text-align: center;
+}
+.thumb-preview img { display: block; max-width: 160px; max-height: 160px; margin: 0 auto 4px; }
+.thumb-cap { color: var(--text-2); font-size: 11px; word-break: break-all; }
 #canvas-hint {
   position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
   text-align: center; color: var(--text-faint); font-size: 14px; line-height: 1.9;

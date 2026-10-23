@@ -300,6 +300,21 @@
           <p class="hint">ネットワーク更新に使う URL です。書き出したフォルダを丸ごと置く場所を、
             うしろに / を付けて入れます。空ならネットワーク更新はしません。</p>
         </section>
+
+        <section class="card">
+          <div class="card-head"><h2>サムネイルと readme</h2></div>
+          <div class="thumb-row">
+            <div id="thumb-preview" class="thumb-preview"></div>
+            <div class="btn-row">
+              <button id="btn-thumb-pick" class="btn small">画像をえらぶ</button>
+              <button id="btn-thumb-clear" class="btn small">はずす</button>
+            </div>
+          </div>
+          <p class="hint">SSP のゴーストの一覧などに出る絵（thumbnail.png）です。えらんだ PNG を、書き出すときにいちばん上のフォルダに入れます。</p>
+          <label class="field"><span>readme.txt に書くこと</span>
+            <textarea id="meta-readme" rows="6" placeholder="空なら、名前・作者・バージョン・説明から作ります"></textarea></label>
+          <p class="hint">インストールするときや、SSP のメニューから開かれる説明です。書いたものの下に、YAYA で動いていることの説明を足します。</p>
+        </section>
       </div>
     </div>
   </div>

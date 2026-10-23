@@ -108,6 +108,8 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
 The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
 spreadsheet and open it again to write back only the lines that changed.
+Under “Thumbnail and readme” on the **Ghost info** page you choose the picture shown in SSP's ghost list (thumbnail.png) and
+the text of readme.txt (leave the readme empty to have it made from the name, author, version and description).
 You build with blocks on the **Talk** page. How to use it and the keyboard shortcuts are under the **?** at the top right.
 
 1. From **Events** on the left, drag something like “When started” onto the canvas.
@@ -446,7 +448,7 @@ ukagaka-studio/
 │           ├── vars.js     “Variables” on the right of Talk
 │           ├── search.js   “Check” and “Search” on the right of Talk
 │           ├── chara.js    “Characters” (surfaces, placeholder shell colors, balloon, animations)
-│           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language)
+│           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page

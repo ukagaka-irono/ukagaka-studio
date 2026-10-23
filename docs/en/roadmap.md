@@ -802,7 +802,7 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 | 5-8 | Add items to SSP's right-click menu | done |
 | 5-9 | Anniversary and alarm hat blocks | done |
 | 5-10 | Pick hand-written function names | done |
-| 5-11 | Set the ghost's thumbnail and readme on screen | |
+| 5-11 | Set the ghost's thumbnail and readme on screen | done |
 | 5-12 | A starter ghost wizard | |
 
 > **5-1 is done.** Clicking a surface on the stage runs OnMouseClick, double-clicking runs OnMouseDoubleClick, and moving over the same spot
@@ -869,6 +869,13 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > hand-written ghost is linked, to pick from that ghost's functions (typing still works). The list comes from `yayaCallChoices` in
 > `model/yaya.js`, which leaves out event and resource entry points (`On…`) and system functions (`Studio.…`, `SHIORI3FW.…`, `SHIORI3EV.…`)
 > and sorts by name. The canvas is redrawn once the linked ghost has been inspected, so it shows up right after opening. 2 editor checks (149).
+
+
+> **5-11 is done.** The Ghost info page gained “Thumbnail and readme”. The thumbnail is chosen with the same PNG dialog as surfaces
+> (`/api/shell/pick`) and kept in `meta.thumbnail` (path, name, w, h, stamp); on export, a readable PNG goes into the top of the archive as
+> `thumbnail.png` (next to install.txt, as in UKADOC's ghost layout). The readme is kept in `meta.readme`; when set, it replaces the top part of
+> readme.txt (name, author, version, description), with line breaks made CRLF and the YAYA note below kept. ghost/master/descript.txt also gains
+> `readme.charset,UTF-8` (readme.txt is UTF-8, but without it SSP reads it in the OS encoding). 3 export checks (39).
 
 ---
 

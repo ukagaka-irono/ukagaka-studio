@@ -10,6 +10,7 @@
 #include "export_parts.h"
 #include "zip.h"
 #include "fsutil.h"
+#include "image.h"
 #include "util.h"
 
 namespace ikaga {
@@ -93,14 +94,26 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
     }
     files.push_back(f);
 
-    // readme.txt は、ゴーストの言語で書きます
+    // readme.txt は、ゴーストの言語で書きます。ゴースト情報の画面で書いたもの（meta.readme）があれば、それを上に
     f.name = "readme.txt";
-    f.data = GhostName(project);
-    f.data += "\r\n\r\n";
-    f.data += ByGhostLang(project, "作者      : ", "Author : ") +
-              meta["craftman"].asStr(ByGhostLang(project, "(未設定)", "(not set)")) + "\r\n";
-    f.data += ByGhostLang(project, "バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
-    f.data += meta["description"].asStr("") + "\r\n\r\n";
+    std::string readme = meta["readme"].asStr("");
+    if (!Trim(readme).empty()) {
+        // 改行は CRLF にそろえる
+        std::string crlf;
+        for (size_t i = 0; i < readme.size(); i++) {
+            if (readme[i] == '\r') continue;
+            if (readme[i] == '\n') crlf += '\r';
+            crlf += readme[i];
+        }
+        f.data = crlf + "\r\n\r\n";
+    } else {
+        f.data = GhostName(project);
+        f.data += "\r\n\r\n";
+        f.data += ByGhostLang(project, "作者      : ", "Author : ") +
+                  meta["craftman"].asStr(ByGhostLang(project, "(未設定)", "(not set)")) + "\r\n";
+        f.data += ByGhostLang(project, "バージョン: ", "Version: ") + meta["version"].asStr("1.0.0") + "\r\n\r\n";
+        f.data += meta["description"].asStr("") + "\r\n\r\n";
+    }
     f.data += "----\r\n";
     f.data += ByGhostLang(project, "このゴーストは 栞 YAYA (yaya.dll) で動いています。\r\n"
                  "会話は伺かスタジオのブロックで作り、ghost/master/studio_program.dic に YAYA の辞書として\r\n"
@@ -114,6 +127,16 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
                  "YAYA: https://github.com/YAYA-shiori/yaya-shiori\r\n");
     files.push_back(f);
 
+    // サムネイル（SSP のゴーストの一覧などに出る絵）。えらんだ PNG が読めるときだけ、いちばん上に入れる
+    std::string thumbPath = meta["thumbnail"]["path"].asStr("");
+    std::string thumb;
+    int tw = 0, th = 0;
+    if (!thumbPath.empty() && ReadBinaryFile(Utf8ToWide(thumbPath), thumb) && PngSize(thumb, &tw, &th)) {
+        f.name = "thumbnail.png";
+        f.data = thumb;
+        files.push_back(f);
+    }
+
     f.name = "ghost/master/descript.txt";
     f.data = DescriptLine("charset", "UTF-8") + DescriptLine("type", "ghost") +
              DescriptLine("name", GhostName(project)) +
@@ -123,6 +146,8 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
              DescriptLine("craftmanw", meta["craftman"].asStr("unknown")) +
              DescriptLine("craftmanurl", meta["craftmanUrl"].asStr("")) +
              DescriptLine("shiori", "yaya.dll") +
+             // readme.txt は UTF-8 で書くので、SSP にもそう読んでもらう（書かないと OS の文字コードで読まれる）
+             DescriptLine("readme.charset", "UTF-8") +
              // ネットワーク更新のありか。空なら書かない（書くと更新を試して失敗する）
              (meta["homeUrl"].asStr("").empty()
                   ? std::string()

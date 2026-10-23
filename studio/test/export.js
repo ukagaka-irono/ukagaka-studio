@@ -205,29 +205,67 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// その場で作る小さな PNG（w×h の透明な絵）
+const zlib = require('zlib');
+function chunk(type, data) {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length);
+  const td = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(zlib.crc32(td) >>> 0);
+  return Buffer.concat([len, td, crc]);
+}
+function png(w, h) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr[8] = 8; ihdr[9] = 6;        // 8bit RGBA
+  const rows = Buffer.alloc((w * 4 + 1) * h);
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(rows)), chunk('IEND', Buffer.alloc(0))]);
+}
+
+// ------------------------------------------------- サムネイルと、画面で書いた readme（段階 5-11）
+console.log('  ---- サムネイルと readme');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-thumb-'));
+  try {
+    const thumb = png(4, 3);
+    fs.writeFileSync(path.join(dir, 'thumb.png'), thumb);
+    const project = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'plain.json'), 'utf8'));
+    project.meta = Object.assign({}, project.meta, {
+      readme: 'みかんのゴーストです。\nよろしくね。',
+      thumbnail: { path: path.join(dir, 'thumb.png'), name: 'thumb.png', w: 4, h: 3 },
+    });
+    const fx = path.join(dir, 'project.json');
+    fs.writeFileSync(fx, JSON.stringify(project));
+    const dic = dicFor('plain.json');
+    // 1 つのファイルをたずねると「== folder: …」「---- 名前 (大きさ)」の 2 行のあとに中身が来る
+    const body = (buf) => { const i = buf.indexOf(10); return buf.subarray(buf.indexOf(10, i + 1) + 1); };
+    const steps = [
+      // 出力はテキストなので、中身ではなく一覧の名前と大きさを見る
+      ['えらんだ PNG が thumbnail.png としていちばん上に入る', () => run([fx, '--dic', dic]).toString('utf8')
+        .includes(`---- thumbnail.png (${thumb.length} バイト)`)],
+      ['画面で書いた readme が上に入り、改行は CRLF になる', () => body(run([fx, 'readme.txt', '--dic', dic])).toString('utf8')
+        .startsWith('みかんのゴーストです。\r\nよろしくね。\r\n\r\n----\r\n')],
+      ['サムネイルをえらんでいなければ thumbnail.png は無い', () => !run([path.join(fixtureDir, 'plain.json'), '--dic', dic])
+        .toString('utf8').includes('thumbnail.png')],
+    ];
+    for (const [label, fn] of steps) {
+      checked++;
+      if (fn()) console.log(`${green}  OK  ${off}${label}`);
+      else { failed++; console.log(`${red}  だめ ${label}${off}`); }
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- いまあるシェルのフォルダの読みこみ（段階 3-5d）
 //
 // その場で小さな PNG を作って、シェルのフォルダを組み立てます。
 console.log('  ---- いまあるシェルのフォルダの読みこみ');
 {
-  const zlib = require('zlib');
-  const chunk = (type, data) => {
-    const len = Buffer.alloc(4);
-    len.writeUInt32BE(data.length);
-    const td = Buffer.concat([Buffer.from(type, 'ascii'), data]);
-    const crc = Buffer.alloc(4);
-    crc.writeUInt32BE(zlib.crc32(td) >>> 0);
-    return Buffer.concat([len, td, crc]);
-  };
-  const png = (w, h) => {
-    const ihdr = Buffer.alloc(13);
-    ihdr.writeUInt32BE(w, 0);
-    ihdr.writeUInt32BE(h, 4);
-    ihdr[8] = 8; ihdr[9] = 6;        // 8bit RGBA
-    const rows = Buffer.alloc((w * 4 + 1) * h);
-    return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-      chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(rows)), chunk('IEND', Buffer.alloc(0))]);
-  };
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-shell-'));
   try {
     const dir = path.join(root, 'ghost-a', 'shell', 'master');
