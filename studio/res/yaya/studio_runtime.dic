@@ -43,6 +43,9 @@ OnGhostLoad.Studio : void
 	if GETTYPE(Studio.recent) != 4 { Studio.recent = IARRAY }
 	// 記念日のかたまりを動かした日（かたまりの id → 'YYYY-MM-DD'）。同じ日に 2 回動かさないため
 	if GETTYPE(Studio.annivDone) != 5 { Studio.annivDone = IHASH }
+	// 続きもの（段階 6-2）。名前 → いまの話の番号・最後に進めたときの起動回数
+	if GETTYPE(Studio.serialAt) != 5 { Studio.serialAt = IHASH }
+	if GETTYPE(Studio.serialBoot) != 5 { Studio.serialBoot = IHASH }
 
 	// 起動しているあいだだけのもの
 	Studio.uptime = 0
@@ -469,6 +472,37 @@ Studio.RunTimed
 		if Studio.s.when[_k] == _hm { _out += Studio.RunOne(_k) }
 	}
 	_out
+}
+
+// 続きもの（段階 6-2）。(名前, 話の数, おわったらはじめからなら 1) → いま出す話の番号（0 から）か、もう話さないなら -1。
+// 起動しなおしてからはじめて動いたときだけ、次の話へ進めます（同じ起動のうちは、同じ話）
+Studio.Serial
+{
+	_name = Studio.S(_argv[0])
+	_n = TOINT(_argv[1])
+	_loop = TOINT(_argv[2])
+	if _n <= 0 {
+		-1
+		return
+	}
+	_at = -1
+	if HASH_EXIST(_name, Studio.serialAt) { _at = TOINT(Studio.serialAt[_name]) }
+	_boot = -1
+	if HASH_EXIST(_name, Studio.serialBoot) { _boot = TOINT(Studio.serialBoot[_name]) }
+	if _boot != Studio.boots {
+		_at += 1
+		Studio.serialBoot[_name] = Studio.boots
+	}
+	if _at >= _n {
+		if _loop { _at = 0 }
+		else { _at = _n }
+	}
+	Studio.serialAt[_name] = _at
+	if _at >= _n {
+		-1
+		return
+	}
+	_at
 }
 
 // ランダムトークを、いま出してよいか（段階 6-1）。

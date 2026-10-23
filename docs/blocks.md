@@ -184,6 +184,7 @@ SSP の右クリックの着せ替えメニューから着る／ぬぐができ�
 | N 回くりかえす | `{"type":"repeat","count":3,"body":[...]}` |
 | ◇ の間くりかえす | `{"type":"while","cond":◇,"body":[...]}` |
 | つぎのどれかをランダムに | `{"type":"random_one","branches":[[...],[...]]}` |
+| 続きもの N 第1話…（起動するたびに次の話へ） | `{"type":"serial","name":"N","end":"loop","episodes":[[...],[...]]}`（`end` は `loop`＝はじめから・`stop`＝もう話さない） |
 | ◯をよぶ | `{"type":"call","name":"トーク名"}` |
 | ◯ のトークをどれかよぶ | `{"type":"call_group","group":"まとまりの名前"}` |
 | ランダムトークの間隔を N 秒にする | `{"type":"talk_interval","sec":180}` |

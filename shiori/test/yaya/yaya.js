@@ -15,6 +15,7 @@
  *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか。記録（studio_debug.txt）
  *   7. 記念日とアラームが、いまの時刻で動き、記念日は同じ日に 2 回動かないか（起動しなおしても）
  *   8. ランダムトークの時間帯・季節のしぼり込みが、いまの時刻で効くか
+ *   9. 続きものが、起動するたびに 1 話ずつ進み、おわったら はじめから／もう話さない になるか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -404,6 +405,35 @@ async function main() {
     const values = got.map((r) => r.value);
     expect('いまの時間帯・季節のトークだけが出る', JSON.stringify(values), JSON.stringify(['\\0いま\\e', '\\0いま\\e', '\\0いま\\e', '\\0いま\\e']));
     if (values.every((v) => v === '\\0いま\\e')) ok('ランダムトークの時間帯・季節のしぼり込みが効きます', `${part} / ${season}`);
+  }
+
+  // ---- 9. 続きもの（段階 6-2） --------------------------------------------------
+  {
+    const say = (text) => [{ type: 'say', who: 0, nl: 0, text }];
+    const serial = (end) => ({
+      format: 'ikaga/1',
+      meta: { name: '続きものテスト' },
+      settings: { randomTalkEnabled: false },
+      variables: [],
+      scripts: [{ id: 'e', kind: 'event', event: 'OnTalk', blocks: [
+        { type: 'serial', name: 'はなし', end, episodes: [say('1'), say('2'), say('3')] },
+      ] }],
+    });
+    // 起動ごとに 1 回ずつ（はじめの起動だけ 2 回よんで、同じ起動のうちは進まないことも見る）
+    const run = async (end) => {
+      const seen = [];
+      for (let boot = 0; boot < 5; boot++) {
+        const steps = boot === 0 ? ['OnBoot', 'OnTalk', 'OnTalk'] : ['OnBoot', 'OnTalk'];
+        const got = await host.runYayaProgram(`serial-${end}`, serial(end), steps, boot > 0);
+        seen.push(...got.slice(1).map((r) => (r.status.startsWith('204') ? '-' : r.value.replace(/\\[0e]/g, ''))));
+      }
+      return seen.join(' ');
+    };
+    const loop = await run('loop');
+    const stop = await run('stop');
+    expect('続きもの（はじめから）', loop, '1 1 2 3 1 2');
+    expect('続きもの（もう話さない）', stop, '1 1 2 3 - -');
+    if (loop === '1 1 2 3 1 2' && stop === '1 1 2 3 - -') ok('続きものが起動ごとに 1 話ずつ進み、おわったあとも決めたとおりです');
   }
 
   // ---- 表示 --------------------------------------------------------------------

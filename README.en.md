@@ -574,6 +574,8 @@ What you can do:
   arithmetic, comparisons and text operations
 * **Filtering** random talks — pick a time of day (morning, afternoon, evening, night) or a season in “any time ▾” on the hat, and drop
   a condition block (“affection > 10”, “boot count > 5”, …) into “if ⬡”; the talk only comes up when they match (also when called from a group)
+* **Serial talks** — put episodes in order in “serial … episode 1 …” (Control) and the ghost moves one episode further on each boot
+  (the same episode within one boot; at the end it starts over or stops, as you choose; progress is saved)
 * For when you really need it, a block that “outputs Sakura Script as is”
 
 Nothing is listed as missing right now. To add something, see “Adding one block” in

@@ -270,7 +270,7 @@ function buildBlockEl(block, project) {
     if (def.dynamic) {
       if (!Array.isArray(block[def.dynamic])) block[def.dynamic] = [[], []];
       block[def.dynamic].forEach((arr, i) => {
-        subs.push({ arr, label: i === 0 ? null : t('または') });
+        subs.push({ arr, label: i === 0 ? null : (def.dynamicLabel ? def.dynamicLabel(i) : t('または')) });
       });
     } else {
       for (const s of def.subs || []) {

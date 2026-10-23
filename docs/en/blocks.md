@@ -188,6 +188,7 @@ so you can write things like “the wings can be touched only while they flap”
 | repeat N times | `{"type":"repeat","count":3,"body":[...]}` |
 | repeat while ◇ | `{"type":"while","cond":◇,"body":[...]}` |
 | one of these at random | `{"type":"random_one","branches":[[...],[...]]}` |
+| serial N episode 1… (next episode on each boot) | `{"type":"serial","name":"N","end":"loop","episodes":[[...],[...]]}` (`end` is `loop` = start over or `stop`) |
 | call ◯ | `{"type":"call","name":"talk name"}` |
 | call a talk from group ◯ | `{"type":"call_group","group":"group name"}` |
 | set random talk interval to N seconds | `{"type":"talk_interval","sec":180}` |

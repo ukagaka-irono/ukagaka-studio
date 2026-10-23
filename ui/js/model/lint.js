@@ -85,6 +85,7 @@ Lint.run = function (project, ctx = {}) {
     .filter((s) => s.kind === 'function' || s.kind === 'talk')
     .map((s) => s.name);
   const talkCount = (project.scripts || []).filter((s) => s.kind === 'talk').length;
+  const serialSeen = {};   // 続きものの名前 → はじめに見つけたブロック
 
   // ---- 名前のかぶり
   const seen = {};
@@ -233,6 +234,22 @@ Lint.run = function (project, ctx = {}) {
               t('カンマや角かっこが入っていると、SSP への命令が壊れます。名前を変えてください。'), s, b);
           }
           break;
+        case 'serial': {
+          const name = typeof b.name === 'string' ? b.name.trim() : '';
+          if (!name) {
+            issue(out, 'error', t('{title}の続きものに、名前がありません', { title }),
+              t('どこまで進んだかを、名前ごとに覚えます。名前を入れてください。'), s, b);
+          } else if (serialSeen[name] && serialSeen[name] !== b) {
+            issue(out, 'warn', t('続きもの「{name}」が 2 つあります', { name }),
+              t('同じ名前の続きものは、進み具合を分けあいます。別々に進めたいときは、名前を変えてください。'), s, b);
+          }
+          if (name && !serialSeen[name]) serialSeen[name] = b;
+          if ((b.episodes || []).some((ep) => !Array.isArray(ep) || !ep.length)) {
+            issue(out, 'warn', t('{title}の続きものに、からっぽの話があります', { title }),
+              t('その回は、なにも話しません。ブロックを入れるか、「−」で話の数をへらしてください。'), s, b);
+          }
+          break;
+        }
         case 'call_group':
           if (isEmptyText(b.group)) {
             issue(out, 'error', t('{title}の「どれかよぶ」で、まとまりの名前が空です', { title }),

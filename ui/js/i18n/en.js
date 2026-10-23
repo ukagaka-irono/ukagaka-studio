@@ -129,6 +129,21 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 続きもの（段階 6-2）
+  '続きもの %name 第1話（起動するたびに次の話へ。おわったら %end）': 'serial %name episode 1 (next episode on each boot; at the end %end)',
+  '連続トーク': 'Serial talk',
+  'はじめから': 'start over',
+  'もう話さない': 'stop',
+  '第{n}話': 'episode {n}',
+  '{title}の続きものに、名前がありません': '{title} has a serial without a name',
+  'どこまで進んだかを、名前ごとに覚えます。名前を入れてください。': 'Progress is remembered per name. Enter a name.',
+  '続きもの「{name}」が 2 つあります': 'There are two serials named “{name}”',
+  '同じ名前の続きものは、進み具合を分けあいます。別々に進めたいときは、名前を変えてください。':
+    'Serials with the same name share their progress. Rename one to keep them apart.',
+  '{title}の続きものに、からっぽの話があります': '{title} has a serial with an empty episode',
+  'その回は、なにも話しません。ブロックを入れるか、「−」で話の数をへらしてください。':
+    'That episode says nothing. Add blocks, or remove episodes with “−”.',
+
   // ---- ランダムトークのしぼり込み（段階 6-1）
   'いつでも': 'any time',
   '朝だけ（5〜10 時）': 'mornings only (5–10)',

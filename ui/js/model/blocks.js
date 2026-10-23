@@ -377,6 +377,18 @@ def({
   spec: t('つぎのどれかをランダムに'),
   dynamic: 'branches',
 });
+// 続きもののトーク（段階 6-2）。動くたびに、いまの話を出す。話が進むのは、起動しなおしてからはじめて動いたとき。
+// どこまで進んだかは、続きものの名前ごとに保存します（studio_runtime.dic の Studio.Serial）
+def({
+  type: 'serial', cat: 'control', shape: 'c',
+  spec: t('続きもの %name 第1話（起動するたびに次の話へ。おわったら %end）'),
+  args: {
+    name: { kind: 'input', mode: 'text', def: t('連続トーク'), literal: true },
+    end: { kind: 'dropdown', options: [[t('はじめから'), 'loop'], [t('もう話さない'), 'stop']], def: 'loop' },
+  },
+  dynamic: 'episodes',
+  dynamicLabel: (i) => t('第{n}話', { n: i + 1 }),
+});
 def({
   type: 'call', cat: 'control', shape: 'stack',
   spec: t('%name をよぶ'),
@@ -633,7 +645,7 @@ export const PALETTE = {
   ],
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
   looks: ['surface', 'chara', 'anim', 'dress', 'balloon', 'sound'],
-  control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'call',
+  control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'serial', 'call',
     'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call', 'yaya_call',
     'open_browser', 'end', 'close', 'change_ghost'],
   variables: [{ button: 'add-var', label: t('＋ 変数をつくる') }, '@vars', 'set', 'change'],

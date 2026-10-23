@@ -898,7 +898,7 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 | | What | |
 |---|---|---|
 | 6-1 | Filter random talks (time of day, season, affection, boot count) | done |
-| 6-2 | Serial talks (one episode further on each boot) | |
+| 6-2 | Serial talks (one episode further on each boot) | done |
 | 6-3 | A list of events without a reaction (click to place the hat) | |
 
 
@@ -909,6 +909,14 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 > `Studio.TalkOk` in `studio_runtime.dic` leaves out talks whose time, season or condition does not match, both when picking a random talk and
 > for “call one from group”. The Check tab looks inside conditions too (missing and read variables). 2 behavior scenarios (22 scenarios, 111
 > checks), a YAYA test of time of day and season against the current time (27), a filtered talk in the export fixture, 4 editor checks (159).
+
+
+> **6-2 is done.** Control gained “serial … episode 1 (next episode on each boot; at the end …)” (`serial`). Episodes are added with −/+ like
+> “one of these at random”, with “episode 2”, “episode 3”, … between them (`dynamicLabel` in the block definition). The translation calls
+> `Studio.Serial(name, episode count, 1 to start over)`, which returns the episode to play (`studio_runtime.dic`). It moves on only the first
+> time it runs after a new boot (the same episode within one boot), and progress is saved per name in `Studio.serialAt` / `Studio.serialBoot`.
+> The Check tab flags an empty name, two serials with the same name and empty episodes. 1 parity case (33; Try gives the same answer), a YAYA
+> test that restarts the ghost and sees one episode per boot (both endings; 29 checks), 4 editor checks (163).
 
 ---
 

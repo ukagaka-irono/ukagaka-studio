@@ -393,6 +393,18 @@ function stmtOf(b, ind, ctx) {
       });
       return out;
     }
+    // 続きもの（段階 6-2）。Studio.Serial が、いま出す話の番号（0 から。もう話さないときは -1）を返す
+    case 'serial': {
+      const eps = Array.isArray(b.episodes) ? b.episodes : [];
+      const name = typeof b.name === 'string' ? b.name.trim() : '';
+      if (!eps.length || !name) return [];
+      const k = ++ctx.n;
+      const out = [L(`_s${k} = Studio.Serial(${yayaStr(name)}, ${eps.length}, ${b.end === 'stop' ? 0 : 1})`)];
+      eps.forEach((ep, i) => {
+        out.push(L(`${i ? 'elseif' : 'if'} _s${k} == ${i} {`), ...stmts(ep, ind + '\t', ctx), L('}'));
+      });
+      return out;
+    }
     case 'call_group': return [L(`Studio.CallGroup(${expr(b.group)})`), ...stop];
     // 手書きの YAYA の関数をよび、答えをそのまましゃべる。名前は書いた文字だけ（ブロックがはまっていたら書かない）
     case 'yaya_call': {

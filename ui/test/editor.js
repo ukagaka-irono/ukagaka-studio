@@ -309,6 +309,16 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 6-2: 続きもの
+{
+  const ser = (name, episodes) => ({ type: 'serial', name, end: 'loop', episodes });
+  const ep = [{ type: 'say', who: 0, text: 'やあ' }];
+  check('続きものの名前が空', issuesOf(withScript([ser('', [ep])]), '続きものに、名前がありません'), ['error']);
+  check('続きものの名前がかぶっている', issuesOf(withScript([ser('あ', [ep]), ser('あ', [ep])]), 'が 2 つあります'), ['warn']);
+  check('からっぽの話', issuesOf(withScript([ser('あ', [ep, []])]), 'からっぽの話'), ['warn']);
+  check('ちゃんとした続きものは言わない', issuesOf(withScript([ser('あ', [ep, ep])]), '続きもの'), []);
+}
+
 // --- 段階 6-1: ランダムトークのしぼり込み
 {
   const { programOf } = require('../js/model/yaya.js');

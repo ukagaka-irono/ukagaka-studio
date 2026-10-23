@@ -428,6 +428,21 @@
         { "type": "dress", "category": "", "part": "名なし", "on": 1 },
         { "type": "say", "who": 0, "text": "きがえた", "nl": 0 }
       ]
+    },
+    {
+      "id": "p33", "kind": "event", "event": "OnP33",
+      "_": "続きもの。はじめて動いたときは第1話。同じ起動のうちは、何度動いても同じ話。名前が空なら何もしない",
+      "blocks": [
+        { "type": "serial", "name": "れんさい", "end": "loop", "episodes": [
+          [ { "type": "say", "who": 0, "text": "いちわ", "nl": 1 } ],
+          [ { "type": "say", "who": 0, "text": "にわ", "nl": 1 } ]
+        ] },
+        { "type": "serial", "name": "れんさい", "end": "loop", "episodes": [
+          [ { "type": "say", "who": 0, "text": "またいちわ", "nl": 1 } ],
+          [ { "type": "say", "who": 0, "text": "またにわ", "nl": 1 } ]
+        ] },
+        { "type": "serial", "name": "", "episodes": [ [ { "type": "say", "who": 0, "text": "でない", "nl": 1 } ] ] }
+      ]
     }
   ]
 }
