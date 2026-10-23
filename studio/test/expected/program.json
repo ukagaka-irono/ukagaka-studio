@@ -1,5 +1,5 @@
 == folder: export-test / 22 ファイル
----- ghost/master/ghost.json (3274 バイト)
+---- ghost/master/ghost.json (3754 バイト)
 {
   "format": "ikaga/1",
   "meta": {
@@ -85,6 +85,30 @@
           "type": "say",
           "who": 0,
           "text": "メニューからこんにちは。",
+          "nl": 1
+        }
+      ]
+    },
+    {
+      "id": "s_morning",
+      "kind": "talk",
+      "name": "朝のひとこと",
+      "weight": 1,
+      "when": "morning",
+      "cond": {
+        "type": "compare",
+        "op": ">",
+        "a": {
+          "type": "var",
+          "name": "好感度"
+        },
+        "b": 3
+      },
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "おはよう、今日もよろしくね。",
           "nl": 1
         }
       ]

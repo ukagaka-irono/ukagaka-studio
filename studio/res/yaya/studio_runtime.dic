@@ -471,6 +471,39 @@ Studio.RunTimed
 	_out
 }
 
+// ランダムトークを、いま出してよいか（段階 6-1）。
+// 時間帯・季節（Studio.s.when）と、帽子の「もし」の条件（studio_program.dic の Studio.Cond.〜）を見ます
+Studio.TalkOk
+{
+	_k = _argv[0]
+	_w = Studio.s.when[_k]
+	if _w != '' {
+		_t = GETTIME
+		_h = _t[4]
+		_m = _t[1]
+		_part = 'night'
+		if _h >= 5 && _h < 11 { _part = 'morning' }
+		elseif _h >= 11 && _h < 17 { _part = 'afternoon' }
+		elseif _h >= 17 && _h < 22 { _part = 'evening' }
+		_season = 'winter'
+		if _m >= 3 && _m <= 5 { _season = 'spring' }
+		elseif _m >= 6 && _m <= 8 { _season = 'summer' }
+		elseif _m >= 9 && _m <= 11 { _season = 'autumn' }
+		if _w != _part && _w != _season {
+			0
+			return
+		}
+	}
+	_cond = REPLACE(Studio.s.fn[_k], 'Studio.Script.', 'Studio.Cond.')
+	if ISFUNC(_cond) {
+		if !EVAL(_cond) {
+			0
+			return
+		}
+	}
+	1
+}
+
 // このかたまりを、今回の要求で動かしてよいか
 Studio.Matches
 {
@@ -636,7 +669,7 @@ Studio.CallGroup : void
 	_list = IARRAY
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
-		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] && Studio.s.group[_i] == _group { _list ,= _i }
+		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] && Studio.s.group[_i] == _group && Studio.TalkOk(_i) { _list ,= _i }
 	}
 	if ARRAYSIZE(_list) == 0 { return }
 
@@ -729,7 +762,7 @@ Studio.PlayRandomTalk
 	_all = IARRAY
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
-		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] { _all ,= _i }
+		if Studio.s.kind[_i] == 'talk' && !Studio.s.off[_i] && Studio.TalkOk(_i) { _all ,= _i }
 	}
 	if ARRAYSIZE(_all) == 0 {
 		''

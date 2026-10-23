@@ -94,6 +94,14 @@ std::string RuntimeProgramJson(const JValue& project) {
             // 「まとまり」（朝のトーク、など）。空なら書かない
             std::string group = Trim(src["group"].asStr());
             if (!group.empty()) one.set("group", JValue::makeStr(group));
+            // しぼり込み（段階 6-1）。時間帯・季節と、条件のブロック（どれも、無ければ書かない）
+            static const char* kWhens[] = { "morning", "afternoon", "evening", "night", "spring", "summer", "autumn", "winter" };
+            std::string when = src["when"].asStr();
+            for (const char* w : kWhens) {
+                if (when == w) { one.set("when", JValue::makeStr(when)); break; }
+            }
+            const JValue& cond = src["cond"];
+            if (cond.isObj() && !cond["type"].asStr().empty()) one.set("cond", cond);
         }
         if (src["disabled"].asBool(false)) one.set("disabled", JValue::makeBool(true));
         // かたまりのメモ（空なら書かない）。ブロックのメモは blocks の中にそのまま入ります

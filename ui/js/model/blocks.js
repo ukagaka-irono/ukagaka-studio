@@ -17,6 +17,15 @@ export const CATEGORIES = [
   { id: 'parts',     name: t('部品') },   // よく使う組みかた（editor/parts.js。どのプロジェクトからも使う）
 ];
 
+// ランダムトークを出す時間帯・季節（studio_runtime.dic の Studio.TalkOk と同じ区切り）
+export const TALK_WHEN = [
+  [t('いつでも'), ''],
+  [t('朝だけ（5〜10 時）'), 'morning'], [t('昼だけ（11〜16 時）'), 'afternoon'],
+  [t('夕方だけ（17〜21 時）'), 'evening'], [t('夜だけ（22〜4 時）'), 'night'],
+  [t('春だけ（3〜5 月）'), 'spring'], [t('夏だけ（6〜8 月）'), 'summer'],
+  [t('秋だけ（9〜11 月）'), 'autumn'], [t('冬だけ（12〜2 月）'), 'winter'],
+];
+
 export const EVENTS = [
   [t('起動したとき'), 'OnBoot'],
   [t('はじめて起動したとき'), 'OnFirstBoot'],
@@ -225,11 +234,14 @@ def({
 });
 def({
   type: '@talk', cat: 'events', shape: 'hat',
-  spec: t('ランダムトーク「%name」 えらばれやすさ %weight まとまり %group'),
+  spec: t('ランダムトーク「%name」 えらばれやすさ %weight まとまり %group %when もし %cond'),
   args: {
     name: { kind: 'input', mode: 'text', def: t('トーク'), long: true },
     weight: { kind: 'input', mode: 'number', def: 1 },
     group: { kind: 'input', mode: 'text', def: '', long: true },
+    // しぼり込み（段階 6-1）。時間帯か季節のどれか 1 つと、条件のブロック（空ならいつでも）
+    when: { kind: 'dropdown', options: TALK_WHEN, def: '' },
+    cond: { kind: 'input', mode: 'bool' },
   },
   hat: true, kind: 'talk',
 });

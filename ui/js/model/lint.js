@@ -38,6 +38,8 @@ function walk(script, visit) {
     }
   };
   walkStack(script.blocks);
+  // ランダムトークの帽子の「もし」にはめた条件（段階 6-1）
+  if (script.cond && typeof script.cond === 'object' && script.cond.type) { visit(script.cond); walkInner(script.cond); }
 }
 
 /** あるブロックの内側（くりかえしの中など）だけを見る */

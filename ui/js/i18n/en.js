@@ -129,6 +129,17 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- ランダムトークのしぼり込み（段階 6-1）
+  'いつでも': 'any time',
+  '朝だけ（5〜10 時）': 'mornings only (5–10)',
+  '昼だけ（11〜16 時）': 'afternoons only (11–16)',
+  '夕方だけ（17〜21 時）': 'evenings only (17–21)',
+  '夜だけ（22〜4 時）': 'nights only (22–4)',
+  '春だけ（3〜5 月）': 'spring only (Mar–May)',
+  '夏だけ（6〜8 月）': 'summer only (Jun–Aug)',
+  '秋だけ（9〜11 月）': 'autumn only (Sep–Nov)',
+  '冬だけ（12〜2 月）': 'winter only (Dec–Feb)',
+
   // ---- ひな形ウィザード（段階 5-12）
   '起動したときのあいさつ（はじめての起動も）': 'Greeting on startup (and on the very first start)',
   '終了するときのあいさつ': 'Greeting on closing',
@@ -425,7 +436,7 @@ export const en = {
   '%who の %area が %event': '%event (%who, %area)',
   '%from に %contains と %event': '%event (from %from, containing %contains)',
   '%event %everySec 秒ごと': '%event every %everySec seconds',
-  'ランダムトーク「%name」 えらばれやすさ %weight まとまり %group': 'Random talk “%name” weight %weight group %group',
+  'ランダムトーク「%name」 えらばれやすさ %weight まとまり %group %when もし %cond': 'Random talk “%name” weight %weight group %group %when if %cond',
   '「%name」がよばれたとき': 'When “%name” is called',
   '%who が %text と話す %nl': '%who says %text %nl',
   'こんにちは。': 'Hello.',

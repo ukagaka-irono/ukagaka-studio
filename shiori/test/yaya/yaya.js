@@ -14,6 +14,7 @@
  *   5. ブロックとかたまりのメモ（// のコメントになる）が、動きを変えないか
  *   6. ブロックの変数と起動回数が、YAYA の保存（yaya_variable.cfg）で次の起動に残るか。記録（studio_debug.txt）
  *   7. 記念日とアラームが、いまの時刻で動き、記念日は同じ日に 2 回動かないか（起動しなおしても）
+ *   8. ランダムトークの時間帯・季節のしぼり込みが、いまの時刻で効くか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -374,6 +375,35 @@ async function main() {
     if ((a[0] || {}).value === '\\0記念日\\0アラーム\\e' && (b[0] || {}).value === '\\0アラーム\\e') {
       ok('記念日とアラームが動き、記念日は 1 日 1 回です');
     }
+  }
+
+  // ---- 8. ランダムトークの時間帯・季節（段階 6-1） ------------------------------------
+  // いまの時間帯・季節のトークと、ちがう時間帯・季節のトーク。いまのものだけが出るはず
+  {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMonth() + 1;
+    const part = h >= 5 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : h >= 17 && h < 22 ? 'evening' : 'night';
+    const season = m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 8 ? 'summer' : m >= 9 && m <= 11 ? 'autumn' : 'winter';
+    const otherPart = part === 'morning' ? 'night' : 'morning';
+    const otherSeason = season === 'spring' ? 'autumn' : 'spring';
+    const say = (text) => [{ type: 'say', who: 0, nl: 0, text }];
+    const talks = {
+      format: 'ikaga/1',
+      meta: { name: '時間帯テスト' },
+      settings: { randomTalkEnabled: true, randomTalkInterval: 1, noRepeatCount: 0 },
+      variables: [],
+      scripts: [
+        { id: 'p1', kind: 'talk', name: 'いま', weight: 1, when: part, blocks: say('いま') },
+        { id: 'p2', kind: 'talk', name: 'ちがう時間帯', weight: 1, when: otherPart, blocks: say('ちがう') },
+        { id: 's1', kind: 'talk', name: 'いまの季節', weight: 1, when: season, blocks: say('いま') },
+        { id: 's2', kind: 'talk', name: 'ちがう季節', weight: 1, when: otherSeason, blocks: say('ちがう') },
+      ],
+    };
+    const got = await host.runYayaProgram('talkwhen', talks, ['OnSecondChange:0,1', 'OnSecondChange:0,1', 'OnSecondChange:0,1', 'OnSecondChange:0,1']);
+    const values = got.map((r) => r.value);
+    expect('いまの時間帯・季節のトークだけが出る', JSON.stringify(values), JSON.stringify(['\\0いま\\e', '\\0いま\\e', '\\0いま\\e', '\\0いま\\e']));
+    if (values.every((v) => v === '\\0いま\\e')) ok('ランダムトークの時間帯・季節のしぼり込みが効きます', `${part} / ${season}`);
   }
 
   // ---- 表示 --------------------------------------------------------------------

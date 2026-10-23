@@ -1,0 +1,95 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "「どれかよぶ」もしぼり込みを見る（段階 6-1）。自動ではしゃべらない。"
+  ],
+  "meta": {
+    "name": "まとまりテスト",
+    "sakuraName": "さくら",
+    "keroName": "うにゅう"
+  },
+  "settings": {
+    "randomTalkEnabled": false,
+    "randomTalkInterval": 180,
+    "noRepeatCount": 0
+  },
+  "variables": [
+    {
+      "name": "x",
+      "value": 0
+    }
+  ],
+  "scripts": [
+    {
+      "id": "g_low",
+      "kind": "talk",
+      "name": "Gふつう",
+      "group": "g",
+      "weight": 1,
+      "cond": {
+        "type": "compare",
+        "op": "<",
+        "a": {
+          "type": "var",
+          "name": "x"
+        },
+        "b": 5
+      },
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "Gふつう",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "g_high",
+      "kind": "talk",
+      "name": "Gなかよし",
+      "group": "g",
+      "weight": 1,
+      "cond": {
+        "type": "compare",
+        "op": ">",
+        "a": {
+          "type": "var",
+          "name": "x"
+        },
+        "b": 5
+      },
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "Gなかよし",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "e_call",
+      "kind": "event",
+      "event": "OnCallG",
+      "blocks": [
+        {
+          "type": "call_group",
+          "group": "g"
+        }
+      ]
+    },
+    {
+      "id": "e_set",
+      "kind": "event",
+      "event": "OnSet",
+      "blocks": [
+        {
+          "type": "set",
+          "name": "x",
+          "value": 10
+        }
+      ]
+    }
+  ]
+}

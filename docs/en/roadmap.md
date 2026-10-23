@@ -897,9 +897,18 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 
 | | What | |
 |---|---|---|
-| 6-1 | Filter random talks (time of day, season, affection, boot count) | |
+| 6-1 | Filter random talks (time of day, season, affection, boot count) | done |
 | 6-2 | Serial talks (one episode further on each boot) | |
 | 6-3 | A list of events without a reaction (click to place the hat) | |
+
+
+> **6-1 is done.** The random talk hat gained “when” (`when`: any time, or one of morning, afternoon, evening, night, spring, summer, autumn,
+> winter, with the same boundaries as the “time of day” and “season” values) and an “if” condition slot (`cond`; affection and boot count go
+> there as comparison blocks). The exported ghost.json carries `when` and `cond` only when used (same shape from the UI and the exe), and
+> studio_program.dic gets a `Studio.Cond.…` function per condition (the script's function name with Studio.Script. replaced by Studio.Cond.).
+> `Studio.TalkOk` in `studio_runtime.dic` leaves out talks whose time, season or condition does not match, both when picking a random talk and
+> for “call one from group”. The Check tab looks inside conditions too (missing and read variables). 2 behavior scenarios (22 scenarios, 111
+> checks), a YAYA test of time of day and season against the current time (27), a filtered talk in the export fixture, 4 editor checks (159).
 
 ---
 

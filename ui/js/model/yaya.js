@@ -52,6 +52,9 @@ export function yayaTxt() {
 // ------------------------------------------------------------- JSON の読みかた
 // スタジオの JValue と同じ決まり（studio/src/json.cpp）。書き出しのときに決まる値に使います。
 
+// ランダムトークの時間帯・季節（model/blocks.js の TALK_WHEN）
+const TALK_WHENS = ['morning', 'afternoon', 'evening', 'night', 'spring', 'summer', 'autumn', 'winter'];
+
 function trimC(s) {
   let b = 0;
   let e = s.length;
@@ -482,6 +485,10 @@ export function programOf(project) {
       one.weight = asNum(src.weight, 1);
       const group = trimC(asStr(src.group));
       if (group) one.group = group;
+      // しぼり込み（段階 6-1）。時間帯・季節と、条件のブロック（どれも、無ければ書かない）
+      const when = asStr(src.when);
+      if (TALK_WHENS.includes(when)) one.when = when;
+      if (isObj(src.cond) && typeof src.cond.type === 'string' && src.cond.type) one.cond = src.cond;
     }
     if (asBool(src.disabled, false)) one.disabled = true;
     // かたまりのメモ（空なら書かない）。ブロックのメモは blocks の中にそのまま入ります
@@ -684,6 +691,10 @@ export function toYaya(program, options = {}) {
     const body = stmts(s.blocks, '\t', { n: 0, note: T.note });
     lines.push('', `// ${oneLine(title)}  (${oneLine(asStr(s.id))})`, ...noteLines(s.note, '', T.note),
       `${fnOf[i]} : void`, '{', ...body, '}');
+    // ランダムトークの「もし」の条件。Studio.TalkOk が、えらぶ前によびます（関数名は Studio.Script. を Studio.Cond. にしたもの）
+    if (kind === 'talk' && isObj(s.cond) && typeof s.cond.type === 'string' && s.cond.type) {
+      lines.push(fnOf[i].replace('Studio.Script.', 'Studio.Cond.'), '{', `\tStudio.B(${expr(s.cond)})`, '}');
+    }
   });
   lines.push('');
   return lines.join('\r\n');

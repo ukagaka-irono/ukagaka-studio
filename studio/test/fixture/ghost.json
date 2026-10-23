@@ -151,6 +151,12 @@
       "blocks": [{ "type": "say", "who": 0, "text": "メニューからこんにちは。", "nl": 1 }]
     },
     {
+      "id": "s_morning", "kind": "talk", "name": "朝のひとこと", "weight": 1, "when": "morning",
+      "cond": { "type": "compare", "op": ">", "a": { "type": "var", "name": "好感度" }, "b": 3 },
+      "_": "しぼり込みなので when と cond が付き、辞書に Studio.Cond.s_morning ができるはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "おはよう、今日もよろしくね。", "nl": 1 }]
+    },
+    {
       "id": "s_alarm", "kind": "event", "event": "OnStudioAlarm", "hour": 7, "minute": 75,
       "_": "アラームなので when が付き、分は 59 に寄せるはず",
       "blocks": [{ "type": "say", "who": 0, "text": "おはよう。", "nl": 1 }]

@@ -223,6 +223,7 @@ const Model = {
       if (script.folded !== true) delete script.folded;   // キャンバスでたたんでいる（editor/scripts.js）
       if (script.kind === 'talk' && script.weight == null) script.weight = 1;
       if (script.kind === 'talk' && typeof script.group !== 'string') script.group = '';
+      if (script.kind === 'talk' && typeof script.when !== 'string') script.when = '';   // しぼり込み（段階 6-1）
       if ((script.kind === 'talk' || script.kind === 'function') && !script.name) {
         script.name = script.kind === 'talk' ? t('トーク') : t('なまえのないトーク');
       }

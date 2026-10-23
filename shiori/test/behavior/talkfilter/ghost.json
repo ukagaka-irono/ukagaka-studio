@@ -1,0 +1,82 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "ランダムトークのしぼり込み（段階 6-1）。x が 5 より小さいあいだは「ふつう」、大きくなったら「なかよし」だけが出る。"
+  ],
+  "meta": {
+    "name": "しぼり込みテスト",
+    "sakuraName": "さくら",
+    "keroName": "うにゅう"
+  },
+  "settings": {
+    "randomTalkEnabled": true,
+    "randomTalkInterval": 2,
+    "noRepeatCount": 0
+  },
+  "variables": [
+    {
+      "name": "x",
+      "value": 0
+    }
+  ],
+  "scripts": [
+    {
+      "id": "t_low",
+      "kind": "talk",
+      "name": "ふつう",
+      "weight": 1,
+      "cond": {
+        "type": "compare",
+        "op": "<",
+        "a": {
+          "type": "var",
+          "name": "x"
+        },
+        "b": 5
+      },
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "ふつう",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "t_high",
+      "kind": "talk",
+      "name": "なかよし",
+      "weight": 1,
+      "cond": {
+        "type": "compare",
+        "op": ">",
+        "a": {
+          "type": "var",
+          "name": "x"
+        },
+        "b": 5
+      },
+      "blocks": [
+        {
+          "type": "say",
+          "who": 0,
+          "text": "なかよし",
+          "nl": 0
+        }
+      ]
+    },
+    {
+      "id": "e_set",
+      "kind": "event",
+      "event": "OnSet",
+      "blocks": [
+        {
+          "type": "set",
+          "name": "x",
+          "value": 10
+        }
+      ]
+    }
+  ]
+}

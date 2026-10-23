@@ -572,7 +572,8 @@ What you can do:
 * Generating placeholder shells (surfaces) and a **balloon**
 * Info such as the time, weekday, boot count, **time of day (morning/afternoon/evening/night) and season**;
   arithmetic, comparisons and text operations
-* **Groups** of random talks (morning talks, season talks, …) and a block that calls one of them
+* **Filtering** random talks — pick a time of day (morning, afternoon, evening, night) or a season in “any time ▾” on the hat, and drop
+  a condition block (“affection > 10”, “boot count > 5”, …) into “if ⬡”; the talk only comes up when they match (also when called from a group)
 * For when you really need it, a block that “outputs Sakura Script as is”
 
 Nothing is listed as missing right now. To add something, see “Adding one block” in

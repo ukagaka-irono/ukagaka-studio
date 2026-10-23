@@ -309,6 +309,21 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 6-1: ランダムトークのしぼり込み
+{
+  const { programOf } = require('../js/model/yaya.js');
+  const cond = { type: 'compare', op: '>', a: { type: 'var', name: 'こたえ' }, b: 5 };
+  const talk = (extra) => withScript([], { scripts: [Object.assign({ id: 't', kind: 'talk', name: 'あ', weight: 1,
+    blocks: [{ type: 'say', who: 0, text: 'やあ' }] }, extra)] });
+  check('条件の中の変数も「読んでいる」に数える', issuesOf(talk({ cond }), 'どこでも使われていません'), []);
+  check('条件の中の無い変数も知らせる',
+    issuesOf(talk({ cond: Object.assign({}, cond, { a: { type: 'var', name: 'ないよ' } }) }), '「ないよ」がありません'), ['error']);
+  const one = programOf(talk({ when: 'morning', cond })).scripts[0];
+  check('書き出す形に時間帯と条件が入る', [one.when, one.cond && one.cond.type], ['morning', 'compare']);
+  const none = programOf(talk({ when: 'たぶん' })).scripts[0];
+  check('知らない時間帯と空の条件は書かない', ['when' in none, 'cond' in none], [false, false]);
+}
+
 // --- 段階 5-12: ひな形ウィザード
 {
   const { STARTER_PARTS, starterProject } = require('../js/model/sample.js');

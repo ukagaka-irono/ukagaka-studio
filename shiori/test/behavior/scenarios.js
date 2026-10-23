@@ -13,6 +13,8 @@ const VALUES_EN = path.join(__dirname, 'values-en');
 const MAIN = path.join(__dirname, 'main');
 const TALKS = path.join(__dirname, 'talks');
 const MENU = path.join(__dirname, 'menu');
+const TALK_FILTER = path.join(__dirname, 'talkfilter');
+const TALK_GROUP = path.join(__dirname, 'talkgroup');
 
 // 応答 1 件に対する期待。文字列なら Value の完全一致。
 //   { value } Value / { commTo } 話しかけ先 / { status } 応答の種類
@@ -246,6 +248,26 @@ const scenarios = [
       ['OnEmptyOut', { status: '204 No Content', value: '' }],
       ['OnChoiceTest', '\\q[はい,こたえ]\\e'],
       ['OnChoiceSelect:こたえ', '\\0えらばれた\\e'],
+    ],
+  },
+  {
+    name: 'ランダムトークのしぼり込み — 条件に合うトークだけが出る',
+    dir: TALK_FILTER,
+    steps: [
+      ['OnSecondChange:0,1,1', { status: '204 No Content' }],
+      ['OnSecondChange:0,1,2', '\\0ふつう\\e'],
+      ['OnSet', { status: '204 No Content' }],
+      ['OnSecondChange:0,1,3', { status: '204 No Content' }],
+      ['OnSecondChange:0,1,4', '\\0なかよし\\e'],
+    ],
+  },
+  {
+    name: 'まとまりからよぶときも、しぼり込みを見る',
+    dir: TALK_GROUP,
+    steps: [
+      ['OnCallG', '\\0Gふつう\\e'],
+      ['OnSet', { status: '204 No Content' }],
+      ['OnCallG', '\\0Gなかよし\\e'],
     ],
   },
   {
