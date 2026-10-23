@@ -786,7 +786,7 @@ Every candidate listed here is done (2026-10-22). New ideas will be added here a
 
 ---
 
-## Stage 5 — More features
+## Stage 5 — More features (done)
 
 On 2026-10-23, twelve items centered on what people use every day were listed, to be done from the top.
 
@@ -886,6 +886,20 @@ On 2026-10-23, twelve items centered on what people use every day were listed, t
 > (affection is read when patted, so the line changes as you keep patting) (6 checks, 155).
 >
 > **Stage 5 is now complete.**
+
+
+---
+
+## Stage 6 — Richer ghost behaviour
+
+On 2026-10-23, the three items that save authors the most work were picked from ten candidates, to be done from the top
+(they were 6-1, 6-2 and 6-6 in the candidate list).
+
+| | What | |
+|---|---|---|
+| 6-1 | Filter random talks (time of day, season, affection, boot count) | |
+| 6-2 | Serial talks (one episode further on each boot) | |
+| 6-3 | A list of events without a reaction (click to place the hat) | |
 
 ---
 
