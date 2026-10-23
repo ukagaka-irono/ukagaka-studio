@@ -288,7 +288,7 @@ button, input, select, textarea { font-family: inherit; }
 }
 .fold-summary:hover { background: var(--surface-hover); }
 /* 「YAYA の関数をよぶ」の名前の横の、関数をえらぶ ▾（editor/render.js） */
-.field-pick { margin-left: 4px; max-width: 34px; }
+.field-pick { margin-left: 4px; max-width: 46px; }
 /* ゴースト情報のサムネイル（panels/ghost.js） */
 .thumb-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 6px; }
 .thumb-preview {

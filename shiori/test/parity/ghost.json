@@ -443,6 +443,15 @@
         ] },
         { "type": "serial", "name": "", "episodes": [ [ { "type": "say", "who": 0, "text": "でない", "nl": 1 } ] ] }
       ]
+    },
+    {
+      "id": "p34", "kind": "event", "event": "OnP34",
+      "_": "セリフの中の印。{表情:N}・{待つ:N}（英語の face・wait も、全角のコロンも）は命令になり、\\ はそのまま文字。印のないセリフは今までどおり",
+      "blocks": [
+        { "type": "say", "who": 0, "text": "あ{表情:1}い{待つ:500}う{face:2}え{wait：0}", "nl": 1 },
+        { "type": "say", "who": 1, "text": "{表情:11}\\s[9]{ないしるし:1}", "nl": 0, "surface": 10 },
+        { "type": "say", "who": 0, "text": "ふつう", "nl": 0 }
+      ]
     }
   ]
 }

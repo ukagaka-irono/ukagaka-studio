@@ -110,6 +110,7 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 those blocks already placed. With nothing picked, you start from an empty canvas.
 
 Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
+**☺** next to the speech field of a “says” block inserts, at the cursor, a mark that changes the expression (`{face:1}`) or pauses (`{wait:500}`).
 The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
 spreadsheet and open it again to write back only the lines that changed.
 Under “Thumbnail and readme” on the **Ghost info** page you choose the picture shown in SSP's ghost list (thumbnail.png) and

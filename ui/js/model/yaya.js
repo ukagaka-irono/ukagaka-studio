@@ -52,6 +52,30 @@ export function yayaTxt() {
 // ------------------------------------------------------------- JSON の読みかた
 // スタジオの JValue と同じ決まり（studio/src/json.cpp）。書き出しのときに決まる値に使います。
 
+// セリフの中の印（段階 7-3）。{表情:1} で表情を変え、{待つ:500} で少し待つ（英語の {face:1}・{wait:500} も同じ）。
+// セリフの文字はそのまま（\ は \\ にして）出すので、さくらスクリプトは書けません。印は、ここで安全な命令に分けます
+const SAY_MARK = /\{(表情|face|待つ|wait)[:：]\s*(\d+)\}/;
+const SAY_MARKS = new RegExp(SAY_MARK.source, 'g');
+
+/** 印の入ったセリフを、Studio.Say・Studio.Surface・Studio.Wait にならべる */
+function sayWithMarks(b, L) {
+  const who = intArg(b.who, 0);
+  const nl = asBool(b.nl, true) ? '1' : '0';
+  const out = [];
+  if (b.surface !== undefined && b.surface !== null) out.push(L(`Studio.Surface(${who}, ${intArg(b.surface, 0)})`));
+  let last = 0;
+  for (const m of b.text.matchAll(SAY_MARKS)) {
+    const part = b.text.slice(last, m.index);
+    if (part) out.push(L(`Studio.Say(${who}, ${yayaStr(part)}, 0)`));
+    const n = Number(m[2]);
+    out.push(m[1] === '表情' || m[1] === 'face' ? L(`Studio.Surface(${who}, ${n})`) : L(`Studio.Wait(${n})`)); // i18n-ignore（印の名前）
+    last = m.index + m[0].length;
+  }
+  const tail = b.text.slice(last);
+  if (tail || nl === '1') out.push(L(`Studio.Say(${who}, ${yayaStr(tail)}, ${nl})`));
+  return out;
+}
+
 // ランダムトークの時間帯・季節（model/blocks.js の TALK_WHEN）
 const TALK_WHENS = ['morning', 'afternoon', 'evening', 'night', 'spring', 'summer', 'autumn', 'winter'];
 
@@ -306,6 +330,7 @@ function stmtOf(b, ind, ctx) {
     case 'say': {
       const args = [intArg(b.who, 0), expr(b.text), asBool(b.nl, true) ? '1' : '0'];
       if (b.surface !== undefined && b.surface !== null) args.push(intArg(b.surface, 0));
+      if (typeof b.text === 'string' && SAY_MARK.test(b.text)) return sayWithMarks(b, L);
       return [L(`Studio.Say(${args.join(', ')})`)];
     }
     case 'surface': return [L(`Studio.Surface(${intArg(b.who, 0)}, ${intArg(b.id, 0)})`)];

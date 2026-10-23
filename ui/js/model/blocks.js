@@ -281,7 +281,8 @@ def({
   spec: t('%who が %text と話す %nl'),
   args: {
     who: { kind: 'dropdown', options: WHO, def: 0 },
-    text: { kind: 'input', mode: 'text', def: t('こんにちは。'), long: true },
+    // marks: 欄の横に「☺」を出し、{表情:1}・{待つ:500} の印を入れられるようにする（段階 7-3。訳すのは model/yaya.js）
+    text: { kind: 'input', mode: 'text', def: t('こんにちは。'), long: true, marks: true },
     nl: { kind: 'dropdown', options: YESNO_NL, def: 1 },
   },
 });

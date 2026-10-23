@@ -98,6 +98,11 @@ The same goes for mouse filters.
 In `say` text, `\` is turned into `\\` and line breaks into `\n` automatically.
 A `%` such as `%username` passes through, so SSP's substitutions work.
 
+`say` text (when it is typed text) can also hold marks: `{face:1}` changes the expression (`\s[1]`) and `{wait:500}` pauses for 500 ms
+(`\_w[500]`). The Japanese `{表情:1}` / `{待つ:500}` work the same, and a full-width colon is fine. In the editor, insert them with **☺**
+next to the speech field. Marks are split into safe commands when translated to YAYA, so a `\` in the text is still never passed through
+(Sakura Script still cannot be written there).
+
 Text put into **a link's URL, a sound's file name, and a choice's label and target** has
 `[` `]` and line breaks (and `,` for targets) removed before it is written out.
 Even if you drop in **text from outside** such as “what was said” or the answer to “ask”,

@@ -129,6 +129,12 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- セリフの表情ボタン（段階 7-3）
+  '表情を {id} にする': 'Change the expression to {id}',
+  '少し待つ（0.5 秒）': 'Pause a little (0.5 s)',
+  '待つ（1 秒）': 'Pause (1 s)',
+  '表情を変える・少し待つ印を入れる': 'Insert a mark that changes the expression or pauses',
+
   // ---- キーのしぼり込み（段階 7-2）
   '%event（キー %key）': '%event (key %key)',
   '{key} キーが押されたとき': 'When the {key} key is pressed',

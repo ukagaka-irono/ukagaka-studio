@@ -938,7 +938,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 |---|---|---|
 | 7-1 | A hat for “on the Nth boot” | done |
 | 7-2 | Filter “when a key is pressed” by key | done |
-| 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | |
+| 7-3 | “Expression” buttons on speech fields (insert marks that change the expression or pause) | done |
 | 7-4 | Export and import parts as files | |
 | 7-5 | Draw random talks 100 times in “Try” | |
 | 7-6 | See what changed since an earlier version | |
@@ -957,6 +957,14 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 > Reference0 ignoring case, and a number with Reference1. Scripts with a key win over those without (`Studio.Specificity`). The exported
 > ghost.json carries the key in `when` only when set (trimmed; same shape from the UI and the exe), and Try passes that key in the References.
 > 1 behavior scenario (24 scenarios, 118 checks), one script in the export fixture, 3 editor checks (172).
+
+
+> **7-3 is done.** “says” text is output with `\` turned into `\\` (so Sakura Script cannot be written there), so expressions and pauses
+> became marks in the text: `{face:N}` / `{wait:N}` (and the Japanese `{表情:N}` / `{待つ:N}`, also with a full-width colon) are rearranged into
+> `Studio.Say`, `Studio.Surface` and `Studio.Wait` by `ui/js/model/yaya.js` (`studio_runtime.dic` is unchanged; unknown marks stay as text).
+> In the editor, **☺** appears next to the speech field (`marks` in the block definition) and inserts, where the cursor last was, that
+> character's expressions (0–2 for Sakura, 10–12 for Kero, plus prepared surfaces) and 0.5 s / 1 s pauses. Marks are written in the UI
+> language. 1 parity case (34; Try gives the same answer).
 
 ---
 

@@ -9,7 +9,7 @@ import { updateTitle } from '../core/title.js';
 import { Scripts } from './scripts.js';
 import { Notes } from './notes.js';
 import { Parts } from './parts.js';
-import { t } from '../i18n/i18n.js';
+import { t, getLang } from '../i18n/i18n.js';
 
 const INPUT_FONT = '600 12.5px "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif';
 
@@ -207,6 +207,7 @@ function buildField(owner, name, argDef, project, blockEl) {
 
     default: {
       const slot = buildSlot(owner, name, argDef, project, blockEl);
+      if (argDef.marks && !(owner[name] && typeof owner[name] === 'object')) return withMarks(slot, owner, name);
       // つないだ手書きのゴーストの関数から、えらべるようにする（書くこともできます）
       const choices = argDef.pick === 'yayaFunctions' && !(owner[name] && typeof owner[name] === 'object')
         ? yayaCallChoices((Session.yayaGhost || {}).functions) : [];
@@ -222,6 +223,46 @@ function buildField(owner, name, argDef, project, blockEl) {
       return wrap;
     }
   }
+}
+
+/**
+ * セリフの欄の横の「☺」（段階 7-3）。表情を変える印・少し待つ印を、さいごにカーソルがあったところへ入れる。
+ * 印は画面の言語で書きます（日本語なら {表情:1}、英語なら {face:1}。どちらでも動きます）
+ */
+function withMarks(slot, owner, name) {
+  const input = slot.querySelector('input');
+  if (!input) return slot;
+  let caret = null;
+  const keep = () => { caret = input.selectionStart; };
+  for (const ev of ['keyup', 'click', 'blur']) input.addEventListener(ev, keep);
+
+  const en = getLang() === 'en';
+  const face = en ? 'face' : '表情'; // i18n-ignore（印の名前。model/yaya.js が読む）
+  const wait = en ? 'wait' : '待つ'; // i18n-ignore
+  // その人の表情: さくらは 0〜、うにゅうは 10〜。用意した絵の番号も足す
+  const who = Number(owner.who) || 0;
+  const ids = new Set(who === 1 ? [10, 11, 12] : who === 0 ? [0, 1, 2] : []);
+  for (const img of ((Model.project.shell || {}).images || [])) {
+    const id = Number(img.id);
+    if (!Number.isInteger(id)) continue;
+    if (who === 0 && id >= 10) continue;
+    if (who === 1 && (id < 10 || id >= 20)) continue;
+    ids.add(id);
+  }
+  const options = [['☺', ''], ...[...ids].sort((a, b) => a - b).map((id) => [t('表情を {id} にする', { id }), `{${face}:${id}}`]),
+    [t('少し待つ（0.5 秒）'), `{${wait}:500}`], [t('待つ（1 秒）'), `{${wait}:1000}`]];
+  const pick = buildSelect(options, '', (mark) => {
+    if (!mark) return;
+    const text = owner[name] == null ? '' : String(owner[name]);
+    const at = caret == null || caret > text.length ? text.length : caret;
+    Model.act(() => { owner[name] = text.slice(0, at) + mark + text.slice(at); });
+  });
+  pick.classList.add('field-pick');
+  pick.title = t('表情を変える・少し待つ印を入れる');
+  const wrap = el('span', 'field-wrap');
+  wrap.appendChild(slot);
+  wrap.appendChild(pick);
+  return wrap;
 }
 
 function fillRow(row, owner, def, project, blockEl) {
