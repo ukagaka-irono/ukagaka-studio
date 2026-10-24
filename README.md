@@ -439,6 +439,8 @@ ukagaka-studio/
 │       │   ├── blockindex.js  ブロックを字でさがす（/ キーの「探して置く」）
 │       │   ├── player.js   さくらスクリプトをほどく（動かすのは YAYA）
 │       │   ├── yaya.js     ブロックを YAYA の辞書に訳す
+│       │   ├── yayatext.js YAYA の辞書のテキストを読む（パーサー）・整えて書く
+│       │   ├── dics.js     プロジェクトの中の YAYA の辞書（名前の決まり・関数のかぶり）
 │       │   ├── lines.js    セリフの一覧と CSV の出し入れ
 │       │   ├── replace.js  文字をまとめて置きかえる
 │       │   ├── partsfile.js 部品のファイル（.parts.json）の書き出しと読みこみ

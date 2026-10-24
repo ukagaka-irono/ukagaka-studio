@@ -39,12 +39,14 @@ const RESERVED_PREFIX = ['OnSHIORI3FW.', 'OnSystemLoad', 'OnSystemUnload', 'OnGh
   'OnGhostUnload', 'OnGhostEventTranslate', 'OnTranslateInternal', 'SHIORI3'];
 
 /** 書き出すゴーストの yaya.txt（はじめて作るとき） */
-export function yayaTxt() {
+// dics … プロジェクトの YAYA の辞書の名前（段階 8-2。exe の YayaTxt と同じ並び）
+export function yayaTxt(dics = []) {
   return [
     'charset, UTF-8',
     'dicdir, yaya_base',
     'dic, studio_runtime.dic',
     'dic, studio_program.dic',
+    ...dics.map((name) => `dic, ${name}`),
     '',
   ].join('\r\n');
 }

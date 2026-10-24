@@ -309,6 +309,33 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 8-2: プロジェクトの YAYA の辞書
+{
+  const { dicNameOk, dicFunctionNames } = require('../js/model/dics.js');
+  check('辞書の名前', ['talk.dic', 'ＡＩ.DIC', '../x.dic', 'a\\b.dic', 'x.txt', '.dic', 'studio_runtime.dic', 'Studio_Program.dic'].map(dicNameOk),
+    [true, true, false, false, false, false, false, false]);
+  const p = Model.normalize({ scripts: [], dics: [{ name: 'a.dic', text: 'X\r\n{\r\n\t1\r\n}\r\n' }, { name: 3 }, 'x', { name: 'b.dic' }] });
+  check('読みこんだ辞書は、決まった形にする（改行は \\n、名前の無いものは落とす）', p.dics, [{ name: 'a.dic', text: 'X\n{\n\t1\n}\n' }, { name: 'b.dic', text: '' }]);
+  check('新しいプロジェクトの辞書は空', Model.newProject().dics, []);
+  const proj = (dics, extra) => Object.assign({ meta: {}, variables: [], scripts: [], dics }, extra || {});
+  const msgs = (pr) => { Model.project = Model.normalize(pr); return Lint.run(Model.project).filter((i) => /辞書/.test(i.message)).map((i) => `${i.level}: ${i.message}`); };
+  check('書きまちがいは、辞書と行で知らせる', msgs(proj([{ name: 'a.dic', text: 'X\n{\n\tif {\n\t}\n}\n' }])),
+    ['error: 辞書「a.dic」の 3 行目が、YAYA として読めません']);
+  check('スタジオや yaya_base の名前はかぶりとして知らせる',
+    msgs(proj([{ name: 'a.dic', text: 'Studio.Event\n{\n\t1\n}\nOnRequest\n{\n\t1\n}\n' }])),
+    ['error: 辞書「a.dic」の関数「Studio.Event」は、スタジオのしくみか yaya_base がもう使っている名前です',
+      'error: 辞書「a.dic」の関数「OnRequest」は、スタジオのしくみか yaya_base がもう使っている名前です']);
+  check('辞書どうしのかぶり・使えない名前・同じ名前の辞書',
+    msgs(proj([{ name: 'a.dic', text: 'F\n{\n\t1\n}\n' }, { name: 'b.dic', text: 'F\n{\n\t2\n}\n' }, { name: '../c.dic', text: '' }, { name: 'A.DIC', text: '' }])),
+    ['error: 関数「F」が、辞書「a.dic」と「b.dic」の両方にあります', 'error: 辞書の名前「../c.dic」は使えません', 'error: 辞書「A.DIC」が 2 つあります']);
+  check('ブロックと同じイベントは、辞書が動くと知らせる',
+    msgs(proj([{ name: 'a.dic', text: 'OnBoot\n{\n\t"x"\n}\n' }], { scripts: [{ id: 's', kind: 'event', event: 'OnBoot', blocks: [{ type: 'say', who: 0, text: 'やあ' }] }] })),
+    ['warn: OnBoot は、プロジェクトの辞書「a.dic」にもあります']);
+  check('つないでいるあいだは書き出さないと知らせる',
+    msgs(proj([{ name: 'a.dic', text: '' }], { meta: { ghostDir: 'C:\\g' } })), ['warn: 手書きのゴーストにつないでいるあいだは、プロジェクトの辞書を書き出しません']);
+  check('辞書の関数は「手書き」として書き出しにわたす', dicFunctionNames(Model.normalize(proj([{ name: 'a.dic', text: 'OnBoot\n{\n\t1\n}\nH\n{\n\t2\n}\n' }]))), ['OnBoot', 'H']);
+}
+
 // --- 段階 8-1: YAYA の式が YAYA として読めるか
 check('読めない YAYA の式は言う', issuesOf(withScript([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: '1 + (2' } }]), 'YAYA として読めません'), ['warn']);
 check('読める YAYA の式なら言わない',

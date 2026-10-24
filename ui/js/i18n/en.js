@@ -129,6 +129,29 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
+  '手書きのゴーストにつないでいるあいだは、プロジェクトの辞書を書き出しません': 'While linked to a hand-written ghost, the project\'s dictionaries are not exported',
+  'つないだゴーストには、スタジオのファイルだけを書きこみます。辞書の関数は、つないだゴーストの手書きの辞書に書いてください。':
+    'Only the studio\'s files are written into the linked ghost. Put dictionary functions into that ghost\'s hand-written dictionaries.',
+  '辞書の名前「{name}」は使えません': 'The dictionary name “{name}” cannot be used',
+  '「.dic」で終わる名前にしてください（フォルダの区切りや \\ / : * ? " < > | は使えません。studio_runtime.dic など、スタジオのファイルの名前も使えません）。':
+    'Use a name ending in “.dic” (no folder separators or \\ / : * ? " < > |, and not the name of a studio file such as studio_runtime.dic).',
+  '辞書「{name}」が 2 つあります': 'There are two dictionaries named “{name}”',
+  'どちらかの名前を変えてください。': 'Rename one of them.',
+  '辞書「{name}」の {line} 行目が、YAYA として読めません': 'Line {line} of dictionary “{name}” is not valid YAYA',
+  'ひとつでも読めないところがあると、YAYA は辞書をまるごと読みません。辞書の画面で直してください。':
+    'If any part cannot be read, YAYA reads none of the dictionaries. Fix it on the Dictionaries page.',
+  '辞書「{dic}」の関数「{name}」は、スタジオのしくみか yaya_base がもう使っている名前です':
+    'Function “{name}” in dictionary “{dic}” has a name the studio\'s machinery or yaya_base already uses',
+  '同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。名前を変えてください。':
+    'With two functions of the same name, YAYA reads none of the dictionaries. Rename it.',
+  '関数「{name}」が、辞書「{a}」と「{b}」の両方にあります': 'Function “{name}” is in both dictionary “{a}” and “{b}”',
+  '同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。どちらかを消すか、名前を変えてください。':
+    'With two functions of the same name, YAYA reads none of the dictionaries. Delete one or rename it.',
+  '{event} は、プロジェクトの辞書「{dic}」にもあります': '{event} is also in the project dictionary “{dic}”',
+  "辞書のほうが動くので、ブロックの {event} は、辞書の {event} の中で Studio.Event('{event}') をよんだときだけ動きます。":
+    "The dictionary's one runs, so the block {event} only runs when the dictionary's {event} calls Studio.Event('{event}').",
+
   // ---- YAYA の式のたしかめ（段階 8-1）
   '{title}の YAYA の式「{code}」が、YAYA として読めません': '{title}: the YAYA expression “{code}” is not valid YAYA',
   '「{at}」のあたりを直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。':

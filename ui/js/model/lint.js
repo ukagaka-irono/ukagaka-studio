@@ -7,6 +7,7 @@
 import { getDef } from './blocks.js';
 import { Model } from './model.js';
 import { parseExpr } from './yayatext.js';
+import { dicIssues } from './dics.js';
 import { t } from '../i18n/i18n.js';
 
 const Lint = {};
@@ -390,6 +391,12 @@ Lint.run = function (project, ctx = {}) {
       }
     });
   }
+
+  // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
+  dicIssues(project, (level, message, hint) => issue(out, level, message, hint), {
+    blockEvents: (project.scripts || []).filter((s) => s.kind === 'event' && !s.disabled).map((s) => s.event),
+    linked: !!String((project.meta || {}).ghostDir || ''),
+  });
 
   // ---- 設定まわり
   const st = project.settings || {};

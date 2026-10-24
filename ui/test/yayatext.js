@@ -180,6 +180,17 @@ section('本物の辞書がひとつ残らず読めて、書きなおしても�
   }
 }
 
+section('yaya_base の関数の一覧（model/dics.js。辞書の関数のかぶりを見るのに使う）がそろっているか');
+{
+  const { YAYA_BASE_FUNCTIONS } = require('../js/model/dics.js');
+  const base = path.join(root, 'third_party', 'yaya-dic', 'yaya_base');
+  const names = new Set();
+  for (const f of fs.readdirSync(base).filter((x) => x.endsWith('.dic'))) {
+    for (const it of parseYaya(fs.readFileSync(path.join(base, f), 'utf8')).dic.items) if (it.type === 'func') names.add(it.name);
+  }
+  check(`yaya_base の関数（${names.size} こ）と一覧が同じ`, [...names].sort(), [...YAYA_BASE_FUNCTIONS].sort());
+}
+
 // ================================================================== 4. 読めない関数
 section('読めない関数があっても、ほかを読み、書いたままで残す');
 {

@@ -133,6 +133,10 @@ const cases = [
   ['en.json', 'ghost/master/studio_program.dic', 'en-studio_program.dic'],
   // ファイルの一覧（YAYA 一式が ghost/master/ に入ること）。大きさは、しくみの辞書を直すたびに変わるので見ない
   ['ghost.json', '', 'files.txt', 'namesOnly'],
+  // プロジェクトの YAYA の辞書（段階 8-2）。使える名前のものだけを書き、yaya.txt に足す（改行は CRLF）
+  ['dics.json', 'ghost/master/yaya.txt', 'dics-yaya-txt.txt'],
+  ['dics.json', 'ghost/master/talk.dic', 'dics-talk.txt'],
+  ['dics.json', '', 'dics-files.txt', 'namesOnly'],
 ];
 
 console.log('  ---- 書き出したファイルの中身');

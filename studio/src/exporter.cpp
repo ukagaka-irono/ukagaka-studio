@@ -12,6 +12,7 @@
 #include "fsutil.h"
 #include "image.h"
 #include "util.h"
+#include <cctype>
 
 namespace ikaga {
 
@@ -65,11 +66,51 @@ std::string DescriptLine(const char* key, const std::string& value) {
 // ---------------------------------------------------------- ファイル一覧
 
 
-std::string YayaTxt() {
-    return "charset, UTF-8\r\n"
-           "dicdir, yaya_base\r\n"
-           "dic, studio_runtime.dic\r\n"
-           "dic, studio_program.dic\r\n";
+// プロジェクトの YAYA の辞書の名前に使えるか（段階 8-2。ui/js/model/dics.js の dicNameOk と同じ決まり）。
+// フォルダの区切りや Windows で使えない文字が無く、.dic で終わり、スタジオのファイルではない（ghost/master の外に書かないため）
+bool DicNameOk(const std::string& name) {
+    if (name.empty() || name.size() > 64 || name[0] == '.' || name[0] == ' ') return false;
+    if (name.size() < 4) return false;
+    std::string tail = name.substr(name.size() - 4);
+    for (size_t i = 0; i < tail.size(); i++) tail[i] = (char)tolower((unsigned char)tail[i]);
+    if (tail != ".dic") return false;
+    for (size_t i = 0; i < name.size(); i++) {
+        unsigned char c = (unsigned char)name[i];
+        if (c < 0x20 || c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') return false;
+    }
+    std::string lower = name;
+    for (size_t i = 0; i < lower.size(); i++) lower[i] = (char)tolower((unsigned char)lower[i]);
+    return lower != "studio_runtime.dic" && lower != "studio_program.dic" && lower != "studio_preview.dic";
+}
+
+// 書き出すプロジェクトの辞書（名前が使えて、同じ名前の 2 つめではないもの）
+static std::vector<const JValue*> ExportedDics(const JValue& project) {
+    std::vector<const JValue*> out;
+    std::vector<std::string> seen;
+    const JValue& dics = project["dics"];
+    for (size_t i = 0; i < dics.size(); i++) {
+        const JValue& d = dics.at(i);
+        std::string name = d["name"].asStr();
+        if (!DicNameOk(name)) continue;
+        std::string lower = name;
+        for (size_t k = 0; k < lower.size(); k++) lower[k] = (char)tolower((unsigned char)lower[k]);
+        bool dup = false;
+        for (size_t k = 0; k < seen.size(); k++) if (seen[k] == lower) dup = true;
+        if (dup) continue;
+        seen.push_back(lower);
+        out.push_back(&d);
+    }
+    return out;
+}
+
+std::string YayaTxt(const JValue& project) {
+    std::string s = "charset, UTF-8\r\n"
+                    "dicdir, yaya_base\r\n"
+                    "dic, studio_runtime.dic\r\n"
+                    "dic, studio_program.dic\r\n";
+    std::vector<const JValue*> dics = ExportedDics(project);
+    for (size_t i = 0; i < dics.size(); i++) s += "dic, " + (*dics[i])["name"].asStr() + "\r\n";
+    return s;
 }
 
 std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<OutFile>& kit,
@@ -165,11 +206,28 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
 
     // YAYA で動かすためのもの
     f.name = "ghost/master/yaya.txt";
-    f.data = YayaTxt();
+    f.data = YayaTxt(project);
     files.push_back(f);
     f.name = "ghost/master/studio_program.dic";
     f.data = dic;
     files.push_back(f);
+    // プロジェクトの YAYA の辞書（段階 8-2）。改行は CRLF にそろえる
+    {
+        std::vector<const JValue*> dics = ExportedDics(project);
+        for (size_t i = 0; i < dics.size(); i++) {
+            const std::string text = (*dics[i])["text"].asStr();
+            std::string crlf;
+            crlf.reserve(text.size() + text.size() / 16);
+            for (size_t k = 0; k < text.size(); k++) {
+                if (text[k] == '\r') continue;
+                if (text[k] == '\n') crlf += '\r';
+                crlf += text[k];
+            }
+            f.name = "ghost/master/" + (*dics[i])["name"].asStr();
+            f.data = crlf;
+            files.push_back(f);
+        }
+    }
     for (size_t i = 0; i < kit.size(); i++) {
         f.name = "ghost/master/" + kit[i].name;
         f.data = kit[i].data;

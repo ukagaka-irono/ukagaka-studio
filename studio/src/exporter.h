@@ -60,7 +60,8 @@ std::vector<HitArea> DefaultHitAreas(int w, int h);
 std::string ShellImagePath(const JValue& project, int surfaceId);
 
 // YAYA で動かすときの yaya.txt（書き出すゴーストのもの。画面の yayaTxt() と同じ中身）
-std::string YayaTxt();
+std::string YayaTxt(const JValue& project);
+bool DicNameOk(const std::string& name);
 
 // ゴースト一式のファイル。
 //   kit … ghost/master/ に置く YAYA 一式（yaya.dll・yaya_base/…・studio_runtime.dic）。名前は master からの相対

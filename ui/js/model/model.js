@@ -1,6 +1,7 @@
 /* 伺かスタジオ - プロジェクトのデータモデルと Undo */
 
 import { AREAS, EVENTS, MOUSE_EVENTS, WHO_ANY, getDef } from './blocks.js';
+import { normalizeDics } from './dics.js';
 import { t } from '../i18n/i18n.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -124,6 +125,7 @@ const Model = {
       },
       variables: [],
       scripts: [],
+      dics: [],          // YAYA の辞書 [{ name, text }]（段階 8-2。model/dics.js）
     };
   },
 
@@ -163,6 +165,7 @@ const Model = {
         }));
     }
     out.shell.areas = areas;
+    out.dics = normalizeDics(out.dics);
     out.variables = Array.isArray(out.variables) ? out.variables : [];
     out.variables = out.variables
       .filter((v) => v && v.name)

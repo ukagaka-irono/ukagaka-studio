@@ -446,6 +446,8 @@ ukagaka-studio/
 │       │   ├── blockindex.js  searching blocks by text (the / “find and place”)
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
+│       │   ├── yayatext.js reading (parsing) and pretty-printing YAYA dictionary text
+│       │   ├── dics.js     YAYA dictionaries inside the project (name rules, clashing functions)
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk
 │       │   ├── partsfile.js parts files (.parts.json) out and in

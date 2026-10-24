@@ -1014,7 +1014,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 | | What | |
 |---|---|---|
 | 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | done |
-| 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | |
+| 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | done |
 | 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | |
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | |
 | 8-5 | Two-way live sync between blocks and text | |
@@ -1036,6 +1036,19 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > YAYA test pretty-prints all 5 yaya_base files, the runtime and the translated dictionary, and the real yaya.dll gives the same answers for
 > all 34 parity cases. Right away, the Check tab now reads the expression of “value of YAYA expression C” and flags one that is not valid YAYA
 > (one unreadable expression stops YAYA from reading the whole dictionary). 2 editor checks.
+
+
+> **8-2 is done.** The project gained `dics` (`[{ name, text }]`, `ui/js/model/dics.js`). On export the exe (`studio/src/exporter.cpp`) writes each
+> one to `ghost/master/<name>` with CRLF and adds `dic, <name>` after the studio dictionaries in `yaya.txt`. Only names ending in `.dic`, without
+> folder separators or characters Windows forbids, and not a studio file (`studio_runtime.dic` and so on) are written (`DicNameOk` in the exe and
+> `dicNameOk` in the UI follow the same rule; a second name differing only in case is skipped too). Functions in the dictionaries are passed to the
+> export as “hand-written”, as with a linked hand-written ghost, so the block entry for an event the dictionaries define is not written and the
+> dictionary's one runs (YAYA refuses all dictionaries when a function name appears twice). The Check tab reports unreadable lines (with the
+> dictionary and line), unusable names, duplicate dictionary names, functions defined in two dictionaries, function names the studio or yaya_base
+> already uses (the yaya_base list lives in `dics.js` and `ui/test/yayatext.js` checks it against the real thing), and events also used by blocks.
+> While linked to a hand-written ghost, the project's dictionaries are not exported (the Check tab says so). 3 export checks (42); part 12 of the
+> YAYA test exports with the exe and runs the ghost in the real yaya.dll: the dictionary's OnBoot wins, blocks can call dictionary functions, and
+> unusable names are not written (35). 9 editor checks (198). The page to create and edit dictionaries comes next, in 8-3.
 
 ---
 

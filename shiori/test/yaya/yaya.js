@@ -18,6 +18,7 @@
  *   9. 続きものが、起動するたびに 1 話ずつ進み、おわったら はじめから／もう話さない になるか
  *  10. 「100 回引く」（draw:回数）が、えらばれやすさ・しぼり込み・続けて出さない決まりのとおりに数えるか
  *  11. 辞書を読んで整えて書いたもの（ui/js/model/yayatext.js）が、もとの辞書と同じに動くか（yaya_base・しくみの辞書・訳した辞書）
+ *  12. プロジェクトの YAYA の辞書を exe で書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべるか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -502,6 +503,35 @@ async function main() {
     expect(`整えて書いた辞書（yaya_base ${dics} こ・しくみ・訳した辞書）で、一致テストの答えが同じ（ちがったもの: ${diff.join(', ') || 'なし'}）`,
       same, cases.length);
     if (same === cases.length) ok('整えて書きなおした辞書も、もとの辞書と同じに動きます', `${cases.length} 件`);
+  }
+
+  // ---- 12. プロジェクトの YAYA の辞書（段階 8-2） -----------------------------------
+  // exe と同じ書き出し（export_host.exe）で書き出して、そのまま YAYA で動かす。辞書の関数は「手書き」として訳す（書き出しの画面と同じ）
+  {
+    const { dicFunctionNames } = require(path.join(host.root, 'ui', 'js', 'model', 'dics.js'));
+    const { toYaya, programOf } = await host.yayaTranslator();
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const fixture = path.join(host.root, 'studio', 'test', 'fixture', 'dics.json');
+    const project = readJson(fixture);
+    const dir = path.join(__dirname, 'work', 'dics');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    const dicFile = path.join(dir, 'studio_program.dic.in');
+    fs.writeFileSync(dicFile, toYaya(programOf(project), { handwritten: dicFunctionNames(project) }));
+    require('child_process').execFileSync(exportHost, [fixture, '--write', dir, '--dic', dicFile]);
+    const master = path.join(dir, 'ghost', 'master');
+    const got = host.runYaya(master, ['OnBoot', 'OnCallDic']);
+    expect('辞書の OnBoot が、ブロックの OnBoot より先に動く', (got[0] || {}).value, '\\0辞書の起動\\e');
+    // 「YAYA の関数をよぶ」は、関数の答えをそのまま出す（\0 は付けない）
+    expect('ブロックから、辞書の関数をよべる', (got[1] || {}).value, 'やあ\\e');
+    // Windows はファイル名の大文字小文字を区別しないので、Talk.DIC は中身で見る（talk.dic のほうが入っていること）
+    expect('使えない名前の辞書は書き出さない（フォルダの外・スタジオのファイル・大文字小文字だけちがう 2 つめ）',
+      [fs.existsSync(path.join(dir, 'ghost', 'evil.dic')), fs.existsSync(path.join(master, 'evil.dic')),
+        fs.readFileSync(path.join(master, 'studio_runtime.dic'), 'utf8').includes('Evil2'),
+        fs.readFileSync(path.join(master, 'talk.dic'), 'utf8').includes('Evil3')].join(','), 'false,false,false,false');
+    if ((got[0] || {}).value === '\\0辞書の起動\\e' && (got[1] || {}).value === 'やあ\\e') {
+      ok('プロジェクトの辞書を書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべます');
+    }
   }
 
   // ---- 表示 --------------------------------------------------------------------

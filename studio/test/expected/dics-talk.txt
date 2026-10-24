@@ -1,0 +1,13 @@
+== folder: dics / 24 ファイル
+---- ghost/master/talk.dic (101 バイト)
+// プロジェクトの辞書
+OnBoot
+{
+	"\0辞書の起動\e"
+}
+
+Hand.Hello
+{
+	"やあ"
+}
+

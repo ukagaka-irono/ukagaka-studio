@@ -9,6 +9,7 @@
  */
 
 import { Model } from '../model/model.js';
+import { dicFunctionNames } from '../model/dics.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -114,11 +115,11 @@ function unlink() {
 
 /**
  * 書き出すときの材料。つないでいれば { linked: パス, handwritten: [手書きの関数] }、
- * つないでいなければ {}。
+ * つないでいなければ { handwritten: [プロジェクトの辞書の関数] }（段階 8-2。辞書にあるイベントの入り口は、ブロックからは書かない）。
  */
 async function exportOptions() {
   const path = linkedPath();
-  if (!path) return {};
+  if (!path) return { handwritten: dicFunctionNames(Model.project) };
   const info = await ensureInspected() || Session.yayaGhost;
   return { linked: path, handwritten: info && Array.isArray(info.functions) ? info.functions : [] };
 }
