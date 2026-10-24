@@ -17,6 +17,7 @@
  *   8. ランダムトークの時間帯・季節のしぼり込みが、いまの時刻で効くか
  *   9. 続きものが、起動するたびに 1 話ずつ進み、おわったら はじめから／もう話さない になるか
  *  10. 「100 回引く」（draw:回数）が、えらばれやすさ・しぼり込み・続けて出さない決まりのとおりに数えるか
+ *  11. 辞書を読んで整えて書いたもの（ui/js/model/yayatext.js）が、もとの辞書と同じに動くか（yaya_base・しくみの辞書・訳した辞書）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -463,6 +464,44 @@ async function main() {
     if (got === JSON.stringify([200, 200, undefined, undefined, 0]) && r2.draws && r2.draws.cond > 0) {
       ok('「100 回引く」が、SSP と同じえらびかたで数えます');
     }
+  }
+
+  // ---- 11. 整えて書いた辞書が、もとの辞書と同じに動くか（段階 8-1） ------------------
+  // 一致テストのゴーストを、もとの辞書と、読んで整えて書きなおした辞書（yaya_base もしくみの辞書も訳した辞書も）の両方で動かし、
+  // 答えが 1 つ残らず同じかを見ます。書きなおすと字下げや空白は変わりますが、動きは変わらないはずです
+  {
+    const { parseYaya, printYaya } = require(path.join(host.root, 'ui', 'js', 'model', 'yayatext.js'));
+    const { toYaya, yayaTxt } = await host.yayaTranslator();
+    const printed = (text) => printYaya(parseYaya(text).dic).replace(/\n/g, '\r\n');
+    const program = readJson(path.join(PARITY, 'ghost.json'));
+    const cases = program.scripts.filter((s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || ''));
+    const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
+    const orig = await host.runYayaProgram('printed-orig', program, specs);
+
+    const dir = path.join(__dirname, 'work', 'printed');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    const base = path.join(host.root, 'third_party', 'yaya-dic', 'yaya_base');
+    const pbase = path.join(dir, 'yaya_base_printed');
+    fs.cpSync(base, pbase, { recursive: true });
+    let dics = 0;
+    for (const f of fs.readdirSync(pbase).filter((x) => x.endsWith('.dic'))) {
+      fs.writeFileSync(path.join(pbase, f), printed(fs.readFileSync(path.join(base, f), 'utf8')));
+      dics++;
+    }
+    fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt().replace('dicdir, yaya_base', 'dicdir, yaya_base_printed'));
+    fs.writeFileSync(path.join(dir, 'studio_runtime.dic'),
+      printed(fs.readFileSync(path.join(host.root, 'studio', 'res', 'yaya', 'studio_runtime.dic'), 'utf8')));
+    fs.writeFileSync(path.join(dir, 'studio_program.dic'), printed(toYaya(program)));
+    const saori = path.join(host.root, 'shiori', 'dist', 'slow_saori.dll');
+    if (fs.existsSync(saori)) fs.copyFileSync(saori, path.join(dir, 'slow_saori.dll'));
+    const got = host.runYaya(dir, specs);
+
+    const same = cases.filter((s, i) => got[i] && orig[i] && got[i].value === orig[i].value && got[i].commTo === orig[i].commTo).length;
+    const diff = cases.map((s, i) => (got[i] && orig[i] && got[i].value === orig[i].value ? null : s.event)).filter(Boolean);
+    expect(`整えて書いた辞書（yaya_base ${dics} こ・しくみ・訳した辞書）で、一致テストの答えが同じ（ちがったもの: ${diff.join(', ') || 'なし'}）`,
+      same, cases.length);
+    if (same === cases.length) ok('整えて書きなおした辞書も、もとの辞書と同じに動きます', `${cases.length} 件`);
   }
 
   // ---- 表示 --------------------------------------------------------------------

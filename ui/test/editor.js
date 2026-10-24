@@ -309,6 +309,11 @@ check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
 
+// --- 段階 8-1: YAYA の式が YAYA として読めるか
+check('読めない YAYA の式は言う', issuesOf(withScript([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: '1 + (2' } }]), 'YAYA として読めません'), ['warn']);
+check('読める YAYA の式なら言わない',
+  issuesOf(withScript([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: 'STRLEN(Studio.var["x"]) * 2 + (1, 2)[0]' } }]), 'YAYA として読めません'), []);
+
 // --- 段階 7-7: 選択肢のつながり
 {
   const { choiceGraph } = require('../js/model/graph.js');

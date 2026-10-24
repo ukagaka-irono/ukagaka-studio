@@ -1013,13 +1013,29 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 
 | | What | |
 |---|---|---|
-| 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | |
+| 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | done |
 | 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | |
 | 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | |
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | |
 | 8-5 | Two-way live sync between blocks and text | |
 | 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
 | 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
+
+
+> **8-1 is done.** `ui/js/model/yayatext.js` gained `parseYaya`, which turns YAYA dictionary text into a tree, and `printYaya`, which turns the
+> tree back into dictionary text (`parseExpr` / `printExpr` for a single expression). It follows YAYA's grammar manual (the grammar pages at
+> yaya-shiori.github.io/yaya-docs) and covers functions and selection modes (including `_pool` and `melt_`), nested blocks and their modes, the
+> `--` output separator, `parallel` / `void`, numbers (binary, hex, real), strings (doubled `""` / `''`, `%(…)`), heredocs, joining lines with a
+> trailing `/` (even in the middle of a name; not at the end of a `//` comment), every operator (by precedence, assignment also binding left to
+> right, `_in_` / `!_in_`, the `:=` forms, `,=`, prefix and postfix `++` / `--`, `&` arguments, `[ ]` delimiters and ranges), if / elseif / else
+> (also without braces), case / when / others (lists, ranges, one-liners), switch, while, for, foreach (two variables, header parentheses),
+> break / continue / return, comments and preprocessor lines such as `#define`. Printing settles indentation (tabs) and the braces of if and
+> the like, and keeps strings, numbers, parentheses, comments and blank lines as written. A function that cannot be read does not stop the
+> rest: it is kept verbatim and reported with its line number. The new test `ui/test/yayatext.js` (the 10th; 65 checks) covers the manual's
+> examples and checks that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive printing. Part 11 of the
+> YAYA test pretty-prints all 5 yaya_base files, the runtime and the translated dictionary, and the real yaya.dll gives the same answers for
+> all 34 parity cases. Right away, the Check tab now reads the expression of “value of YAYA expression C” and flags one that is not valid YAYA
+> (one unreadable expression stops YAYA from reading the whole dictionary). 2 editor checks.
 
 ---
 

@@ -64,6 +64,7 @@ Invoke-Sub (Join-Path $root 'studio\build.ps1') $studioArgs
 #   yaya     … YAYA（third_party\yaya\）が公式のビルドのままで、訳した辞書が読みこめるか
 #   export   … 書き出したファイル（surfaces.txt など）の中身が期待どおりか
 #   editor   … エディタのデータ整形とチェックタブが期待どおりか
+#   yayatext … YAYA の文を読んで整えて書くところが、YAYA の構文をすべて読み、本物の辞書を読み書きできるか
 #   modules  … 画面のファイルが読みこめて、呼び先がそろっているか（分けたときの移し忘れ）
 #   i18n     … 画面の文が日本語と英語でそろっているか
 if ($Test) {
@@ -75,7 +76,7 @@ if ($Test) {
         foreach ($t in @('tools\check-imports.js',
                          'shiori\test\parity\parity.js', 'shiori\test\behavior\behavior.js',
                          'shiori\test\yaya\yaya.js',
-                         'studio\test\export.js', 'ui\test\editor.js', 'ui\test\modules.js',
+                         'studio\test\export.js', 'ui\test\editor.js', 'ui\test\yayatext.js', 'ui\test\modules.js',
                          'ui\test\i18n.js')) {
             & node (Join-Path $root $t)
             if ($LASTEXITCODE -ne 0) { throw "$([System.IO.Path]::GetFileName($t)) が失敗しました。" }

@@ -305,7 +305,7 @@ The version number is the single line in the **`VERSION` file at the root**. Cha
 updates both the zip name and the exe's properties (right-click → Properties → Details).
 Add what changed to `CHANGELOG.md`.
 
-With `-Test`, nine tests run.
+With `-Test`, ten tests run.
 
 | | |
 |---|---|
@@ -314,12 +314,13 @@ With `-Test`, nine tests run.
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions the runtime dictionary makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, random talk, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
 | **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`) is still the official build and runs; whether variables survive a restart, the exe's export runs on YAYA as it is, and exporting into a linked hand-written YAYA ghost leaves the hand-written files byte for byte unchanged |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic`, and the file list) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
+| **YAYA text test** (`ui\test\yayatext.js`) | That reading YAYA dictionaries (the parser) and pretty-printing them covers all of YAYA's syntax; that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive being printed again; and that a function that cannot be read is kept verbatim while the rest is still read |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, that every example is clean, and that the notice in Help's “About this software” is the same text as in the README and LICENSE |
 | **Import check** (`tools\check-imports.js`) | Reads the import table of the `yaya.dll` that goes into exported ghosts directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows (this is for when you upgrade it) |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
 | **UI language check** (`ui\test\i18n.js`) | Whether all Japanese UI text goes through `t()` and has an English translation (so no Japanese is left on the English screen), whether the dictionary has stale entries or mismatched `{placeholders}`, whether every error code the exe returns has UI text, and whether every document has an English version |
 
-Only these nine use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
+Only these ten use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
 The behavior test waits on purpose in one place (a slow SAORI overlapping with closing),
 so it takes about 10 seconds.
 When you add blocks or behavior, update the inputs and expected results in `shiori\test\`, `studio\test\` and `ui\test\`
@@ -329,7 +330,7 @@ regenerate the expected files with `node studio\test\export.js --update` / `node
 **The steps for adding one block** (which file gets what) and the common pitfalls are collected in
 [`docs/en/maintenance.md`](docs/en/maintenance.md).
 
-These nine also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
+These ten also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
 so they stop you even if you forget. The settings are in `.github/workflows/build.yml`.
 
 To build one part, use `shiori\build.ps1` (the 32-bit helper and the test consoles) / `studio\build.ps1`.
@@ -431,6 +432,7 @@ ukagaka-studio/
 │   ├── samples/            examples (“Start from an example”); the English ones are in samples/en/
 │   ├── test/               tests that run without showing the UI
 │   │                         editor.js  … normalizing, format versions, Check tab, block search, examples, About
+│   │                         yayatext.js … reading and pretty-printing YAYA text
 │   │                         modules.js … loading, layer direction, call targets, color tokens
 │   │                         i18n.js    … unwrapped t(), the English dictionary, exe error codes, English docs
 │   └── js/                 ES modules (index.html reads only main.js)

@@ -15,7 +15,7 @@ What goes here are **the rules written in places far apart, which break silently
 
 ```powershell
 node tools\check-blocks.js     # 1 second. No build. Are all blocks present everywhere?
-.\build.ps1 -Test              # about 3 minutes. Build, then the 9 tests
+.\build.ps1 -Test              # about 3 minutes. Build, then the 10 tests
 ```
 
 `check-blocks.js` needs no build, so **run it first whenever you change something**.
@@ -96,7 +96,7 @@ Some types and operators are not shown in the palette and exist for hand-written
 
 ---
 
-## The 9 tests and what each protects
+## The 10 tests and what each protects
 
 | How to run | What it protects |
 |---|---|
@@ -105,6 +105,7 @@ Some types and operators are not shown in the palette and exist for hand-written
 | `node shiori\test\behavior\behavior.js` | the decisions the runtime dictionary makes (what it picks, default reactions, thinning, random talk, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day”. The scenarios are in `scenarios.js` |
 | `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that `YAYA_DEFINES` matches yaya_base, variables survive a restart, the exe's export runs as it is, and exports into a linked hand-written ghost |
 | `node studio\test\export.js` | the contents of exported files (compared byte by byte), including English ghosts' readme.txt, fallback names and `meta.lang` |
+| `node ui\test\yayatext.js` | that reading YAYA dictionaries (`yayatext.js`) covers all of YAYA's syntax (the examples in the grammar manual), that real dictionaries all parse and survive being pretty-printed again, and that an unreadable function is kept verbatim. Whether printed dictionaries behave the same is checked with the real yaya.dll by part 11 of `yaya.js` |
 | `node ui\test\editor.js` | normalizing loaded projects and format versions (`model.js`), the Check tab (`lint.js`), searching blocks by text (`blockindex.js`), and that the examples (Japanese and English) pass the Check tab |
 | `node ui\test\modules.js` | that `ui\js\` is reachable from `main.js`, imports follow the layer rules with no cycles, any file loads first without failing, and every `Xxx.yyy()` has a target. That colors in `style.css` go through tokens |
 | `node tools\check-imports.js` | that `third_party\yaya\yaya.dll` loads from Windows 2000 (reads the import table directly; for when you upgrade it) |
@@ -165,7 +166,7 @@ ui/js/
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
-└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff / graph
+└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / yayatext / lines / replace / partsfile / diff / graph
 ```
 
 **Imports point downward only.** Files in the same layer may import each other, but **never in a cycle**

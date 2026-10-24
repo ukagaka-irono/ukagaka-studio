@@ -6,6 +6,7 @@
 
 import { getDef } from './blocks.js';
 import { Model } from './model.js';
+import { parseExpr } from './yayatext.js';
 import { t } from '../i18n/i18n.js';
 
 const Lint = {};
@@ -327,6 +328,15 @@ Lint.run = function (project, ctx = {}) {
           } else if (isEmptyText(b.code)) {
             issue(out, 'warn', t('{title}に、中身が空の YAYA の式があります', { title }),
               t('空の式は、いつも空の値になります。'), s, b);
+          } else {
+            // YAYA の式として読めるか（段階 8-1。model/yayatext.js）。読めないと、YAYA が辞書をまるごと読めなくなる
+            try {
+              parseExpr(String(b.code));
+            } catch (e) {
+              issue(out, 'warn', t('{title}の YAYA の式「{code}」が、YAYA として読めません', { title, code: String(b.code) }),
+                e.detail ? t('「{at}」のあたりを直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。', { at: e.detail })
+                  : t('式を直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。'), s, b);
+            }
           }
           break;
         case 'update':

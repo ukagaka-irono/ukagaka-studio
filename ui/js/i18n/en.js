@@ -129,6 +129,13 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- YAYA の式のたしかめ（段階 8-1）
+  '{title}の YAYA の式「{code}」が、YAYA として読めません': '{title}: the YAYA expression “{code}” is not valid YAYA',
+  '「{at}」のあたりを直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。':
+    'Fix it around “{at}”. One unreadable expression stops YAYA from reading the whole dictionary.',
+  '式を直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。':
+    'Fix the expression. One unreadable expression stops YAYA from reading the whole dictionary.',
+
   // ---- 選択肢のつながり（段階 7-7）
   'つながり': 'Links',
   '選択肢と「よぶ」のつながりを図で見る': 'See how choices and calls connect, as a diagram',
