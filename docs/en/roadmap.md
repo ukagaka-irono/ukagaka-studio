@@ -1027,6 +1027,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 2026-10-22 | Versions **count on from 2.0.0-alpha with ordinary semver** (major for big changes, minor for new features, patch for fixes; `-alpha` / `-beta` mark trial versions). Counting does not restart (0-2) |
 | 2026-10-22 | Variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) **are not carried over to YAYA**. After exporting again, variables start from the project's initial values (“Clear the ghost's memory” also deletes a leftover `ikaga_save.json`) (stage 3) |
 | 2026-10-22 | From an existing shell, **animations (SERIKO/2.0), rectangular hit areas and dress-up names are imported too**; non-rectangular surface hit areas and SERIKO/1 are not (changes the 3-5d decision now that there is a place for them; stage 4) |
+| 2026-10-24 | Branches are split into **`main` (what is distributed), `develop` (everyday work) and `fix/…` (fixes)**; see “How branches are split” in the maintenance guide |
 | 2026-10-22 | The name “如何栞 (ikaga SHIORI)” and the `ikaga` names in the code (the project format `ikaga/1`, the input box ID `ikaga:<variable>`, the `ikaga.lang` setting and so on) **stay as they are**, for compatibility with earlier projects and exported ghosts; the docs call them “a leftover from the 1.x SHIORI's name” (stage 3) |
 
 ## Not decided yet

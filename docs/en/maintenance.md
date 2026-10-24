@@ -120,7 +120,7 @@ regenerate the expected files with `node studio\test\export.js --update` / `node
 ### They run by themselves on push
 
 `.github/workflows/build.yml` runs **the same `.\build.ps1 -Release` as on your machine** on windows-latest
-for every push to `main`, every tag (`v*`) and every pull request.
+for every push to `main`, `develop` or `fix/…`, every tag (`v*`) and every pull request.
 It is there to stop you even if you forget, so **if it turns red, fix it before moving on**.
 
 * There are two jobs. `そろい点検` (block coverage; no build, about 1 minute) reports first,
@@ -478,8 +478,22 @@ the UI, but saving, exporting and “Try” do not work (they all call into the 
 
 ---
 
+## How branches are split
+
+| Branch | What goes there | Made from, merged back into |
+|---|---|---|
+| `main` | **What is distributed** (the latest release) | Never committed to directly; `develop` or a `fix/…` branch is merged in |
+| `develop` | **Everyday work** (roadmap features and so on) | Work and commit here; merged into `main` when releasing |
+| `fix/…` | **Fixes** (name it after what it fixes, like `fix/readme-mojibake`) | Usually made from `develop` and merged back into `develop`. Only to fix what is already distributed, make it from `main` and merge it into both `main` and `develop` |
+
+* New features and roadmap edits go on `develop`. A finished `fix/…` branch can be deleted.
+* Merge into `main` with `git switch main` → `git merge --no-ff develop` so the merge stays visible (step 0 of the release steps below).
+* Every branch runs the Actions tests on push (`build.yml`). Make sure `develop` is green before merging it into `main`.
+
 ## Releasing a version
 
+0. After checking that `develop` is green, gather what you distribute on `main` with `git switch main` → `git merge --no-ff develop`
+   (for a fix to what is already distributed, merge the `fix/…` branch into `main` and the same into `develop`).
 1. Edit `VERSION` (one line at the root). The zip name, the exe properties and the version the exe reports to the UI (`version_gen.h`)
    read only this. Versions follow **ordinary semver** (from 2.0.0-alpha): raise the major number for big changes that break compatibility,
    the minor number for new features, and the patch number for fixes only. Add `-alpha` / `-beta` while it is a trial version

@@ -7,7 +7,8 @@ name: ビルドとテスト
 
 on:
   push:
-    branches: [main]
+    # main（配っているもの）・develop（ふだんの作業）・fix/〜（直し）。分けかたは docs/maintenance.md の「ブランチの分けかた」
+    branches: [main, develop, 'fix/**']
     tags: ['v*']          # 配るためのタグも、押した時点で確かめる
   pull_request:
   workflow_dispatch:      # 手で走らせたいとき
