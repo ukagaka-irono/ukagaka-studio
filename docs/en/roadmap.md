@@ -930,7 +930,7 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 
 ---
 
-## Stage 7 — Easier to write, easier to check
+## Stage 7 — Easier to write, easier to check (done)
 
 On 2026-10-23, the seven candidates not picked for stage 6, to be done from the top.
 
@@ -999,6 +999,28 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 >
 > **Stage 7 is now complete.**
 
+
+---
+
+## Stage 8 — Building a YAYA ghost entirely inside the studio
+
+Decided on 2026-10-25. Today's blocks write what ghost-making needs on top of the studio's own machinery (`Studio.…`), and cannot express all
+of YAYA's syntax (functions with arguments and return values, local variables, arrays and hashes, `for` / `foreach` / `case` / `switch`,
+`break` / `continue` / `return`, output modes and `--`, `%(expr)`, `#define`, YAYA's built-in functions, and so on).
+So **the project will hold YAYA dictionaries (.dic)**, editable as text or as blocks that map 1:1 to YAYA. Blocks and text are linked
+**both ways**, live (editing with blocks rewrites the text in a fixed format; comments are kept). Today's simple blocks stay as they are.
+The goal is to finish a YAYA ghost inside the studio without linking a hand-written ghost.
+
+| | What | |
+|---|---|---|
+| 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | |
+| 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | |
+| 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | |
+| 8-4 | Blocks for every YAYA construct and for the built-in functions | |
+| 8-5 | Two-way live sync between blocks and text | |
+| 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
+| 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
+
 ---
 
 ## Decisions
@@ -1027,6 +1049,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 2026-10-22 | Versions **count on from 2.0.0-alpha with ordinary semver** (major for big changes, minor for new features, patch for fixes; `-alpha` / `-beta` mark trial versions). Counting does not restart (0-2) |
 | 2026-10-22 | Variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) **are not carried over to YAYA**. After exporting again, variables start from the project's initial values (“Clear the ghost's memory” also deletes a leftover `ikaga_save.json`) (stage 3) |
 | 2026-10-22 | From an existing shell, **animations (SERIKO/2.0), rectangular hit areas and dress-up names are imported too**; non-rectangular surface hit areas and SERIKO/1 are not (changes the 3-5d decision now that there is a place for them; stage 4) |
+| 2026-10-25 | To cover all of YAYA's syntax, **the project holds YAYA dictionaries**, edited **both ways** as text and as blocks that map 1:1 to YAYA; today's simple blocks stay (stage 8) |
 | 2026-10-24 | Branches are split into **`main` (what is distributed), `develop` (everyday work) and `fix/…` (fixes)**; see “How branches are split” in the maintenance guide |
 | 2026-10-22 | The name “如何栞 (ikaga SHIORI)” and the `ikaga` names in the code (the project format `ikaga/1`, the input box ID `ikaga:<variable>`, the `ikaga.lang` setting and so on) **stay as they are**, for compatibility with earlier projects and exported ghosts; the docs call them “a leftover from the 1.x SHIORI's name” (stage 3) |
 
