@@ -20,6 +20,7 @@
  *  11. 辞書を読んで整えて書いたもの（ui/js/model/yayatext.js）が、もとの辞書と同じに動くか（yaya_base・しくみの辞書・訳した辞書）
  *  12. プロジェクトの YAYA の辞書を exe で書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべるか
  *  13. いまある YAYA ゴーストの辞書を読みこむとき、yaya.txt の辞書（dicdir の中も）を UTF-8 にして読み、yaya_base とスタジオのファイルは読まないか
+ *  14. 「ためす」でプロジェクトの辞書の関数を動かせるか（call:。イベントの情報は reference に入る）。ブロックのかたまりも、いっしょに動くか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -555,6 +556,20 @@ async function main() {
     expect('ゴーストの辞書を読みこむ（Shift_JIS も UTF-8 に・改行は LF・dicdir の中も・yaya_base とスタジオのファイルは読まない）', out,
       '== aya_talk.dic\nOnBoot\n{\n\t"こんにちは"\n}\n== dic/sub.dic\nSub\n{\n\t"さぶ"\n}\n');
     if (out.startsWith('== aya_talk.dic')) ok('いまある YAYA ゴーストの辞書を、UTF-8 にして読みこめます');
+  }
+
+  // ---- 14. 「ためす」で辞書の関数を動かす（段階 8-7） ------------------------------------
+  {
+    const dics = [{ name: 'try.dic', text: 'OnBoot\n{\n\t"\\0辞書の起動\\e"\n}\nGreet\n{\n\t"\\0" + reference[0] + "/" + reference0 + "\\e"\n}\n' }];
+    const boot = await host.runYayaPreview('preview-dic', program, 'call:OnBoot', {}, dics);
+    const greet = await host.runYayaPreview('preview-dic', program, 'call:Greet', { refs: ['abc'] }, dics);
+    const none = await host.runYayaPreview('preview-dic', program, 'call:Nope', {}, dics);
+    const block = await host.runYayaPreview('preview-dic', program, 'p06', { vars: { 'あたい': 100 } }, dics);
+    expect('「ためす」で辞書の OnBoot を動かす', boot.script, '\\0辞書の起動\\e');
+    expect('辞書の関数は、イベントの情報を reference[0] と reference0 で読める', greet.script, '\\0abc/abc\\e');
+    expect('無い関数はエラー', none.error, 'function_not_found');
+    expect('辞書があっても、ブロックのかたまりは動く', block.vars && block.vars['初期値つき'], 7);
+    if (boot.script === '\\0辞書の起動\\e' && greet.script === '\\0abc/abc\\e') ok('「ためす」で、プロジェクトの辞書の関数を動かせます');
   }
 
   // ---- 表示 --------------------------------------------------------------------

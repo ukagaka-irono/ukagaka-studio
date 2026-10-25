@@ -100,9 +100,11 @@ const yayaPreviewDic = path.join(root, 'studio', 'res', 'yaya', 'studio_preview.
 /**
  * 「ためす」と同じやりかたで、YAYA でかたまりを 1 つ動かす（yaya_host.exe と studio_preview.dic）。
  * input は { vars, sys, refs }。答えは { script, commTo, vars } か { error }。
+ * dics はプロジェクトの YAYA の辞書（[{ name, text }]。段階 8-7。辞書にある関数は「手書き」として訳します）
  */
-async function runYayaPreview(name, program, scriptId, input) {
+async function runYayaPreview(name, program, scriptId, input, dics = []) {
   const { toYaya, yayaTxt } = await yayaTranslator();
+  const { dicFunctionNames } = await import(require('url').pathToFileURL(path.join(root, 'ui', 'js', 'model', 'dics.js')).href);
   if (!fs.existsSync(yayaHost)) {
     throw new Error('yaya_host.exe がありません。先に .\\build.ps1 を実行してください。');
   }
@@ -110,10 +112,11 @@ async function runYayaPreview(name, program, scriptId, input) {
   fs.mkdirSync(dir, { recursive: true });
   fs.copyFileSync(yayaDll, path.join(dir, 'yaya.dll'));
   fs.cpSync(yayaBase, path.join(dir, 'yaya_base'), { recursive: true });
-  fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt() + 'dic, studio_preview.dic\r\n');
+  fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt() + 'dic, studio_preview.dic\r\n' + dics.map((d) => `dic, ${d.name}\r\n`).join(''));
+  for (const d of dics) fs.writeFileSync(path.join(dir, d.name), d.text);
   fs.copyFileSync(yayaRuntime, path.join(dir, 'studio_runtime.dic'));
   fs.copyFileSync(yayaPreviewDic, path.join(dir, 'studio_preview.dic'));
-  fs.writeFileSync(path.join(dir, 'studio_program.dic'), toYaya(program));
+  fs.writeFileSync(path.join(dir, 'studio_program.dic'), toYaya(program, { handwritten: dicFunctionNames({ dics }) }));
   const saved = path.join(dir, 'yaya_variable.cfg');
   if (fs.existsSync(saved)) fs.unlinkSync(saved);
 

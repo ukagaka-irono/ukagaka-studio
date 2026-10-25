@@ -502,8 +502,9 @@ function buildScriptEl(script, project, options) {
     if (script.blocks.length || script.folded) {
       tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => host.toggleFold(script)));
     }
-    // 辞書の画面のかたまり（opts.host のあるもの）は、まだ「ためす」で動かせません（段階 8-7）
+    // 辞書の画面のかたまり（opts.host のあるもの）は、host が動かす（関数のかたまりだけ）
     if (!opts.host) tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
+    else if (host.runScript && script.kind === 'yfunc') tools.appendChild(mk('▶', t('この関数を実行してみる'), () => host.runScript(script)));
     tools.appendChild(mk('⧉', t('複製する'), () => host.duplicateScript(script)));
     tools.appendChild(mk('✕', t('削除する'), () => host.deleteScript(script)));
     wrap.appendChild(tools);

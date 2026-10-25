@@ -31,6 +31,7 @@ const ERRORS = {
   nar_write_failed: () => t('.nar を書き込めませんでした'),
   image_unreadable: () => t('画像が読めません'),
   script_not_found: (d) => t('そのかたまりが見つかりません: {detail}', { detail: d }),
+  function_not_found: (d) => t('辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}', { detail: d }),
   no_dic: () => t('YAYA の辞書がありません'),
   yaya_failed: (d) => t('YAYA で動かせませんでした: {detail}', { detail: d }),
   not_shell_folder: (d) => t('シェルのフォルダではないようです（surfaces.txt も surface の絵もありません）: {detail}', { detail: d }),

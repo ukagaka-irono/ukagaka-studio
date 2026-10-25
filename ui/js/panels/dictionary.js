@@ -19,6 +19,7 @@ import { linkedPath } from './yayalink.js';
 import { parseYaya, highlightYaya, printYaya } from '../model/yayatext.js';
 import { astToView, viewToAst, goesIntoText, YPALETTE, YBlockError } from '../model/yblocks.js';
 import { Drag } from '../editor/drag.js';
+import { Commands } from '../core/commands.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { toast } from '../core/toast.js';
 import { updateTitle } from '../core/title.js';
@@ -196,6 +197,8 @@ const viewFunctionNames = () => (view ? view.scripts.filter((s) => s.kind === 'y
 
 // かたまりの道具（たたむ・複製・削除）。ブロックはプロジェクトの外にあるので、editor/scripts.js のかわりにこちらで
 const HOST = {
+  // 関数を「ためす」で動かす（いまのテキストのまま。ブロックが YAYA にできないときは、テキストのほうで）
+  runScript(s) { Commands.runDicFunction(s.name); },
   toggleFold(s) {
     if (s.folded) delete s.folded;
     else s.folded = true;

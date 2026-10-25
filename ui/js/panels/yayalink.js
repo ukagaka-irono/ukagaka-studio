@@ -125,6 +125,11 @@ async function exportOptions() {
   return { linked: path, handwritten: info && Array.isArray(info.functions) ? info.functions : [] };
 }
 
+/** いまわかっている「手書き」の関数（調べ終わるのを待たない。YAYA を見るところが使う。panels/yayaview.js） */
+function handwrittenNow() {
+  return linkedPath() ? ((Session.yayaGhost || {}).functions || []) : dicFunctionNames(Model.project);
+}
+
 function render() {
   ensureInspected();
   renderStatus();
@@ -135,4 +140,4 @@ function init() {
   $('#btn-yaya-unlink').addEventListener('click', unlink);
 }
 
-export const YayaLink = { init, render, exportOptions };
+export const YayaLink = { init, render, exportOptions, handwrittenNow };

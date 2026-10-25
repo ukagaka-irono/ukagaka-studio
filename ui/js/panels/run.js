@@ -4,6 +4,7 @@ import { MOUSE_EVENTS } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { Player } from '../model/player.js';
 import { programOf, toYaya } from '../model/yaya.js';
+import { dicFunctionNames } from '../model/dics.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -26,13 +27,25 @@ function renderTargets() {
     o.value = s.id;
     sel.appendChild(o);
   }
-  if (!sel.childElementCount) {
+  // プロジェクトの辞書の関数（段階 8-7。「call:関数の名前」で動かす）
+  const names = dicFunctionNames(Model.project);
+  if (names.length) {
+    const group = Render.el('optgroup');
+    group.label = t('辞書の関数');
+    for (const n of names) {
+      const o = Render.el('option', null, n);
+      o.value = 'call:' + n;
+      group.appendChild(o);
+    }
+    sel.appendChild(group);
+  }
+  if (!sel.querySelector('option')) {
     const o = Render.el('option', null, t('（まだブロックがありません）'));
     o.value = '';
     sel.appendChild(o);
   }
   // 前に選んでいたものが残っていればそれを、なければ先頭を選ぶ
-  if (prev && Model.project.scripts.some((s) => s.id === prev)) sel.value = prev;
+  if (prev && Array.from(sel.querySelectorAll('option')).some((o) => o.value === prev)) sel.value = prev;
   else sel.selectedIndex = 0;
 }
 
@@ -71,19 +84,41 @@ async function runPreview(script) {
   return previewRequest(script.id, refsFor(script));
 }
 
-/** scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす） */
+/**
+ * scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす）か「call:関数の名前」。
+ * プロジェクトの辞書もいっしょに渡し（段階 8-7）、辞書にあるイベントは、書き出したゴーストと同じく辞書の関数を動かします
+ */
 function previewRequest(scriptId, refs) {
   const meta = Model.project.meta || {};
+  const handwritten = dicFunctionNames(Model.project);
+  if (scriptId.startsWith('event:') && handwritten.includes(scriptId.slice(6))) scriptId = 'call:' + scriptId.slice(6);
   return api('/api/preview', {
     method: 'POST',
     body: {
-      dic: toYaya(programOf(Model.project)),
+      dic: toYaya(programOf(Model.project), { handwritten }),
+      dics: (Model.project.dics || []).map((d) => ({ name: d.name, text: d.text })),
       scriptId,
       refs,
       vars: Session.vars,
       sys: { ghostName: meta.name || '', shellName: 'master' },
     },
   });
+}
+
+/** プロジェクトの辞書の関数を動かす（段階 8-7。「実行」タブの「辞書の関数」と、辞書の画面のかたまりの ▶） */
+async function runDicFunction(name) {
+  $('#run-target').value = 'call:' + name;
+  Pages.show('talk');
+  Tabs.switchTab('run');
+  let res;
+  try {
+    res = await previewRequest('call:' + name, []);
+  } catch (e) {
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message: e.message });
+    toast(e.message, true);
+    return;
+  }
+  showResult(res);
 }
 
 async function runScript(script) {
@@ -239,10 +274,12 @@ async function ghostLog(action) {
 }
 
 function init() {
-  provide({ runScript });
+  provide({ runScript, runDicFunction });
 
   $('#btn-draw').addEventListener('click', () => drawTalks(100));
   $('#btn-run').addEventListener('click', () => {
+    const value = $('#run-target').value;
+    if (value.startsWith('call:')) { runDicFunction(value.slice(5)); return; }
     const s = currentScript();
     if (s) runScript(s);
     else toast(t('実行するかたまりがありません'), true);

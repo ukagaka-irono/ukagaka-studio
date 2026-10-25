@@ -85,6 +85,7 @@
         <button class="side-tab" data-tab="vars">変数</button>
         <button class="side-tab" data-tab="check">チェック<span id="check-badge" class="tab-badge"></span></button>
         <button class="side-tab" data-tab="search">さがす</button>
+        <button class="side-tab" data-tab="yaya">YAYA</button>
       </nav>
 
       <div id="side-body">
@@ -169,6 +170,21 @@
           </div>
           <p class="hint">置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）だけです。YAYA のコードの欄と変数の名前は置きかえません。</p>
           <div id="search-list" class="check-list"></div>
+        </section>
+
+        <!-- ---- yaya ---- -->
+        <section class="side-panel" data-panel="yaya">
+          <div class="panel-head">
+            <h2>YAYA</h2>
+            <p class="hint">キャンバスで最後に押したかたまり（まだ押していなければ、最初に作ったかたまり）が、書き出したときになる YAYA です。ブロックを変えると、その場で書きかわります。</p>
+          </div>
+          <div class="script-out">
+            <div class="script-out-head">
+              <span id="yaya-live-title">YAYA</span>
+              <button id="btn-yaya-live-copy" class="btn tiny">コピー</button>
+            </div>
+            <pre id="yaya-live">（まだブロックがありません）</pre>
+          </div>
         </section>
       </div>
     </aside>

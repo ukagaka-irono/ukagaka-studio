@@ -12,6 +12,8 @@
 #include "json.h"
 
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace ikaga {
 
@@ -27,8 +29,10 @@ struct PreviewResult {
     int none = 0;          // 「draw:回数」のとき、出せるトークが無かった回数
 };
 
-// dic … 画面が訳した studio_program.dic、input … {"vars":…, "sys":…, "refs":…} の JSON
-PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId, const std::string& input);
+// dic … 画面が訳した studio_program.dic、input … {"vars":…, "sys":…, "refs":…} の JSON、
+// dics … プロジェクトの YAYA の辞書（名前と中身。段階 8-7。書き出すのと同じく、使えない名前・かぶった名前は入れない）
+PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId, const std::string& input,
+                             const std::vector<std::pair<std::string, std::string> >& dics);
 
 // 作業用のフォルダを消す（終わるときに呼びます）
 void CleanupYayaPreview();

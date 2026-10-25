@@ -8,12 +8,13 @@
 //   Reference0 … 動かすかたまりの id。「event:イベント名」なら、SSP と同じえらびかたでそのイベントを動かす
 //                （どのかたまりにするか・しぼり込み・ブロックが無いときの反応。「ためす」の立ち絵をさわったとき）
 //                「draw:回数」なら、ランダムトークをその回数引いて数える（トークは動かさない。「100 回引く」）
+//                「call:関数の名前」なら、プロジェクトの辞書の関数をそのまま動かす（段階 8-7。refs は reference に入れる）
 //   Reference1 … {"vars":{…}, "sys":{…}, "refs":[…]} の JSON（1 行）
 //     vars … 続きから動かすときの変数（プロジェクトの初期値の上にかさねる）
 //     sys  … 情報ブロックが返す値（uptime / boots / talks / ghostName / shellName / lastTalk）
 //     refs … イベントの情報（Reference0〜）
 // 答え（Value に 1 行の JSON）
-//   {"script":"…", "commTo":"…", "vars":{…}}  か  {"error":"script_not_found"}
+//   {"script":"…", "commTo":"…", "vars":{…}}  か  {"error":"script_not_found"}（call: で関数が無ければ "function_not_found"）
 //   draw: のときは、ほかに "draws":{かたまりの id: 回数}・"none":出せるトークが無かった回数
 //
 // SAORI は呼びません（本物の DLL が要るので、SSP に入れてから確かめてもらいます）。
@@ -34,6 +35,15 @@ OnStudioPreview
 		if _draw < 1 { _draw = 1 }
 		if _draw > 1000 { _draw = 1000 }
 	}
+	_call = ''
+	if SUBSTR(_id, 0, 5) == 'call:' {
+		_call = SUBSTR(_id, 5, STRLEN(_id) - 5)
+		if !ISFUNC(_call) {
+			_res['error'] = 'function_not_found'
+			Studio.PreviewAnswer(_res)
+			return
+		}
+	}
 	_k = -1
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
@@ -42,7 +52,7 @@ OnStudioPreview
 			break
 		}
 	}
-	if _k < 0 && _event == '' && _draw == 0 {
+	if _k < 0 && _event == '' && _draw == 0 && _call == '' {
 		_res['error'] = 'script_not_found'
 		Studio.PreviewAnswer(_res)
 		return
@@ -92,6 +102,23 @@ OnStudioPreview
 		_res['commTo'] = ''
 		_res['draws'] = Studio.drawCount
 		_res['none'] = Studio.drawNone
+		_res['vars'] = Studio.var
+		Studio.PreviewAnswer(_res)
+		return
+	}
+	if _call != '' {
+		// 辞書の関数は、SSP がよぶのと同じに。イベントの情報は reference・reference.raw・reference0 〜 に入れ、
+		// 出てきた文字はそのまま返す（スタジオのしくみの後始末はしない）
+		reference = IARRAY
+		_m = ARRAYSIZE(Studio.refs)
+		for _i = 0; _i < _m; _i++ {
+			reference ,= Studio.refs[_i]
+			LETTONAME('reference' + _i, Studio.refs[_i])
+		}
+		reference.raw = reference
+		Studio.reqCommTo = ''
+		_res['script'] = TOSTR(EVAL(_call))
+		_res['commTo'] = Studio.commTo
 		_res['vars'] = Studio.var
 		Studio.PreviewAnswer(_res)
 		return

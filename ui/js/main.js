@@ -78,6 +78,7 @@ function renderAll() {
       Vars.render();
       Run.render();
       Search.renderSearch();
+      YayaView.renderLive();     // 右の列の「YAYA」タブ（見えているときだけ）
       Stage.refresh();
       break;
     case 'chara':

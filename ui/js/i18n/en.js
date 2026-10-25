@@ -1323,6 +1323,15 @@ export const en = {
   '左のテキストに関数を書くか、': 'Write a function in the text on the left, or drag the top hat of',
   'のいちばん上の帽子をここにドラッグ': 'here',
   'ブロックを変えると、テキストも書きかわります': 'Changing the blocks rewrites the text too',
+  // ---- 「ためす」で辞書の関数・右の列の「YAYA」タブ（段階 8-7）
+  '辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}':
+    'That function is not in the dictionaries (YAYA may have failed to read them): {detail}',
+  'この関数を実行してみる': 'Run this function',
+  '辞書の関数': 'Dictionary functions',
+  'キャンバスで最後に押したかたまり（まだ押していなければ、最初に作ったかたまり）が、書き出したときになる YAYA です。ブロックを変えると、その場で書きかわります。':
+    'The YAYA that the script you last pressed on the canvas (or the first script you made, until you press one) becomes on export. It updates as you change the blocks.',
+  '（帽子ブロックの無いかたまりは、書き出さないので YAYA になりません）': '(A script without a hat block is not exported, so it has no YAYA)',
+
   // ---- ui\js\panels\dictionary.js（ゴーストから読みこむ）
   '読みこめる辞書がありませんでした（yaya_base とスタジオのファイルは読みこみません）':
     'No dictionaries to import (yaya_base and Studio files are not imported)',

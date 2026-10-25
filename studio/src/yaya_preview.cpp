@@ -2,9 +2,13 @@
 #include "yaya_preview.h"
 
 #include "assets.h"
+#include "exporter.h"
 #include "fsutil.h"
 #include "json.h"
 #include "util.h"
+
+#include <algorithm>
+#include <cctype>
 
 namespace ikaga {
 
@@ -31,13 +35,6 @@ static bool PlaceKit(const std::wstring& dir, std::string& detail) {
             return false;
         }
     }
-    const std::string txt =
-        "charset, UTF-8\r\n"
-        "dicdir, yaya_base\r\n"
-        "dic, studio_runtime.dic\r\n"
-        "dic, studio_program.dic\r\n"
-        "dic, studio_preview.dic\r\n";
-    if (!WriteBinaryFile(PathJoin(dir, L"yaya.txt"), txt)) { detail = "yaya.txt"; return false; }
     placed = true;
     return true;
 }
@@ -108,12 +105,33 @@ static bool RunHost(const std::wstring& dir, const std::string& request, std::st
     return true;
 }
 
-PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId, const std::string& input) {
+PreviewResult RunYayaPreview(const std::string& dic, const std::string& scriptId, const std::string& input,
+                             const std::vector<std::pair<std::string, std::string> >& dics) {
     PreviewResult out;
     out.error = "yaya_failed";
     const std::wstring dir = WorkDir();
     if (!PlaceKit(dir, out.detail)) return out;
     if (!WriteBinaryFile(PathJoin(dir, L"studio_program.dic"), dic)) { out.detail = "studio_program.dic"; return out; }
+
+    // yaya.txt は毎回書く（プロジェクトの辞書が変わるので。前の回の辞書のファイルは、yaya.txt に無ければ読まれません）
+    std::string txt =
+        "charset, UTF-8\r\n"
+        "dicdir, yaya_base\r\n"
+        "dic, studio_runtime.dic\r\n"
+        "dic, studio_program.dic\r\n"
+        "dic, studio_preview.dic\r\n";
+    std::vector<std::string> seen;
+    for (size_t i = 0; i < dics.size(); i++) {
+        const std::string& name = dics[i].first;
+        if (!DicNameOk(name)) continue;
+        std::string lower = name;
+        for (size_t k = 0; k < lower.size(); k++) lower[k] = (char)tolower((unsigned char)lower[k]);
+        if (std::find(seen.begin(), seen.end(), lower) != seen.end()) continue;
+        seen.push_back(lower);
+        if (!WriteBinaryFile(PathJoin(dir, Utf8ToWide(name)), dics[i].second)) { out.detail = name; return out; }
+        txt += "dic, " + name + "\r\n";
+    }
+    if (!WriteBinaryFile(PathJoin(dir, L"yaya.txt"), txt)) { out.detail = "yaya.txt"; return out; }
     // 「ためす」は毎回、プロジェクトの初期値から（続きの変数は input で渡す）
     DeleteFileIfExists(PathJoin(dir, L"yaya_variable.cfg"));
 

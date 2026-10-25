@@ -1019,7 +1019,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | done |
 | 8-5 | Two-way live sync between blocks and text | done |
 | 8-6 | Import an existing YAYA ghost's dictionaries into the project | done |
-| 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
+| 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | done |
 
 
 > **8-1 is done.** `ui/js/model/yayatext.js` gained `parseYaya`, which turns YAYA dictionary text into a tree, and `printYaya`, which turns the
@@ -1096,6 +1096,17 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > converted). `importDicName` (`ui/js/model/dics.js`) turns folder separators and unusable characters into _ and adds _2 on a clash. A list
 > (renamed ones shown as “from → to”) is confirmed first, and the ghost's files are not changed. Clashing functions and events show in the Check
 > tab as before. Other yaya.txt settings (SAORI and so on) are not imported. The field is built like the shell import field and was checked by a separate agent. Part 13 of the YAYA test (36), 2 editor checks (203).
+
+
+> **8-7 is done.** “Try” now passes the project's dictionaries too (`dics` in `/api/preview`; the exe puts them in its work folder and rewrites
+> yaya.txt each time, leaving out unusable and duplicate names as export does). Functions in the dictionaries get no block entry (treated as
+> hand-written, as on export), and events defined there run the dictionary function directly through “call:name” (`studio_preview.dic`; the
+> event's references go into reference, reference.raw and reference0…). The Try tab's picker gained “Dictionary functions”, and function hats on
+> the Dictionaries page have their ▶ back. A **YAYA** tab in the Talk page's right column shows the YAYA of the script you last pressed on the canvas,
+> translated as “Show YAYA” does (`scriptYaya`) and coloured like the Dictionaries editor, re-rendered on every change (also while typing in a
+> slot). It is built like the other right-column tabs and was checked by a separate agent. Part 14 of the YAYA test (40).
+> **This completes stage 8.** YAYA dictionaries live in the project, can be written as text or as blocks, imported from an existing ghost, run
+> in Try and exported.
 
 ---
 

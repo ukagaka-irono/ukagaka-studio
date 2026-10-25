@@ -36,7 +36,12 @@ void Api::Preview(const HttpRequest& req, HttpResponse& res) {
     for (size_t i = 0; i < rin.size(); i++) refs.arr.push_back(JValue::makeStr(rin.at(i).asStr()));
     input.set("refs", refs);
 
-    PreviewResult r = RunYayaPreview(dic, scriptId, input.dump());
+    // プロジェクトの YAYA の辞書（段階 8-7）
+    std::vector<std::pair<std::string, std::string> > dics;
+    const JValue& din = body["dics"];
+    for (size_t i = 0; i < din.size(); i++) dics.push_back(std::make_pair(din.at(i)["name"].asStr(), din.at(i)["text"].asStr()));
+
+    PreviewResult r = RunYayaPreview(dic, scriptId, input.dump(), dics);
     if (!r.ok) { JsonError(res, 400, r.error, r.detail); return; }
 
     JValue o = JValue::makeObj();
