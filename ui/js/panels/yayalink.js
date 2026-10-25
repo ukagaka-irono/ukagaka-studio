@@ -26,7 +26,8 @@ const PROBLEMS = {
   not_studio_file: (d) => t('{file} は人が書いたファイルのようなので、上書きしません', { file: d }),
 };
 
-const linkedPath = () => String((Model.project.meta || {}).ghostDir || '');
+/** つないだゴーストのフォルダ（つないでいなければ ''）。辞書の画面の「読みこむ」の最初の値にも使います（panels/dictionary.js） */
+export const linkedPath = () => String((Model.project.meta || {}).ghostDir || '');
 
 let pending = null;   // 調べている最中のパス（同じものを何度もたずねない）
 

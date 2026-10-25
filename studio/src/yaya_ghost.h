@@ -37,6 +37,16 @@ struct YayaGhostInfo {
 // path はゴーストのフォルダ（ghost/master をふくむもの）か、ghost/master そのもの
 YayaGhostInfo InspectYayaGhost(const std::wstring& path);
 
+// 手書きの辞書の中身（段階 8-6。プロジェクトに読みこむ）。name は master からの相対パス（/ 区切り）、
+// text は UTF-8 で、改行は \n（Shift_JIS の辞書も UTF-8 にします）
+struct YayaDicFile {
+    std::string name;
+    std::string text;
+};
+
+// InspectYayaGhost と同じ辞書（yaya_base・スタジオのファイルはのぞく）を読む。開けないときは error にコードを入れて false
+bool ReadYayaGhostDics(const std::wstring& path, std::vector<YayaDicFile>& out, std::string& error);
+
 // つないだゴーストに書き出す。runtime は studio_runtime.dic、dic は訳した studio_program.dic
 ExportResult ExportLinked(const std::wstring& path, const std::string& runtime, const std::string& dic);
 

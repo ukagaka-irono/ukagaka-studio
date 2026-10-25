@@ -84,6 +84,28 @@ void Api::InspectYaya(const HttpRequest& req, HttpResponse& res) {
     Json(res, 200, o);
 }
 
+// POST /api/yaya/dics … YAYA ゴーストの手書きの辞書を読む（辞書の画面の「ゴーストから読みこむ」。段階 8-6）
+//   { path } → { dics: [{ name: "master からの相対パス", text: "UTF-8" }] }
+void Api::ReadYayaDics(const HttpRequest& req, HttpResponse& res) {
+    JValue body;
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
+    std::string raw = Unquote(body["path"].asStr());
+    if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    std::vector<YayaDicFile> files;
+    std::string error;
+    if (!ReadYayaGhostDics(Utf8ToWide(raw), files, error)) { JsonError(res, 404, error, raw); return; }
+    JValue dics = JValue::makeArr();
+    for (size_t i = 0; i < files.size(); i++) {
+        JValue d = JValue::makeObj();
+        d.set("name", JValue::makeStr(files[i].name));
+        d.set("text", JValue::makeStr(files[i].text));
+        dics.arr.push_back(d);
+    }
+    JValue o = JValue::makeObj();
+    o.set("dics", dics);
+    Json(res, 200, o);
+}
+
 // POST /api/reveal … エクスプローラで開く（ファイルなら、そのフォルダを）
 void Api::Reveal(const HttpRequest& req, HttpResponse& res) {
     JValue body;

@@ -19,6 +19,7 @@
  *  10. 「100 回引く」（draw:回数）が、えらばれやすさ・しぼり込み・続けて出さない決まりのとおりに数えるか
  *  11. 辞書を読んで整えて書いたもの（ui/js/model/yayatext.js）が、もとの辞書と同じに動くか（yaya_base・しくみの辞書・訳した辞書）
  *  12. プロジェクトの YAYA の辞書を exe で書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべるか
+ *  13. いまある YAYA ゴーストの辞書を読みこむとき、yaya.txt の辞書（dicdir の中も）を UTF-8 にして読み、yaya_base とスタジオのファイルは読まないか
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -532,6 +533,28 @@ async function main() {
     if ((got[0] || {}).value === '\\0辞書の起動\\e' && (got[1] || {}).value === 'やあ\\e') {
       ok('プロジェクトの辞書を書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべます');
     }
+  }
+
+  // ---- 13. いまある YAYA ゴーストの辞書を読みこむ（段階 8-6） ---------------------------
+  {
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const dir = path.join(__dirname, 'work', 'import');
+    const master = path.join(dir, 'ghost', 'master');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(path.join(master, 'dic'), { recursive: true });
+    fs.writeFileSync(path.join(master, 'descript.txt'), 'charset,UTF-8\r\ntype,ghost\r\nname,よみこみ\r\n');
+    fs.writeFileSync(path.join(master, 'yaya.txt'),
+      'dic, yaya_base/shiori3.dic\r\ndic, aya_talk.dic\r\ndicdir, dic\r\ndic, studio_runtime.dic\r\n');
+    // Shift_JIS・CRLF の辞書（「こんにちは」）と、BOM つき UTF-8 の辞書
+    const sjis = Buffer.from([0x82, 0xB1, 0x82, 0xF1, 0x82, 0xC9, 0x82, 0xBF, 0x82, 0xCD]);
+    fs.writeFileSync(path.join(master, 'aya_talk.dic'),
+      Buffer.concat([Buffer.from('OnBoot\r\n{\r\n\t"'), sjis, Buffer.from('"\r\n}\r\n')]));
+    fs.writeFileSync(path.join(master, 'dic', 'sub.dic'), '﻿Sub\n{\n\t"さぶ"\n}\n');
+    fs.writeFileSync(path.join(master, 'studio_runtime.dic'), '// ukagaka-studio: generated\n');
+    const out = require('child_process').execFileSync(exportHost, ['--dics', dir], { encoding: 'utf8' });
+    expect('ゴーストの辞書を読みこむ（Shift_JIS も UTF-8 に・改行は LF・dicdir の中も・yaya_base とスタジオのファイルは読まない）', out,
+      '== aya_talk.dic\nOnBoot\n{\n\t"こんにちは"\n}\n== dic/sub.dic\nSub\n{\n\t"さぶ"\n}\n');
+    if (out.startsWith('== aya_talk.dic')) ok('いまある YAYA ゴーストの辞書を、UTF-8 にして読みこめます');
   }
 
   // ---- 表示 --------------------------------------------------------------------

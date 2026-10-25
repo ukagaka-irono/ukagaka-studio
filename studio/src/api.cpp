@@ -174,6 +174,7 @@ const Api::Route Api::kRoutes[] = {
     // api_export.cpp
     { "POST", "/api/export",         &Api::Export },
     { "POST", "/api/yaya/inspect",   &Api::InspectYaya },
+    { "POST", "/api/yaya/dics",      &Api::ReadYayaDics },
     { "POST", "/api/shell/import",   &Api::ImportShell },
     { "POST", "/api/reveal",         &Api::Reveal },
     // api_ssp.cpp

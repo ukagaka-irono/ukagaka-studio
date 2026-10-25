@@ -802,6 +802,18 @@ section('このソフトについて (about)');
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
 }
 
+section('ゴーストの辞書を読みこむときの名前 (importDicName)');
+{
+  const { importDicName, dicNameOk } = require('../js/model/dics.js');
+  const names = [importDicName('dic/aitalk.dic', []), importDicName('Talk.dic', ['talk.dic', 'talk_2.dic']),
+    importDicName('studio_runtime.dic', []), importDicName('a:b.dic', []), importDicName('readme', [])];
+  check('フォルダの区切り・かぶり（大文字小文字も）・スタジオのファイル・使えない文字・.dic の無い名前',
+    names, ['dic_aitalk.dic', 'Talk_3.dic', 'imported_studio_runtime.dic', 'a_b.dic', 'readme.dic']);
+  const long = 'x'.repeat(70) + '.dic';
+  names.push(importDicName(long, [importDicName(long, [])]));
+  check('どれも辞書の名前に使える（長い名前に _2 を付けても 64 字まで）', [names.every(dicNameOk), names[5].length, names[5].endsWith('_2.dic')], [true, 64, true]);
+}
+
 section('「元にもどす」に積む前に、画面の側のものを書きもどす (Model.onCommit。辞書の画面のブロック)');
 {
   // 辞書の画面は、ブロックをプロジェクトの外に持ち、変わったら辞書のテキストに書きます（panels/dictionary.js）。

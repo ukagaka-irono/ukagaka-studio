@@ -22,6 +22,25 @@ export function dicNameOk(name) {
   return !STUDIO_FILES.includes(s.toLowerCase());
 }
 
+/**
+ * いまある YAYA ゴーストの辞書（master からの相対パス）を、プロジェクトの辞書の名前にする（段階 8-6）。
+ * フォルダの区切りは _ に、使えない文字も _ にし、スタジオのファイルの名前なら imported_ を前に付けます。
+ * taken（もうある名前）と、大文字小文字だけちがう名前にもならないよう、_2・_3 … を付けます
+ */
+export function importDicName(rel, taken) {
+  let base = String(rel || '').replace(/^[\/]+/, '').replace(/[\/]/g, '_').replace(/[:*?"<>|\x00-\x1f]/g, '_');
+  if (!/\.dic$/i.test(base)) base += '.dic';
+  if (base[0] === '.' || base[0] === ' ') base = '_' + base;
+  if (STUDIO_FILES.includes(base.toLowerCase())) base = 'imported_' + base;
+  const stem = base.slice(0, -4);
+  const used = new Set([...(taken || [])].map((n) => String(n).toLowerCase()));
+  // _2 などを付けても 64 字に収まるよう、名前の前のほうを残して切る
+  const make = (suffix) => stem.slice(0, 64 - 4 - suffix.length) + suffix + '.dic';
+  let name = make('');
+  for (let i = 2; used.has(name.toLowerCase()); i++) name = make('_' + i);
+  return name;
+}
+
 /** 読みこんだプロジェクトの dics を、決まった形にする（名前と文字のどちらかが無いものは落とす） */
 export function normalizeDics(list) {
   return (Array.isArray(list) ? list : [])

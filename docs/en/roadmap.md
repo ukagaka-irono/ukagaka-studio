@@ -1018,7 +1018,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 | 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | done |
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | done |
 | 8-5 | Two-way live sync between blocks and text | done |
-| 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
+| 8-6 | Import an existing YAYA ghost's dictionaries into the project | done |
 | 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
 
 
@@ -1088,6 +1088,14 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > Blocks that cannot become YAYA (an empty slot, an unreadable expression, an “else” without an “if”, …) leave the text alone, are reported in the
 > list below and marked on the canvas; blocks outside any function are reported too. Ctrl+D and Delete work on the Dictionaries page's blocks. The
 > page was designed from how the Talk page is built and checked afterwards by a separate agent. 3 editor checks (201), 1 YAYA text check (84).
+
+
+> **8-6 is done.** The Dictionaries page's left column gained “Import from an existing YAYA ghost”. It asks for a ghost folder (the linked ghost, if any, is
+> filled in), and the exe's `/api/yaya/dics` (`ReadYayaGhostDics` in `studio/src/yaya_ghost.cpp`) returns the same dictionaries the hand-written
+> ghost inspection finds (yaya.txt's dic, dicif and dicdir contents, except yaya_base and Studio's files) as UTF-8 with LF line ends (Shift_JIS is
+> converted). `importDicName` (`ui/js/model/dics.js`) turns folder separators and unusable characters into _ and adds _2 on a clash. A list
+> (renamed ones shown as “from → to”) is confirmed first, and the ghost's files are not changed. Clashing functions and events show in the Check
+> tab as before. Other yaya.txt settings (SAORI and so on) are not imported. The field is built like the shell import field and was checked by a separate agent. Part 13 of the YAYA test (36), 2 editor checks (203).
 
 ---
 

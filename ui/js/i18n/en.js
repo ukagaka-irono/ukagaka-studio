@@ -1323,6 +1323,15 @@ export const en = {
   '左のテキストに関数を書くか、': 'Write a function in the text on the left, or drag the top hat of',
   'のいちばん上の帽子をここにドラッグ': 'here',
   'ブロックを変えると、テキストも書きかわります': 'Changing the blocks rewrites the text too',
+  // ---- ui\js\panels\dictionary.js（ゴーストから読みこむ）
+  '読みこめる辞書がありませんでした（yaya_base とスタジオのファイルは読みこみません）':
+    'No dictionaries to import (yaya_base and Studio files are not imported)',
+  '{n} この辞書を読みこみます。\n\n{list}': 'Import {n} dictionaries?\n\n{list}',
+  '辞書を {n} こ読みこみました。かぶっている関数やイベントは、チェックタブに出ます':
+    'Imported {n} dictionaries. Clashing functions and events are listed in the Check tab',
+  'いまある YAYA ゴーストから読みこむ': 'Import from an existing YAYA ghost',
+  'yaya.txt に書いてある辞書（yaya_base はのぞく）を、このプロジェクトに写します。ゴーストのファイルは変えません。':
+    "Copies the dictionaries listed in yaya.txt (except yaya_base) into this project. The ghost's files are not changed.",
   '辞書の画面のブロックで使えるのは、Ctrl+D と Delete です（コピー・はりつけと右クリックのメニューは、トークの画面のブロックだけ）。':
     'On the Dictionaries page, blocks support Ctrl+D and Delete (copy, paste and the right-click menu are for Talk page blocks only).',
 };

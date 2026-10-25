@@ -13,7 +13,9 @@
  */
 
 import { Model } from '../model/model.js';
-import { dicNameOk } from '../model/dics.js';
+import { dicNameOk, importDicName } from '../model/dics.js';
+import { api } from '../core/api.js';
+import { linkedPath } from './yayalink.js';
 import { parseYaya, highlightYaya, printYaya } from '../model/yayatext.js';
 import { astToView, viewToAst, goesIntoText, YPALETTE, YBlockError } from '../model/yblocks.js';
 import { Drag } from '../editor/drag.js';
@@ -347,6 +349,12 @@ function render() {
     b.addEventListener('click', () => { Session.dicName = x.name; render(); });
     list.appendChild(b);
   }
+  // 読みこむゴーストのフォルダは、つないだゴーストのものを入れておく（自分で書いたものは、そのまま残す）
+  const importPath = $('#dic-import-path');
+  if (document.activeElement !== importPath && (!importPath.value || importPath.value === importPath.dataset.linked)) {
+    importPath.value = linkedPath();
+  }
+  importPath.dataset.linked = linkedPath();
   const has = !!d;
   $('#dic-main').classList.toggle('is-empty', !has);
   $('#btn-dic-rename').disabled = !has;
@@ -384,6 +392,44 @@ function create() {
   toast(t('辞書「{name}」を作りました', { name }));
 }
 
+/**
+ * いまある YAYA ゴーストの辞書を、プロジェクトに読みこむ（段階 8-6）。exe が yaya.txt の辞書を UTF-8 にして返し
+ * （yaya_base とスタジオのファイルはのぞく。studio/src/yaya_ghost.cpp）、名前は importDicName でプロジェクトの辞書の名前にします。
+ * ゴーストのファイルは変えません
+ */
+async function importGhost() {
+  const path = $('#dic-import-path').value.trim();
+  if (!path) { toast(t('ゴーストのフォルダを入れてください'), true); return; }
+  const button = $('#btn-dic-import');
+  let got;
+  button.disabled = true;   // 読んでいるあいだに、もう一度押されないように
+  try {
+    got = await api('/api/yaya/dics', { method: 'POST', body: { path } });
+  } catch (e) {
+    toast(e.message, true);
+    return;
+  } finally {
+    button.disabled = false;
+  }
+  const files = (got && got.dics) || [];
+  if (!files.length) { toast(t('読みこめる辞書がありませんでした（yaya_base とスタジオのファイルは読みこみません）'), true); return; }
+  const taken = dics().map((d) => d.name);
+  const plan = files.map((f) => {
+    const name = importDicName(f.name, taken);
+    taken.push(name);
+    return { from: f.name, name, text: String(f.text || '').replace(/\r\n?/g, '\n') };
+  });
+  const list = plan.map((p) => (p.from === p.name ? p.name : `${p.from} → ${p.name}`)).join('\n');
+  if (!confirm(t('{n} この辞書を読みこみます。\n\n{list}', { n: plan.length, list }))) return;
+  Model.act(() => {
+    if (!Array.isArray(Model.project.dics)) Model.project.dics = [];
+    for (const p of plan) Model.project.dics.push({ name: p.name, text: p.text });
+  });
+  Session.dicName = plan[0].name;
+  render();
+  toast(t('辞書を {n} こ読みこみました。かぶっている関数やイベントは、チェックタブに出ます', { n: plan.length }));
+}
+
 function rename() {
   const d = current();
   if (!d) return;
@@ -406,6 +452,7 @@ function init() {
   const area = $('#dic-text');
   if (!area) return;
   $('#btn-dic-new').addEventListener('click', create);
+  $('#btn-dic-import').addEventListener('click', importGhost);
   $('#btn-dic-rename').addEventListener('click', rename);
   $('#btn-dic-delete').addEventListener('click', remove);
   // 打ちはじめる前のプロジェクトを覚える（focus が来ないこともあるので、打つ直前にも）

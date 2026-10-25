@@ -139,6 +139,22 @@ int wmain(int argc, wchar_t** argv) {
         return 0;
     }
 
+    // export_host --dics <ゴーストのフォルダ>
+    //   手書きの辞書の中身を、プロジェクトに読みこむのと同じに出す（段階 8-6）。"== 名前" の行のあとに中身
+    if (std::wstring(argv[1]) == L"--dics") {
+        if (argc < 3) { printf("usage: export_host --dics <folder>\n"); return 1; }
+        std::vector<YayaDicFile> files;
+        std::string error;
+        if (!ReadYayaGhostDics(argv[2], files, error)) { printf("error: %s\n", error.c_str()); return 5; }
+        for (size_t i = 0; i < files.size(); i++) {
+            fwrite("== ", 1, 3, stdout);
+            fwrite(files[i].name.data(), 1, files[i].name.size(), stdout);
+            fwrite("\n", 1, 1, stdout);
+            fwrite(files[i].text.data(), 1, files[i].text.size(), stdout);
+        }
+        return 0;
+    }
+
     // export_host --linked <ゴーストのフォルダ> --dic <studio_program.dic>
     //   つないだ手書きのゴーストに書き出す（スタジオのファイルと yaya.txt の印の行だけ）
     if (std::wstring(argv[1]) == L"--linked") {

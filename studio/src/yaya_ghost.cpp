@@ -220,6 +220,25 @@ YayaGhostInfo InspectYayaGhost(const std::wstring& path) {
     return info;
 }
 
+// ---------------------------------------------------------------- 読みこむ
+bool ReadYayaGhostDics(const std::wstring& path, std::vector<YayaDicFile>& out, std::string& error) {
+    YayaGhostInfo info = InspectYayaGhost(path);
+    if (!info.ok) { error = info.error; return false; }
+    for (size_t i = 0; i < info.dics.size(); i++) {
+        std::string raw;
+        if (!ReadBinaryFile(PathJoin(info.master, Utf8ToWide(info.dics[i])), raw)) continue;   // dicif の無いファイルなど
+        std::string text = ToUtf8(raw), lf;
+        lf.reserve(text.size());
+        for (size_t k = 0; k < text.size(); k++) if (text[k] != '\r') lf += text[k];
+        YayaDicFile f;
+        f.name = info.dics[i];
+        for (size_t k = 0; k < f.name.size(); k++) if (f.name[k] == '\\') f.name[k] = '/';
+        f.text = lf;
+        out.push_back(f);
+    }
+    return true;
+}
+
 // ---------------------------------------------------------------- 書き出す
 
 std::string WithStudioLines(const std::string& yayaTxt) {
