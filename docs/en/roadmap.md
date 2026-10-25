@@ -43,6 +43,9 @@ Stage 2  UI redesign         rework the look and the layout of pages
 Stage 3  On to YAYA          replace ikaga SHIORI with YAYA; become a helper tool for YAYA ghosts
 Stage 4  New features        new blocks, shell features, the rest of SERIKO
 Stage 5  More features       trying, editing in bulk, ghost contents, getting started
+Stage 6-7                    richer ghost behaviour; easier to write and check
+Stage 8  YAYA dictionaries   dictionaries in the project, written as text and blocks
+Stage 9  Dictionary help     checks, copy, search and the reference for dictionaries too
 ```
 
 Stage 3 (the move to YAYA) was decided after stage 2 was done and placed before the new features,
@@ -1107,6 +1110,22 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > slot). It is built like the other right-column tabs and was checked by a separate agent. Part 14 of the YAYA test (40).
 > **This completes stage 8.** YAYA dictionaries live in the project, can be written as text or as blocks, imported from an existing ghost, run
 > in Try and exported.
+
+
+---
+
+## Stage 9 — Making dictionaries as easy to write as blocks
+
+Decided on 2026-10-25. Stage 8 made it possible to write, run and export YAYA dictionaries inside the studio. Some help that blocks have is
+still missing for dictionaries (Check tab warnings, copy and paste, search and replace, the block reference). This stage fills in those gaps,
+found while building stage 8.
+
+| | What | |
+|---|---|---|
+| 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | |
+| 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | |
+| 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | |
+| 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | |
 
 ---
 
