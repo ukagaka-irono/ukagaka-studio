@@ -4,7 +4,7 @@ import { MOUSE_EVENTS } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { Player } from '../model/player.js';
 import { programOf, toYaya } from '../model/yaya.js';
-import { dicFunctionNames } from '../model/dics.js';
+import { dicFunctionNames, dicIssues } from '../model/dics.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -106,6 +106,16 @@ function previewRequest(scriptId, refs) {
 }
 
 /** プロジェクトの辞書の関数を動かす（段階 8-7。「実行」タブの「辞書の関数」と、辞書の画面のかたまりの ▶） */
+/**
+ * 「ためす」がうまくいかなかったときの文。辞書にチェックタブの ⛔（かぶった関数・読めない行など）があると、
+ * YAYA は辞書をまるごと読まず「答えがない」としか言えないので、そのことを足します
+ */
+function previewError(e) {
+  let broken = 0;
+  dicIssues(Model.project, (level) => { if (level === 'error') broken++; });
+  return broken ? t('{message}（辞書にまちがいがあると、YAYA は辞書をまるごと読みません。チェックタブを見てください）', { message: e.message }) : e.message;
+}
+
 async function runDicFunction(name) {
   $('#run-target').value = 'call:' + name;
   Pages.show('talk');
@@ -114,8 +124,9 @@ async function runDicFunction(name) {
   try {
     res = await previewRequest('call:' + name, []);
   } catch (e) {
-    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message: e.message });
-    toast(e.message, true);
+    const message = previewError(e);
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message });
+    toast(message, true);
     return;
   }
   showResult(res);
@@ -130,8 +141,9 @@ async function runScript(script) {
   try {
     res = await runPreview(script);
   } catch (e) {
-    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message: e.message });
-    toast(e.message, true);
+    const message = previewError(e);
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message });
+    toast(message, true);
     return;
   }
   showResult(res);
@@ -146,7 +158,7 @@ async function runEvent(event, refs) {
   try {
     res = await previewRequest('event:' + event, refs || []);
   } catch (e) {
-    toast(e.message, true);
+    toast(previewError(e), true);
     return;
   }
   const where = refs && refs[4] ? `（${refs[4]}）` : '';
@@ -164,7 +176,7 @@ async function drawTalks(times = 100) {
   try {
     res = await previewRequest('draw:' + times, []);
   } catch (e) {
-    toast(e.message, true);
+    toast(previewError(e), true);
     return;
   }
   const draws = res.draws || {};

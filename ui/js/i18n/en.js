@@ -1328,6 +1328,8 @@ export const en = {
     'That function is not in the dictionaries (YAYA may have failed to read them): {detail}',
   'この関数を実行してみる': 'Run this function',
   '辞書の関数': 'Dictionary functions',
+  '{message}（辞書にまちがいがあると、YAYA は辞書をまるごと読みません。チェックタブを見てください）':
+    '{message} (if a dictionary has a mistake, YAYA does not read the dictionaries at all; see the Check tab)',
   'キャンバスで最後に押したかたまり（まだ押していなければ、最初に作ったかたまり）が、書き出したときになる YAYA です。ブロックを変えると、その場で書きかわります。':
     'The YAYA that the script you last pressed on the canvas (or the first script you made, until you press one) becomes on export. It updates as you change the blocks.',
   '（帽子ブロックの無いかたまりは、書き出さないので YAYA になりません）': '(A script without a hat block is not exported, so it has no YAYA)',
