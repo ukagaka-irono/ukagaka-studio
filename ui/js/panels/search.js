@@ -12,6 +12,7 @@ import { Session } from '../core/session.js';
 import { toast } from '../core/toast.js';
 import { Render } from '../editor/render.js';
 import { Scripts } from '../editor/scripts.js';
+import { Dictionary } from './dictionary.js';
 import { EVENTS } from '../model/blocks.js';
 import { Tabs } from './tabs.js';
 import { Pages } from './pages.js';
@@ -40,6 +41,10 @@ function renderCheck() {
     if (it.script) {
       item.title = t('クリックでその場所へ移動します');
       item.addEventListener('click', () => jumpTo(it));
+    } else if (it.dic) {
+      // 辞書の注意は、辞書の画面のその行へ（段階 8-3）
+      item.title = t('クリックでその場所へ移動します');
+      item.addEventListener('click', () => Dictionary.open(it.dic, it.line));
     } else {
       item.style.cursor = 'default';
     }

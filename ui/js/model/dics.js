@@ -99,7 +99,7 @@ export function reservedFunction(name) {
 
 /**
  * チェックタブに出す、辞書の注意（model/lint.js がよびます）。
- *   issue(level, message, hint)・blockEvents … ブロックのイベント名（止めていないもの）・linked … 手書きのゴーストにつないでいるか
+ *   issue(level, message, hint, where)・where は { dic, line }（チェックタブから辞書の画面のその行へ動くため）・blockEvents … ブロックのイベント名（止めていないもの）・linked … 手書きのゴーストにつないでいるか
  */
 export function dicIssues(project, issue, { blockEvents = [], linked = false } = {}) {
   const dics = (project && project.dics) || [];
@@ -113,24 +113,24 @@ export function dicIssues(project, issue, { blockEvents = [], linked = false } =
   for (const d of dics) {
     if (!dicNameOk(d.name)) {
       issue('error', t('辞書の名前「{name}」は使えません', { name: d.name }),
-        t('「.dic」で終わる名前にしてください（フォルダの区切りや \\ / : * ? " < > | は使えません。studio_runtime.dic など、スタジオのファイルの名前も使えません）。'));
+        t('「.dic」で終わる名前にしてください（フォルダの区切りや \\ / : * ? " < > | は使えません。studio_runtime.dic など、スタジオのファイルの名前も使えません）。'), { dic: d.name });
     } else if (names.has(d.name.toLowerCase())) {
-      issue('error', t('辞書「{name}」が 2 つあります', { name: d.name }), t('どちらかの名前を変えてください。'));
+      issue('error', t('辞書「{name}」が 2 つあります', { name: d.name }), t('どちらかの名前を変えてください。'), { dic: d.name });
     }
     names.add(String(d.name).toLowerCase());
     const parsed = parseDic(d);
     for (const e of parsed.errors) {
       issue('error', t('辞書「{name}」の {line} 行目が、YAYA として読めません', { name: d.name, line: e.line }),
-        t('ひとつでも読めないところがあると、YAYA は辞書をまるごと読みません。辞書の画面で直してください。'));
+        t('ひとつでも読めないところがあると、YAYA は辞書をまるごと読みません。辞書の画面で直してください。'), { dic: d.name, line: e.line });
     }
     for (const item of parsed.dic.items) {
       if (item.type !== 'func') continue;
       if (reservedFunction(item.name)) {
         issue('error', t('辞書「{dic}」の関数「{name}」は、スタジオのしくみか yaya_base がもう使っている名前です', { dic: d.name, name: item.name }),
-          t('同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。名前を変えてください。'));
+          t('同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。名前を変えてください。'), { dic: d.name });
       } else if (where.has(item.name)) {
         issue('error', t('関数「{name}」が、辞書「{a}」と「{b}」の両方にあります', { name: item.name, a: where.get(item.name), b: d.name }),
-          t('同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。どちらかを消すか、名前を変えてください。'));
+          t('同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。どちらかを消すか、名前を変えてください。'), { dic: d.name });
       } else {
         where.set(item.name, d.name);
       }
@@ -140,6 +140,7 @@ export function dicIssues(project, issue, { blockEvents = [], linked = false } =
   for (const ev of new Set(blockEvents)) {
     if (!where.has(ev)) continue;
     issue('warn', t('{event} は、プロジェクトの辞書「{dic}」にもあります', { event: ev, dic: where.get(ev) }),
-      t("辞書のほうが動くので、ブロックの {event} は、辞書の {event} の中で Studio.Event('{event}') をよんだときだけ動きます。", { event: ev }));
+      t("辞書のほうが動くので、ブロックの {event} は、辞書の {event} の中で Studio.Event('{event}') をよんだときだけ動きます。", { event: ev }),
+      { dic: where.get(ev) });
   }
 }

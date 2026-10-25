@@ -393,7 +393,10 @@ Lint.run = function (project, ctx = {}) {
   }
 
   // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
-  dicIssues(project, (level, message, hint) => issue(out, level, message, hint), {
+  dicIssues(project, (level, message, hint, where) => {
+    issue(out, level, message, hint);
+    if (where) Object.assign(out[out.length - 1], where);   // { dic, line }
+  }, {
     blockEvents: (project.scripts || []).filter((s) => s.kind === 'event' && !s.disabled).map((s) => s.event),
     linked: !!String((project.meta || {}).ghostDir || ''),
   });

@@ -37,6 +37,7 @@
   <nav id="mode-bar">
     <button class="mode-tab is-active" data-page="talk">トーク</button>
     <button class="mode-tab" data-page="lines">セリフ</button>
+    <button class="mode-tab" data-page="dics">辞書</button>
     <button class="mode-tab" data-page="chara">キャラと絵</button>
     <button class="mode-tab" data-page="ghost">ゴースト情報</button>
     <button class="mode-tab" data-page="export">書き出し</button>
@@ -263,6 +264,35 @@
         <div id="lines-list" class="lines-list"></div>
       </section>
     </div>
+  </div>
+
+  <!-- ============================================================ 辞書 -->
+  <!-- プロジェクトの YAYA の辞書と、そのテキストエディタ（panels/dictionary.js。段階 8-3） -->
+  <div class="page dics-page" data-page="dics">
+    <aside id="dic-list-pane">
+      <div class="panel-head">
+        <h2>辞書</h2>
+        <p class="hint">YAYA の辞書（.dic）です。書き出すと、ゴーストに入ります。辞書にあるイベントは、同じイベントのブロックのかわりに動きます。</p>
+      </div>
+      <div id="dic-list"></div>
+      <div class="btn-row"><button id="btn-dic-new" class="btn small">＋ 辞書をつくる</button></div>
+    </aside>
+    <section id="dic-main">
+      <div class="dic-tools">
+        <b id="dic-name"></b>
+        <button id="btn-dic-rename" class="btn small">名前を変える</button>
+        <button id="btn-dic-delete" class="btn small">消す</button>
+      </div>
+      <div class="dic-editor">
+        <div class="dic-gutter-wrap"><div id="dic-gutter"></div></div>
+        <div class="dic-code">
+          <pre id="dic-highlight" aria-hidden="true"></pre>
+          <textarea id="dic-text" spellcheck="false" wrap="off" aria-label="辞書のテキスト"></textarea>
+        </div>
+      </div>
+      <div id="dic-errors" class="check-list"></div>
+      <p class="hint dic-empty">左の「＋ 辞書をつくる」で辞書を作ると、ここで書けます。</p>
+    </section>
   </div>
 
   <!-- ===================================================== ゴースト情報 -->

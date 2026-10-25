@@ -46,6 +46,7 @@ import { YayaView } from './panels/yayaview.js';
 import { Graph } from './panels/graph.js';
 import { Starter } from './panels/starter.js';
 import { Lines } from './panels/lines.js';
+import { Dictionary } from './panels/dictionary.js';
 import { Shortcuts } from './shortcuts.js';
 import { t, getLang, translateDom } from './i18n/i18n.js';
 
@@ -84,6 +85,9 @@ function renderAll() {
       break;
     case 'lines':
       Lines.render();
+      break;
+    case 'dics':
+      Dictionary.render();
       break;
     default:
       break;
@@ -184,6 +188,7 @@ async function boot() {
   YayaView.init();   // かたまりの帽子の右クリック「YAYA を見る」
   Graph.init();      // キャンバスの「つながり」（選択肢のつながりの図）
   Lines.init();      // 「セリフ」の画面      // 「ためす」の立ち絵をさわって、マウスのイベントをためす
+  Dictionary.init(); // 「辞書」の画面（プロジェクトの YAYA の辞書とテキストエディタ）
   Parts.load();      // 部品（exe のとなりの parts.json）。読めたらパレットの「部品」を描きなおす
   Shortcuts.init();
   if (carried && carried.page) Pages.show(carried.page);   // 切りかえる前に見ていた画面

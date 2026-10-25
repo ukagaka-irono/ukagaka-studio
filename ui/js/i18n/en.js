@@ -129,6 +129,40 @@ export const en = {
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
 
+  // ---- 「辞書」の画面（段階 8-3。panels/dictionary.js・index.html）
+  '辞書': 'Dictionaries',
+  'YAYA の辞書（.dic）です。書き出すと、ゴーストに入ります。辞書にあるイベントは、同じイベントのブロックのかわりに動きます。':
+    'YAYA dictionaries (.dic). They go into the ghost on export. Events defined here run instead of the blocks for the same event.',
+  '＋ 辞書をつくる': '+ New dictionary',
+  '名前を変える': 'Rename',
+  '辞書のテキスト': 'Dictionary text',
+  '左の「＋ 辞書をつくる」で辞書を作ると、ここで書けます。': 'Create a dictionary with “+ New dictionary” on the left to write it here.',
+  'まだ辞書がありません。下の「＋ 辞書をつくる」で作れます。': 'No dictionaries yet. Create one with “+ New dictionary” below.',
+  '「{at}」は、ここには書けません': '“{at}” cannot be written here',
+  '「{at}」が要ります': '“{at}” is needed',
+  '「{at}」のところで、文が終わっていません': 'The statement does not end at “{at}”',
+  '{ に対応する } がありません': 'A { has no matching }',
+  '文字列が、閉じないまま行が終わっています': 'The line ends before the string is closed',
+  'ヒアドキュメントが閉じていません': 'The heredoc is not closed',
+  'case のうしろに { がありません': 'There is no { after case',
+  'case の中には when か others を書きます（「{at}」）': 'Inside case, write when or others (“{at}”)',
+  'when のうしろには、数か文字列だけを書けます（「{at}」）': 'Only a number or a string can follow when (“{at}”)',
+  'foreach のうしろには、変数の名前を書きます（「{at}」）': 'Write a variable name after foreach (“{at}”)',
+  '関数の名前がありません（「{at}」）': 'The function has no name (“{at}”)',
+  '「:」のうしろに、選択方式（nonoverlap など）を書きます（「{at}」）': 'Write a selection mode (such as nonoverlap) after “:” (“{at}”)',
+  '「{at}」は、ここでは使えない文字です': '“{at}” is a character that cannot be used here',
+  'YAYA として読めます（関数 {n} こ）': 'Valid YAYA ({n} functions)',
+  '{line} 行目: {message}': 'Line {line}: {message}',
+  '「.dic」で終わる、フォルダの区切りなどの無い名前にしてください': 'Use a name ending in “.dic”, without folder separators and the like',
+  'その名前の辞書はもうあります': 'A dictionary with that name already exists',
+  'あたらしい辞書の名前は？（.dic で終わる名前）': 'Name of the new dictionary? (ending in .dic)',
+  '// {name}（YAYA の辞書）\n// ここに YAYA の関数を書きます。書き出すと、ゴーストに入ります。\n':
+    '// {name} (a YAYA dictionary)\n// Write YAYA functions here. They go into the ghost on export.\n',
+  '辞書「{name}」を作りました': 'Created dictionary “{name}”',
+  '辞書の新しい名前は？': 'New name of the dictionary?',
+  '辞書「{name}」を消しますか？（元にもどすで戻せます）': 'Delete dictionary “{name}”? (Undo brings it back)',
+  '辞書「{name}」を消しました': 'Deleted dictionary “{name}”',
+
   // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
   '手書きのゴーストにつないでいるあいだは、プロジェクトの辞書を書き出しません': 'While linked to a hand-written ghost, the project\'s dictionaries are not exported',
   'つないだゴーストには、スタジオのファイルだけを書きこみます。辞書の関数は、つないだゴーストの手書きの辞書に書いてください。':

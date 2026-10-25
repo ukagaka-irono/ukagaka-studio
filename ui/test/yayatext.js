@@ -191,6 +191,21 @@ section('yaya_base の関数の一覧（model/dics.js。辞書の関数のかぶ
   check(`yaya_base の関数（${names.size} こ）と一覧が同じ`, [...names].sort(), [...YAYA_BASE_FUNCTIONS].sort());
 }
 
+section('色分け（highlightYaya。辞書の画面のテキストエディタ）');
+{
+  const { highlightYaya } = require('../js/model/yayatext.js');
+  const text = '#define X 1\nOnBoot : nonoverlap\n{\n\tif _i > 0x1f { "a""b" } // c\n\t/* d\n\te */ foo(1)\n\t_s = <<\'\n\tx\n\'>>\n}';
+  const hl = highlightYaya(text);
+  check('つなげると、もとのテキストの行にもどる', hl.map((l) => l.map((s) => s[1]).join('')).join('\n'), text);
+  const kinds = (row) => hl[row].filter((s) => s[0]).map((s) => `${s[0]}:${s[1].trim()}`);
+  check('# の行', kinds(0), ['dir:#define X 1']);
+  check('行の頭の関数の名前と、選択方式', kinds(1), ['def:OnBoot']);
+  check('言葉・数・文字列・コメント', kinds(3), ['kw:if', 'num:0x1f', 'str:"a""b"', 'com:// c']);
+  check('複数行のコメントと、( が続く名前', [kinds(4), kinds(5)], [['com:/* d'], ['com:e */', 'call:foo', 'num:1']]);
+  check('ヒアドキュメントは文字列の色', [kinds(6), kinds(7), kinds(8)], [["str:<<'"], ['str:x'], ["str:'>>"]]);
+  check('打っている途中（閉じていない文字列）でも投げない', highlightYaya('a\n{\n\t"abc\n}').length, 4);
+}
+
 // ================================================================== 4. 読めない関数
 section('読めない関数があっても、ほかを読み、書いたままで残す');
 {

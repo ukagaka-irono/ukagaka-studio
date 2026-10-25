@@ -1015,7 +1015,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 |---|---|---|
 | 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | done |
 | 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | done |
-| 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | |
+| 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | done |
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | |
 | 8-5 | Two-way live sync between blocks and text | |
 | 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
@@ -1049,6 +1049,16 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > While linked to a hand-written ghost, the project's dictionaries are not exported (the Check tab says so). 3 export checks (42); part 12 of the
 > YAYA test exports with the exe and runs the ghost in the real yaya.dll: the dictionary's OnBoot wins, blocks can call dictionary functions, and
 > unusable names are not written (35). 9 editor checks (198). The page to create and edit dictionaries comes next, in 8-3.
+
+
+> **8-3 is done.** A “Dictionaries” page sits next to “Speech” in the top bar (`ui/js/panels/dictionary.js`). Like the Talk page, it fills the
+> height with a left column (the list of dictionaries and “+ New dictionary”) and a text editor in the middle. The editor is a `textarea` over the
+> coloured text (`highlightYaya` in `ui/js/model/yayatext.js`) with line numbers; each keystroke goes into the dictionary, and shortly after it is
+> parsed again so lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). Only existing colour
+> tokens are used (no new ones). Tab indents; Ctrl+Z inside the text is the text's own undo, and one project undo step is recorded when the editor
+> loses focus. Names are checked with `dicNameOk`, and a name taken already (even differing only in case) is refused. The page was designed from
+> how the existing pages are built and checked afterwards by a separate agent (the differences it found were fixed). 7 colouring checks in the
+> YAYA text test (73).
 
 ---
 

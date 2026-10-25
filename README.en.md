@@ -111,10 +111,13 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 (greetings, reactions to double clicks and pats, random talks, an alarm, an anniversary, an item in SSP's menu), and you start with
 those blocks already placed. With nothing picked, you start from an empty canvas.
 
-Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
+Right below the top bar you switch between the **Talk / Speech / Dictionaries / Characters / Ghost info / Export** pages.
 **☺** next to the speech field of a “says” block inserts, at the cursor, a mark that changes the expression (`{face:1}`) or pauses (`{wait:500}`).
 The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
 spreadsheet and open it again to write back only the lines that changed.
+On the **Dictionaries** page you create YAYA dictionaries (.dic) inside the project and write them as text, with line numbers and
+colouring; lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). They go into the ghost
+on export, and events defined there run instead of the blocks for the same event. Blocks call their functions with “call YAYA function F with A B”.
 Under “Thumbnail and readme” on the **Ghost info** page you choose the picture shown in SSP's ghost list (thumbnail.png) and
 the text of readme.txt (leave the readme empty to have it made from the name, author, version and description).
 You build with blocks on the **Talk** page. How to use it and the keyboard shortcuts are under the **?** at the top right.
@@ -469,6 +472,7 @@ ukagaka-studio/
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
 │           ├── starter.js  the starter wizard behind “New” in the top bar
+│           ├── dictionary.js “Dictionaries” (the project's YAYA dictionaries and their text editor)
 │           ├── graph.js    “Links” below the canvas (the diagram of where choices lead)
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page

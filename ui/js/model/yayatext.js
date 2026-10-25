@@ -878,6 +878,78 @@ export function printYaya(dic) {
   return out.join('\n') + (out.length ? '\n' : '');
 }
 
+// ------------------------------------------------------------------ 色分け（段階 8-3。辞書の画面のテキストエディタ）
+/**
+ * テキストを行ごとの色分けにする。[[ [種類, 文字], … ], …]（1 行ずつ）を返し、まちがいがあっても投げません（打っている途中も色を付けるため）。
+ *   種類 … 'kw'（if などの言葉）・'str'（文字列とヒアドキュメント）・'com'（コメント）・'num'（数）・'dir'（# の行）・
+ *          'def'（行の頭に書いた関数の名前）・'call'（( が続く名前）・''（そのほか）
+ * 文字をつなげると、もとのテキストの行にもどります。
+ */
+export function highlightYaya(text) {
+  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+  const out = [];
+  let state = '';   // '' ・ 'com'（/* の中）・'h"' ・ "h'"（ヒアドキュメントの中）・'"' ・ "'"（/ でつないだ文字列の中）
+  for (const line of lines) {
+    const spans = [];
+    const add = (cls, s) => {
+      if (!s) return;
+      const last = spans[spans.length - 1];
+      if (last && last[0] === cls) last[1] += s; else spans.push([cls, s]);
+    };
+    let i = 0;
+    const n = line.length;
+    if (state === '' && /^\s*#/.test(line)) { add('dir', line); out.push(spans); continue; }
+    while (i < n) {
+      if (state === 'com') {
+        const end = line.indexOf('*/', i);
+        if (end < 0) { add('com', line.slice(i)); i = n; break; }
+        add('com', line.slice(i, end + 2)); i = end + 2; state = ''; continue;
+      }
+      if (state === 'h"' || state === "h'") {
+        const end = line.indexOf(state[1] + '>>', i);
+        if (end < 0) { add('str', line.slice(i)); i = n; break; }
+        add('str', line.slice(i, end + 3)); i = end + 3; state = ''; continue;
+      }
+      if (state === '"' || state === "'") {
+        let j = i;
+        while (j < n && !(line[j] === state && line[j + 1] !== state)) j += line[j] === state ? 2 : 1;
+        if (j >= n) { add('str', line.slice(i)); i = n; if (!line.endsWith('/')) state = ''; break; }
+        add('str', line.slice(i, j + 1)); i = j + 1; state = ''; continue;
+      }
+      const c = line[i];
+      if (c === '/' && line[i + 1] === '/') { add('com', line.slice(i)); i = n; break; }
+      if (c === '/' && line[i + 1] === '*') { state = 'com'; add('com', '/*'); i += 2; continue; }
+      if (c === '<' && line[i + 1] === '<' && (line[i + 2] === '"' || line[i + 2] === "'")) {
+        state = 'h' + line[i + 2]; add('str', line.slice(i, i + 3)); i += 3; continue;
+      }
+      if (c === '"' || c === "'") { state = c; add('str', c); i++; continue; }
+      if (c >= '0' && c <= '9') {
+        let j = i + 1;
+        while (j < n && /[0-9A-Za-z_.]/.test(line[j])) j++;
+        add('num', line.slice(i, j)); i = j; continue;
+      }
+      if (!NAME_STOP.has(c)) {
+        let j = i;
+        while (j < n && !NAME_STOP.has(line[j])) j++;
+        const word = line.slice(i, j);
+        let k = j;
+        while (line[k] === ' ' || line[k] === '\t') k++;
+        let cls = '';
+        if (KEYWORDS.has(word) || word === '_in_') cls = 'kw';
+        else if (i === 0) cls = 'def';
+        else if (line[k] === '(') cls = 'call';
+        add(cls, word); i = j; continue;
+      }
+      add('', c);
+      i++;
+    }
+    // 行の終わり: ふつうの文字列は、/ でつないでいなければ終わる
+    if ((state === '"' || state === "'") && !line.endsWith('/')) state = '';
+    out.push(spans);
+  }
+  return out;
+}
+
 /** 木から位置などを落とした、見くらべるための形（テスト用） */
 export function stripAst(node) {
   return JSON.parse(JSON.stringify(node));
