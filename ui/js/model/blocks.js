@@ -112,6 +112,8 @@ function def(o) {
   o.parts = parseSpec(o.spec || '');
   return o;
 }
+// 辞書のブロック（YAYA と 1 対 1。model/yblocks.js）も、同じ表に入れて同じように描きます
+export const registerBlock = (o) => def(o);
 
 // "%who が %text と話す" -> [{lbl}, {arg:'who'}, ...]
 function parseSpec(spec) {

@@ -6,6 +6,7 @@
  *   2. 書いたものをもう一度読んで書くと、同じテキストになるか（ブロックとテキストを行き来しても、くずれない）
  *   3. 本物の辞書（yaya_base・studio_runtime.dic・手書きのテスト用ゴースト・書き出しの見本）が、ひとつ残らず読めるか
  *   4. 読めない関数があっても、ほかの関数は読み、読めない関数は書いたままの文字で残るか
+ *   5. 辞書のブロック（ui/js/model/yblocks.js。段階 8-4）にして、もどしても同じ辞書になるか。どの構文にもブロックがあるか
  *
  * 書いた辞書を本物の yaya.dll で動かして、もとの辞書と同じ答えになるかは、shiori\test\yaya\yaya.js が見ます。
  */
@@ -16,6 +17,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..', '..');
 const { parseYaya, printYaya, parseExpr, printExpr } = require('../js/model/yayatext.js');
+const YB = require('../js/model/yblocks.js');
 const COLOR = { red: '\x1b[31m', green: '\x1b[32m', dim: '\x1b[2m', off: '\x1b[0m' };
 const { red, green, dim, off } = COLOR;
 
@@ -33,13 +35,15 @@ function check(what, got, want) {
 }
 const section = (s) => console.log(`${dim}  ---- ${s}${off}`);
 
-/** 読んで、まちがいが無く、書いて読みなおしても同じテキストになるか。木を返す */
+/** 木をブロックにして、もどして書いたテキスト（ブロックは JSON にして、プロジェクトに入れたのと同じにする） */
+const viaBlocks = (dic) => printYaya(YB.viewToAst(JSON.parse(JSON.stringify(YB.astToView(dic)))).dic);
+/** 読んで、まちがいが無く、書いて読みなおしても、ブロックにしてもどしても同じテキストになるか。木を返す */
 function roundTrip(what, text) {
   const a = parseYaya(text);
   const p1 = printYaya(a.dic);
   const b = parseYaya(p1);
   const p2 = printYaya(b.dic);
-  check(`${what}（読める・書きなおしても同じ）`, [a.errors, b.errors, p1 === p2], [[], [], true]);
+  check(`${what}（読める・書きなおしても、ブロックにしても同じ）`, [a.errors, b.errors, p1 === p2, viaBlocks(a.dic) === p1], [[], [], true, true]);
   return a.dic;
 }
 const body = (dic, k = 0) => dic.items.filter((x) => x.type === 'func')[k].body.items;
@@ -174,9 +178,10 @@ section('本物の辞書がひとつ残らず読めて、書きなおしても�
     const p2 = printYaya(parseYaya(p1).dic);
     const count = (s, re) => (s.match(re) || []).length;
     const funcs = a.dic.items.filter((x) => x.type === 'func').length;
-    check(`${path.relative(root, f)}（関数 ${funcs} こ）`,
-      [a.errors.length, a.dic.items.filter((x) => x.type === 'raw').length, p1 === p2, count(text, /\/\//g) === count(p1, /\/\//g)],
-      [0, 0, true, true]);
+    check(`${path.relative(root, f)}（関数 ${funcs} こ。ブロックにしても同じ）`,
+      [a.errors.length, a.dic.items.filter((x) => x.type === 'raw').length, p1 === p2, count(text, /\/\//g) === count(p1, /\/\//g),
+        viaBlocks(a.dic) === p1],
+      [0, 0, true, true, true]);
   }
 }
 
@@ -216,6 +221,65 @@ section('読めない関数があっても、ほかを読み、書いたまま�
   check('書きもどすと、読めない関数もそのまま', printYaya(r.dic), `good\n{\n\t"ok"\n}\n${bad}\ngood2\n{\n\t"y"\n}\n`);
   const r2 = parseYaya('a\n{\n\t"とじていない\n}\n');
   check('とじていない文字列も、まちがいとして知らせる', r2.errors.map((e) => e.code), ['unterminated_string']);
+}
+
+// ================================================================== 5. 辞書のブロック
+section('辞書のブロック（yblocks.js）');
+{
+  const { BLOCKS } = require('../js/model/blocks.js');
+  const yTypes = Object.keys(BLOCKS).filter((k) => k.startsWith('y_')).sort();
+  // 本物の辞書と、構文の例に出てくるブロック
+  const seen = new Set();
+  const walk = (x) => {
+    if (Array.isArray(x)) x.forEach(walk);
+    else if (x && typeof x === 'object') {
+      if (typeof x.type === 'string' && x.type.startsWith('y_')) seen.add(x.type);
+      if (x.kind === 'yfunc') seen.add('y_func');
+      Object.values(x).forEach(walk);
+    }
+  };
+  const base = path.join(root, 'third_party', 'yaya-dic', 'yaya_base');
+  const dics = fs.readdirSync(base).filter((f) => f.endsWith('.dic')).map((f) => fs.readFileSync(path.join(base, f), 'utf8'));
+  dics.push(fs.readFileSync(path.join(root, 'shiori', 'test', 'yaya', 'handwritten', 'ghost', 'master', 'hand.dic'), 'utf8'));
+  const extra = 'f\n{\n\tg(&(_a[0]))\n}\nbad\n{\n\tif {\n}\n';
+  for (const text of dics.concat([extra])) walk(YB.astToView(parseYaya(text).dic));
+  check('どのブロックも、本物の辞書か例のどこかに出てくる（使われないブロックが無い）', yTypes.filter((k) => !seen.has(k)), []);
+  check('構文のブロックは 30 こ', yTypes.length, 30);
+  check('読めない関数は「読めない YAYA」のブロックで、書いたままもどる', viaBlocks(parseYaya(extra).dic), printYaya(parseYaya(extra).dic));
+
+  // 欄に書いた文字
+  const one = (blocks) => printYaya(YB.viewToAst({ scripts: [{ kind: 'yfunc', name: 'F', mode: '', blocks }] }).dic);
+  check('欄の文字は YAYA の式として読む', one([{ type: 'y_out', value: '"a" + _b', prefix: '' }]), 'F\n{\n\t"a" + _b\n}\n');
+  check('関数をよぶ引数の & は、そのまま', one([{ type: 'y_out', value: { type: 'y_call', name: 'F2', args: ['&_x', '1'] }, prefix: 'void' }]),
+    'F\n{\n\tvoid F2(&_x, 1)\n}\n');
+  check('もし・そうでなくて・そうでなければ（あいだのコメントはその節に・} のうしろのコメントは次の行に）',
+    one([{ type: 'y_if', cond: '_a', body: [{ type: 'y_out', value: '1' }] }, { type: 'y_comment', text: '// b' },
+      { type: 'y_elseif', cond: '_b', body: [] }, { type: 'y_else', body: [{ type: 'y_break' }], trail: '// c' }]),
+    'F\n{\n\tif _a {\n\t\t1\n\t}\n\t// b\n\telseif _b {\n\t}\n\telse {\n\t\tbreak\n\t}\n\t// c\n}\n');
+  const err = (blocks) => { try { one(blocks); return null; } catch (e) { return e.code; } };
+  check('まちがい: からの欄・読めない式・前に「もし」が無い・case の外の when・名前でない関数名',
+    [err([{ type: 'y_out', value: '' }]), err([{ type: 'y_out', value: '1 +' }]), err([{ type: 'y_else', body: [] }]),
+      err([{ type: 'y_when', labels: '1', body: [] }]), err([{ type: 'y_out', value: { type: 'y_call', name: 'a b', args: [] } }])],
+    ['empty_slot', 'bad_expr', 'orphan_else', 'outside_case', 'bad_name']);
+  check('関数の外にはみ出したブロックは、数えて辞書には入れない',
+    YB.viewToAst({ scripts: [{ kind: 'loose', blocks: [{ type: 'y_out', value: '1' }] }] }).loose, 1);
+
+  // YAYA に元からある関数の一覧が、本物の辞書でよばれている名前をみな知っているか
+  const defined = new Set();
+  const called = new Set();
+  const calls = (x) => {
+    if (Array.isArray(x)) x.forEach(calls);
+    else if (x && typeof x === 'object') { if (x.type === 'call') called.add(x.name); Object.values(x).forEach(calls); }
+  };
+  for (const text of dics) {
+    const d = parseYaya(text).dic;
+    d.items.forEach((it) => it.type === 'func' && defined.add(it.name));
+    calls(d);
+  }
+  const sys = new Set(Object.values(YB.YAYA_SYSTEM_FUNCTIONS).flat());
+  check(`YAYA の関数の一覧は ${sys.size} こ`, sys.size, 197);
+  check('本物の辞書でよばれる、辞書に無い関数は、みな一覧にある（Studio.〜 はスタジオの辞書）',
+    [...called].filter((n) => !defined.has(n) && !sys.has(n) && !n.startsWith('Studio.')).sort(), []);
 }
 
 console.log('');

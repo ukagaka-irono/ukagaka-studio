@@ -1263,4 +1263,37 @@ export const en = {
 
   // ---- ui\js\panels\about.js
   '版 {version}': 'version {version}',
+
+  // ---- ui\js\editor\render.js（辞書のブロック）
+  '欄をへらす': 'Remove a slot',
+  '欄をふやす': 'Add a slot',
+  'プロジェクトの辞書': "Project's dictionaries",
+  'YAYA の関数 {range}': 'YAYA functions {range}',
+  'よぶ関数をえらぶ': 'Pick the function to call',
+  '同じ行のうしろのコメント': 'Comment at the end of the line',
+
+  // ---- ui\js\model\yblocks.js
+  'ランダム（指定なし）': 'random (default)',
+  '関数 %name えらびかた %mode': 'function %name choose by %mode',
+  'を出力の候補にする': 'as an output candidate',
+  'をばらして出力の候補にする（parallel）': 'split into output candidates (parallel)',
+  'を計算だけする（void）': 'evaluate only (void)',
+  '-- ここで区切って、前とうしろの出力をつなげる': '-- split here and join the outputs before and after',
+  'そうでなくて、もし %cond なら': 'else if %cond then',
+  '%expr によって分ける（case）': 'depending on %expr (case)',
+  '%labels のとき（when）': 'when %labels',
+  'どれでもないとき（others）': 'otherwise (others)',
+  '%expr 番目のものをえらぶ（switch）': 'pick item number %expr (switch)',
+  '%cond のあいだくりかえす（while）': 'repeat while %cond',
+  'はじめに %init 、%cond のあいだ、%step しながらくりかえす（for）': 'first %init , repeat while %cond , each time %step (for)',
+  '%expr のひとつずつを %vars に入れてくりかえす（foreach）': 'for each of %expr put it in %vars and repeat (foreach)',
+  'くりかえしをぬける（break）': 'leave the loop (break)',
+  'くりかえしの先頭へもどる（continue）': 'back to the top of the loop (continue)',
+  'ここで関数を終わる（return） %value': 'end the function here (return) %value',
+  'この中からえらぶ えらびかた %mode': 'choose from these, by %mode',
+  '読めない YAYA %text': 'unreadable YAYA %text',
+  '++（使ってから 1 足す）': '++ (use, then add 1)',
+  '--（使ってから 1 引く）': '-- (use, then subtract 1)',
+  '++ を前に（1 足してから使う）': '++ in front (add 1, then use)',
+  '-- を前に（1 引いてから使う）': '-- in front (subtract 1, then use)',
 };

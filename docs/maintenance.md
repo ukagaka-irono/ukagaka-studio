@@ -101,7 +101,7 @@ node のテストは、しくみの辞書をリポジトリのものから読む
 | `node shiori\test\behavior\behavior.js` | しくみの辞書が持っている判断（どれを選ぶか・既定の反応・間引き・ランダムトーク・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も。場面は `scenarios.js` |
 | `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。`YAYA_DEFINES` が yaya_base とそろっているか、変数が次の起動に残るか、exe の書き出しがそのまま動くか、手書きのゴーストにつなぐ書き出し |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
-| `node ui\test\yayatext.js` | YAYA の辞書を読むところ（`yayatext.js`）が YAYA の構文をすべて読めるか（文法の説明書の例）。本物の辞書がひとつ残らず読めて、整えて書きなおしてもくずれないか。読めない関数は書いたままで残すか。書きなおした辞書が同じに動くかは `yaya.js` の 11 が本物の yaya.dll で見ます |
+| `node ui\test\yayatext.js` | YAYA の辞書を読むところ（`yayatext.js`）が YAYA の構文をすべて読めるか（文法の説明書の例）。本物の辞書がひとつ残らず読めて、整えて書きなおしてもくずれないか。読めない関数は書いたままで残すか。辞書のブロック（`yblocks.js`）にしてもどしても同じ辞書になるか、どのブロックも使われているか、YAYA に元からある関数の一覧が本物の辞書でよばれる関数をみな知っているか。書きなおした辞書が同じに動くかは `yaya.js` の 11 が本物の yaya.dll で見ます |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `third_party\yaya\yaya.dll` が Windows 2000 から読みこめるか（輸入表を直に読む。版を上げたときのため） |

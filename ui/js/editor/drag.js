@@ -136,9 +136,13 @@ function startDrag(payload, clientX, clientY, grab) {
   } else if (payload.type === 'reporter' && payload.fromSlot) {
     const owner = payload.fromSlot._slotOwner;
     const arg = payload.fromSlot._slotArg;
-    const def = getDef(owner) || BLOCKS[({ event: '@event', talk: '@talk', function: '@function' })[owner.kind]];
-    const argDef = def && def.args ? def.args[arg] : null;
-    owner[arg] = argDef && argDef.mode !== 'bool' ? (argDef.def == null ? '' : argDef.def) : null;
+    if (Array.isArray(owner)) {
+      owner[arg] = '';   // 欄のならび（辞書のブロックの引数など）は、欄を残してからにする
+    } else {
+      const def = getDef(owner) || BLOCKS[({ event: '@event', talk: '@talk', function: '@function', yfunc: 'y_func' })[owner.kind]];
+      const argDef = def && def.args ? def.args[arg] : null;
+      owner[arg] = argDef && argDef.mode !== 'bool' ? (argDef.def == null ? '' : argDef.def) : null;
+    }
   } else if (payload.type === 'moveScript') {
     // 位置だけ変わるので、モデルはそのまま
   }

@@ -420,8 +420,8 @@ class Parser {
     const items = [];
     for (;;) {
       const nl = this.skipNl();
+      if (this.isOp('}')) { this.p++; break; }     // } の直前の空行は持たない（ブロックにすると置き場が無いため）
       if (nl >= 2 && items.length) items.push({ type: 'blank' });
-      if (this.isOp('}')) { this.p++; break; }
       if (this.is('eof')) throw new YayaError('unclosed_block', this.peek().line);
       const s = this.statement();
       if (s) items.push(s);

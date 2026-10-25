@@ -317,7 +317,7 @@ With `-Test`, ten tests run.
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions the runtime dictionary makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, random talk, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
 | **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`) is still the official build and runs; whether variables survive a restart, the exe's export runs on YAYA as it is, and exporting into a linked hand-written YAYA ghost leaves the hand-written files byte for byte unchanged |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic`, and the file list) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
-| **YAYA text test** (`ui\test\yayatext.js`) | That reading YAYA dictionaries (the parser) and pretty-printing them covers all of YAYA's syntax; that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive being printed again; and that a function that cannot be read is kept verbatim while the rest is still read |
+| **YAYA text test** (`ui\test\yayatext.js`) | That reading YAYA dictionaries (the parser) and pretty-printing them covers all of YAYA's syntax; that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive being printed again; that a function that cannot be read is kept verbatim while the rest is still read; and that turning a dictionary into dictionary blocks and back gives the same dictionary |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, that every example is clean, and that the notice in Help's “About this software” is the same text as in the README and LICENSE |
 | **Import check** (`tools\check-imports.js`) | Reads the import table of the `yaya.dll` that goes into exported ghosts directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows (this is for when you upgrade it) |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
@@ -451,6 +451,7 @@ ukagaka-studio/
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   ├── yayatext.js reading (parsing) and pretty-printing YAYA dictionary text
 │       │   ├── dics.js     YAYA dictionaries inside the project (name rules, clashing functions)
+│       │   ├── yblocks.js  dictionary blocks (one per YAYA construct) and converting them to and from the dictionary tree
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk
 │       │   ├── partsfile.js parts files (.parts.json) out and in

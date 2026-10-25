@@ -1016,7 +1016,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 | 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | done |
 | 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | done |
 | 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | done |
-| 8-4 | Blocks for every YAYA construct and for the built-in functions | |
+| 8-4 | Blocks for every YAYA construct and for the built-in functions | done |
 | 8-5 | Two-way live sync between blocks and text | |
 | 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
 | 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
@@ -1059,6 +1059,22 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > loses focus. Names are checked with `dicNameOk`, and a name taken already (even differing only in case) is refused. The page was designed from
 > how the existing pages are built and checked afterwards by a separate agent (the differences it found were fixed). 7 colouring checks in the
 > YAYA text test (73).
+
+
+> **8-4 is done.** `ui/js/model/yblocks.js` adds “dictionary blocks”, one per YAYA construct (30, all starting with `y_`), and `astToView` /
+> `viewToAst`, which convert between the dictionary tree (`parseYaya`) and a list of blocks: functions (a hat, with the choice mode), output
+> (`parallel`, `void`), `--`, assignment (`=`, `:=`, `+=` and the rest, 13 kinds), `++` `--`, if/elseif/else, case/when/others, switch, while,
+> for, foreach, break, continue, return, nested blocks with a choice mode, comments, `#` lines and unreadable functions; for expressions, binary
+> operators (all but `,`), unary operators, `++` `--` (before and after), function calls, `[ ]`, `( , )` arrays, parentheses and `&`. Numbers,
+> strings, here-documents and names are written into slots as YAYA text (slot text is read as a YAYA expression, so writing `"a" + _b` and
+> building the blocks give the same thing). Blank lines, comments at the end of a line and comments between a function's name and its `{` are
+> kept; a comment after a `}` becomes a comment on the next line, as it does when the text is parsed. The ▾ beside the name in “call a
+> function” picks from the project's dictionary functions and YAYA's built-in functions (197: the manual's index lists 189; DIRECTSSTP and 7
+> LINT.* functions have pages but are missing from it). They are drawn like the other blocks (`editor/render.js`), which gained a row of
+> argument slots (+ −) and multi-line slots (for `/* */` comments). The YAYA text test checks that the manual's examples and the real dictionaries
+> (yaya_base, the runtime dictionaries, the hand-written test ghost) all come back the same after a trip through blocks, that every block is used
+> somewhere, and that the list knows every function the real dictionaries call (83). The page that lays the blocks out comes next, in 8-5. The
+> pretty-printer also no longer keeps a blank line before a `}`.
 
 ---
 

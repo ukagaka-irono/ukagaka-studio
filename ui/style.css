@@ -95,7 +95,7 @@
   --cat-variables: #ff8c1a;
   --cat-operators: #59c059;
   --cat-info: #5cb1d6;
-  --cat-parts: #8f9bb3;   /* 部品（パレットのカテゴリの印だけ。部品の中のブロックは、それぞれの色） */
+  --cat-parts: #8f9bb3;   /* 部品（パレットのカテゴリの印）と、辞書のブロックのコメント・# の行・読めない YAYA */
 }
 /* 上のバーのボタンで固定したとき（main.js の Theme） */
 :root[data-theme="light"] { color-scheme: light; }
@@ -436,6 +436,7 @@ button.diff-row:hover { background: var(--surface-hover); }
 .cat-variables { --blk: var(--cat-variables); }
 .cat-operators { --blk: var(--cat-operators); }
 .cat-info      { --blk: var(--cat-info); }
+.cat-parts     { --blk: var(--cat-parts); }
 
 /* puzzle shapes */
 .sh-stack {
@@ -516,6 +517,16 @@ button.diff-row:hover { background: var(--surface-hover); }
   color: var(--slot-text); padding: 2px 7px; min-width: 26px; text-align: center;
 }
 .slot input.long { text-align: left; }
+/* 何行にもなる欄（辞書のブロックのコメントなど。editor/render.js） */
+.slot textarea {
+  border: 0; outline: 0; background: transparent; font: 600 12.5px/1.5 "Cascadia Mono", Consolas, monospace;
+  color: var(--slot-text); padding: 3px 8px; resize: none; overflow: hidden; tab-size: 4; white-space: pre;
+}
+.slot:has(textarea) { border-radius: 8px; }
+.slot.is-trail { opacity: .8; }
+/* 欄のならび（関数をよぶ引数など）の , */
+.field-slots { display: inline-flex; align-items: center; gap: 3px; }
+.field-slots > .lbl { font-weight: 700; }
 .field-drop {
   appearance: none; border: 0; border-radius: 999px; background-color: var(--on-block-field);
   color: var(--on-block); font-size: 12.5px; font-weight: 600; padding: 4px 20px 4px 10px; cursor: pointer;
