@@ -1002,7 +1002,7 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 
 ---
 
-## Stage 8 — Building a YAYA ghost entirely inside the studio
+## Stage 8 — Building a YAYA ghost entirely inside the studio (done)
 
 Decided on 2026-10-25. Today's blocks write what ghost-making needs on top of the studio's own machinery (`Studio.…`), and cannot express all
 of YAYA's syntax (functions with arguments and return values, local variables, arrays and hashes, `for` / `foreach` / `case` / `switch`,
