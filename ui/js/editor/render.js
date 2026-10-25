@@ -476,8 +476,13 @@ function hatKeyFor(script) {
   return HAT_DEF[script.kind];
 }
 
+/**
+ * かたまりを描く。options: noPosition・noTools と、
+ * host（たたむ・複製・削除をするもの。無ければトークの画面のかたまりとして editor/scripts.js で。辞書の画面は panels/dictionary.js）
+ */
 function buildScriptEl(script, project, options) {
   const opts = options || {};
+  const host = opts.host || Scripts;
   const wrap = div('script');
   wrap._script = script;
   if (!opts.noPosition) {
@@ -495,14 +500,12 @@ function buildScriptEl(script, project, options) {
       return b;
     };
     if (script.blocks.length || script.folded) {
-      tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => Scripts.toggleFold(script)));
+      tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => host.toggleFold(script)));
     }
-    // 辞書のブロック（yfunc・ytop）は、まだ「ためす」で動かせません（段階 8-7）
-    if (script.kind !== 'yfunc' && script.kind !== 'ytop') {
-      tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
-    }
-    tools.appendChild(mk('⧉', t('複製する'), () => Scripts.duplicateScript(script)));
-    tools.appendChild(mk('✕', t('削除する'), () => Scripts.deleteScript(script)));
+    // 辞書の画面のかたまり（opts.host のあるもの）は、まだ「ためす」で動かせません（段階 8-7）
+    if (!opts.host) tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
+    tools.appendChild(mk('⧉', t('複製する'), () => host.duplicateScript(script)));
+    tools.appendChild(mk('✕', t('削除する'), () => host.deleteScript(script)));
     wrap.appendChild(tools);
   }
 
@@ -526,7 +529,7 @@ function buildScriptEl(script, project, options) {
     wrap.classList.add('is-folded');
     const bar = el('button', 'fold-summary', t('… {n} 個のブロック（たたんでいます）', { n: Scripts.countBlocks(script) }));
     bar.title = t('押すと、ひろげます');
-    bar.addEventListener('click', (e) => { e.stopPropagation(); Scripts.toggleFold(script); });
+    bar.addEventListener('click', (e) => { e.stopPropagation(); host.toggleFold(script); });
     wrap.appendChild(bar);
     return wrap;
   }
@@ -545,8 +548,12 @@ function renderWorkspace(canvas, project) {
 
 // ---------------------------------------------------------------- palette
 function renderPalette(container, catId, project) {
+  renderPaletteEntries(container, PALETTE[catId] || [], project);
+}
+
+/** パレットの中身を描く（entries の書きかたは model/blocks.js の PALETTE と同じ。辞書の画面のパレットも、これで描きます） */
+function renderPaletteEntries(container, entries, project) {
   container.textContent = '';
-  const entries = PALETTE[catId] || [];
 
   for (const entry of entries) {
     if (typeof entry === 'object' && entry.note) {
@@ -630,6 +637,6 @@ function renderPalette(container, catId, project) {
 }
 
 export const Render = {
-  buildBlockEl, buildStackEl, buildScriptEl, renderWorkspace, renderPalette,
+  buildBlockEl, buildStackEl, buildScriptEl, renderWorkspace, renderPalette, renderPaletteEntries,
   measureText, div, el, hatKeyFor,
 };

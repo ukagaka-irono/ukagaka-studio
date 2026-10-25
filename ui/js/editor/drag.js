@@ -1,4 +1,8 @@
-/* 伺かスタジオ - ブロックのドラッグ＆ドロップ */
+/* 伺かスタジオ - ブロックのドラッグ＆ドロップ
+ *
+ * ブロックを置く場所（「ルート」）は、トークの画面のキャンバスと、辞書の画面のキャンバス（panels/dictionary.js）の 2 つです。
+ * ルートは、パレット・キャンバス・ごみ箱と、かたまりの並び（scripts）を持ちます。押したところのルートで、ドラッグのあいだ動きます。
+ */
 
 import { BLOCKS, createBlock, getDef, isReporter } from '../model/blocks.js';
 import { Model } from '../model/model.js';
@@ -11,6 +15,7 @@ const SNAP_SLOT = 34;    // スロット吸着距離(px)
 
 const D = {
   ws: null, canvas: null, layer: null, palette: null, trash: null,
+  root: null,
   zoom: 1,
   selected: null,
   pending: null,
@@ -18,6 +23,31 @@ const D = {
   marker: null,
   onDrop: null,
 };
+
+// ------------------------------------------------------------------ roots
+const ROOTS = [];
+let mainRoot = null;
+
+/**
+ * ブロックを置く場所を足す。
+ *   { ws, canvas, palette, trash, zoom, scripts(): かたまりの並び, removeScript(s), uniqueName(name) }
+ */
+function addRoot(root) {
+  ROOTS.push(Object.assign({ zoom: 1 }, root));
+}
+
+function useRoot(root) {
+  if (D.root === root) return;
+  if (D.root) select(null);
+  D.root = root;
+  D.ws = root.ws;
+  D.canvas = root.canvas;
+  D.palette = root.palette;
+  D.trash = root.trash;
+  D.zoom = root.zoom;
+}
+
+const inside = (el, target) => !!(el && target && el.contains(target));
 
 function toCanvas(clientX, clientY) {
   const r = D.ws.getBoundingClientRect();
@@ -72,15 +102,15 @@ function insertTarget() {
 // ------------------------------------------------------------ drag start
 function pickPayload(target, clientX, clientY) {
   // パレットの部品から（中のブロックをまとめて。使っている変数も持っていき、置いた先に無ければ足す）
-  const partEl = target.closest && target.closest('#palette .palette-part');
-  if (partEl && partEl._palettePart) {
+  const partEl = target.closest && target.closest('.palette-part');
+  if (partEl && inside(D.palette, partEl) && partEl._palettePart) {
     const part = partEl._palettePart;
     return { type: 'blocks', blocks: Model.clone(part.blocks), vars: part.variables || [], sourceEl: partEl, scale: 1 };
   }
 
   // パレットから
-  const paletteBlk = target.closest && target.closest('#palette .blk');
-  if (paletteBlk) {
+  const paletteBlk = target.closest && target.closest('.blk');
+  if (paletteBlk && inside(D.palette, paletteBlk)) {
     if (paletteBlk._paletteHat) {
       // パレットで見えている内容（なでなでブロックの既定値など）をそのまま持ってくる
       const script = Object.assign({
@@ -104,8 +134,8 @@ function pickPayload(target, clientX, clientY) {
   }
 
   // キャンバスから
-  const blk = target.closest && target.closest('#canvas .blk');
-  if (!blk) return null;
+  const blk = target.closest && target.closest('.blk');
+  if (!blk || !inside(D.canvas, blk)) return null;
 
   if (blk._isHat) {
     return { type: 'moveScript', script: blk._script, sourceEl: blk.parentElement, scale: D.zoom };
@@ -320,7 +350,7 @@ function finishDrag(clientX, clientY) {
   const deleting = isOver(D.palette, clientX, clientY) || isOver(D.trash, clientX, clientY);
 
   if (deleting) {
-    if (payload.type === 'moveScript') Model.removeScript(payload.script);
+    if (payload.type === 'moveScript') D.root.removeScript(payload.script);
     // それ以外はすでにモデルから外れているので、置かなければ消える
     Model.pushUndo(d.snapshot);
     Model.emit();
@@ -342,12 +372,10 @@ function finishDrag(clientX, clientY) {
     payload.script.x = Math.max(0, Math.round(pos.x));
     payload.script.y = Math.max(0, Math.round(pos.y));
     payload.script.id = Model.uid('s');
-    if (payload.script.kind === 'function') {
-      payload.script.name = uniqueName(payload.script.name);
-    } else if (payload.script.kind === 'talk') {
-      payload.script.name = uniqueName(payload.script.name);
+    if (payload.script.kind === 'function' || payload.script.kind === 'talk' || payload.script.kind === 'yfunc') {
+      payload.script.name = D.root.uniqueName(payload.script.name);
     }
-    Model.project.scripts.push(payload.script);
+    D.root.scripts().push(payload.script);
     Model.pushUndo(d.snapshot);
     Model.emit();
     return;
@@ -358,7 +386,7 @@ function finishDrag(clientX, clientY) {
     if (c && c.kind === 'slot') {
       c.slot._slotOwner[c.slot._slotArg] = payload.blocks[0];
     } else {
-      Model.project.scripts.push({
+      D.root.scripts().push({
         id: Model.uid('s'), kind: 'loose', blocks: payload.blocks,
         x: Math.max(0, Math.round(pos.x)), y: Math.max(0, Math.round(pos.y)),
       });
@@ -373,7 +401,7 @@ function finishDrag(clientX, clientY) {
   if (c && c.kind === 'stack') {
     c.stack.splice(c.index, 0, ...payload.blocks);
   } else {
-    Model.project.scripts.push({
+    D.root.scripts().push({
       id: Model.uid('s'), kind: 'loose', blocks: payload.blocks,
       x: Math.max(0, Math.round(pos.x)), y: Math.max(0, Math.round(pos.y)),
     });
@@ -386,27 +414,32 @@ function finishDrag(clientX, clientY) {
   if (added.length) toast(t('変数「{names}」も足しました', { names: added.join(', ') }));
 }
 
-function uniqueName(base) {
-  const names = Model.functionNames();
+/** names にない名前にする（base・base2・base3 …） */
+function uniqueIn(names, base) {
   if (!names.includes(base)) return base;
   let i = 2;
   while (names.includes(base + i)) i++;
   return base + i;
 }
+const uniqueName = (base) => uniqueIn(Model.functionNames(), base);
 
+/** 中身の無くなったはみ出しのかたまりを消す（いまのルートの） */
 function cleanupEmptyScripts() {
-  Model.project.scripts = Model.project.scripts.filter(
-    (s) => s.kind !== 'loose' || (s.blocks && s.blocks.length)
-  );
+  const list = (D.root || mainRoot).scripts();
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (list[i].kind === 'loose' && !(list[i].blocks && list[i].blocks.length)) list.splice(i, 1);
+  }
 }
 
 // --------------------------------------------------------------- pointer
 function onPointerDown(e) {
   if (e.button === 2) return;                       // 右クリックはメニュー（開いているメニューは contextmenu.js が閉じます）
 
-  const inPalette = !!(e.target.closest && e.target.closest('#palette'));
-  const inCanvas = !!(e.target.closest && e.target.closest('#canvas'));
-  if (!inPalette && !inCanvas) return;
+  const root = ROOTS.find((r) => inside(r.palette, e.target) || inside(r.canvas, e.target));
+  if (!root) return;
+  useRoot(root);
+  const inPalette = inside(root.palette, e.target);
+  const inCanvas = inside(root.canvas, e.target);
   // 打っている欄（ブロックの文字の欄・メモ）の外を押したら、打つのを終える（元にもどす記録もそこで積まれます）。
   // 下で preventDefault するので、何もしないと欄からフォーカスが外れません
   const active = document.activeElement;
@@ -457,16 +490,21 @@ function onPointerUp(e) {
   const p = D.pending;
   D.pending = null;
   if (!p || p.pan) return;
-  if (p.blockEl && p.blockEl.closest('#canvas')) select(p.blockEl);
+  if (p.blockEl && inside(D.canvas, p.blockEl)) select(p.blockEl);
 }
 
 // ----------------------------------------------------------------- setup
 function init(opts) {
-  D.ws = opts.workspace;
-  D.canvas = opts.canvas;
   D.layer = opts.layer;
-  D.palette = opts.palette;
-  D.trash = opts.trash;
+  // トークの画面のキャンバス
+  addRoot({
+    ws: opts.workspace, canvas: opts.canvas, palette: opts.palette, trash: opts.trash,
+    scripts: () => Model.project.scripts,
+    removeScript: (s) => Model.removeScript(s),
+    uniqueName,
+  });
+  mainRoot = ROOTS[ROOTS.length - 1];
+  useRoot(mainRoot);
 
   document.addEventListener('pointerdown', onPointerDown);
   document.addEventListener('pointermove', onPointerMove);
@@ -474,7 +512,11 @@ function init(opts) {
   document.addEventListener('pointercancel', onPointerUp);
 }
 
-function setZoom(z) { D.zoom = z; }
+// 拡大・縮小はトークの画面のキャンバスだけ（editor/zoom.js）
+function setZoom(z) {
+  if (mainRoot) mainRoot.zoom = z;
+  if (D.root === mainRoot) D.zoom = z;
+}
 function getSelected() { return D.selected; }
 
-export const Drag = { init, setZoom, select, reselect, getSelected, insertTarget, uniqueName, cleanupEmptyScripts, D };
+export const Drag = { init, addRoot, setZoom, select, reselect, getSelected, insertTarget, uniqueName, uniqueIn, cleanupEmptyScripts, D };

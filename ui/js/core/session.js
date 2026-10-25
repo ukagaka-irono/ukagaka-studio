@@ -9,6 +9,7 @@ export const Session = {
   state: null,              // 起動時に /api/state からもらったもの
   projectName: '',          // 上書き保存するときの名前（空なら名前を聞く）
   dicName: null,            // 「辞書」の画面でえらんでいる辞書の名前（panels/dictionary.js）
+  dicCategory: 'y-func',    // 「辞書」の画面のパレットでえらんでいるカテゴリ（model/yblocks.js の YPALETTE）
   zoom: 1,
   category: 'events',       // パレットで選んでいるカテゴリ
   vars: {},                 // 「ためす」で覚えている変数（ゴーストのセーブにあたるもの）

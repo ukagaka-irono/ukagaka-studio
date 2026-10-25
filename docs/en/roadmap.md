@@ -1017,7 +1017,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 | 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | done |
 | 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | done |
 | 8-4 | Blocks for every YAYA construct and for the built-in functions | done |
-| 8-5 | Two-way live sync between blocks and text | |
+| 8-5 | Two-way live sync between blocks and text | done |
 | 8-6 | Import an existing YAYA ghost's dictionaries into the project | |
 | 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | |
 
@@ -1075,6 +1075,19 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 > (yaya_base, the runtime dictionaries, the hand-written test ghost) all come back the same after a trip through blocks, that every block is used
 > somewhere, and that the list knows every function the real dictionaries call (83). The page that lays the blocks out comes next, in 8-5. The
 > pretty-printer also no longer keeps a blank line before a `}`.
+
+
+> **8-5 is done.** On the Dictionaries page, a palette and a canvas of the same dictionary's blocks (the dictionary blocks from 8-4) sit beside the
+> text. The palette, canvas and trash follow the Talk page's rules (the same `style.css` rules also apply to the Dictionaries page's ids) and
+> the same rendering (`Render.renderPaletteEntries`). The blocks live outside the project (in `panels/dictionary.js`) and follow the dictionary
+> text: typing rebuilds them when the text is parsed again shortly after (an unreadable function becomes an “unreadable YAYA” block), and changing
+> a block rewrites the text, pretty-printed (while no block changes, the text keeps its own layout). The text also updates while you type in a
+> block's slot. So that undo covers block changes, `Model.act` and `pushUndo` call what was registered with `Model.onCommit` (the Dictionaries
+> page writing blocks into the text) before recording. Blocks can now be placed in two places, Talk and Dictionaries (the “roots” in
+> `editor/drag.js`). Scripts on the canvas are laid out in one column in text order; moving a hat up or down reorders the functions in the text.
+> Blocks that cannot become YAYA (an empty slot, an unreadable expression, an “else” without an “if”, …) leave the text alone, are reported in the
+> list below and marked on the canvas; blocks outside any function are reported too. Ctrl+D and Delete work on the Dictionaries page's blocks. The
+> page was designed from how the Talk page is built and checked afterwards by a separate agent. 3 editor checks (201), 1 YAYA text check (84).
 
 ---
 

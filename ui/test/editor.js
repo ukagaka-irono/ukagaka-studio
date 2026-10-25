@@ -802,6 +802,25 @@ section('このソフトについて (about)');
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
 }
 
+section('「元にもどす」に積む前に、画面の側のものを書きもどす (Model.onCommit。辞書の画面のブロック)');
+{
+  // 辞書の画面は、ブロックをプロジェクトの外に持ち、変わったら辞書のテキストに書きます（panels/dictionary.js）。
+  // ここでは「外のもの」を out にして、act・pushUndo が積む前に書きもどすことと、元にもどすで前にもどることを見ます
+  Model.init({ format: 'ikaga/1', meta: { name: 'D' }, dics: [{ name: 'a.dic', text: 'A' }], scripts: [] });
+  const out = { text: 'A' };
+  Model.commitHooks.length = 0;
+  Model.onCommit(() => { Model.project.dics[0].text = out.text; });
+  Model.act(() => { out.text = 'B'; });
+  check('act: 外で変えたものが、プロジェクトに入る', Model.project.dics[0].text, 'B');
+  const snap = Model.clone(Model.project);
+  out.text = 'C';
+  Model.pushUndo(snap);
+  check('pushUndo: 外で変えたものを書きもどしてからくらべるので、記録が積まれる', [Model.project.dics[0].text, Model.undoStack.length], ['C', 2]);
+  Model.undo();
+  check('元にもどすと、前のテキスト', Model.project.dics[0].text, 'B');
+  Model.commitHooks.length = 0;
+}
+
 // ------------------------------------------------------------------ おしまい
 if (failed) {
   console.log(`${red}[editor] ${failed} か所ちがいます（${checked} か所中）。${off}`);

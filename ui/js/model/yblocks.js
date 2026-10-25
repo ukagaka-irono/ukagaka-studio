@@ -129,15 +129,24 @@ def({ type: 'y_list', cat: 'operators', shape: 'reporter', spec: '%items', args:
 def({ type: 'y_paren', cat: 'operators', shape: 'reporter', spec: '( %a )', args: { a: X() } });
 def({ type: 'y_ref', cat: 'operators', shape: 'reporter', spec: '&%a', args: { a: X('_x') } });
 
-/** 辞書の画面のパレット（段階 8-5 で使う） */
-export const YPALETTE = {
-  'y-func': ['y_func'],
-  'y-value': ['y_out', 'y_sep', 'y_assign', 'y_incdec', 'y_return'],
-  'y-flow': ['y_if', 'y_elseif', 'y_else', 'y_case', 'y_when', 'y_others', 'y_switch', 'y_while', 'y_for', 'y_foreach',
-    'y_break', 'y_continue', 'y_block'],
-  'y-expr': ['y_bin', 'y_unary', 'y_incdec_r', 'y_call', 'y_index', 'y_list', 'y_paren', 'y_ref'],
-  'y-other': ['y_comment', 'y_directive'],
-};
+/** 辞書の画面のパレット（カテゴリの名前・印の色・中身。中身の書きかたは model/blocks.js の PALETTE と同じ） */
+export const YPALETTE = [
+  { id: 'y-func', name: t('関数と出力'), cat: 'events', entries: ['y_func', 'y_out', 'y_sep', 'y_return'] },
+  { id: 'y-vars', name: t('変数'), cat: 'variables', entries: ['y_assign', 'y_incdec'] },
+  { id: 'y-flow', name: t('制御'), cat: 'control', entries: ['y_if', 'y_elseif', 'y_else', 'y_case', 'y_when', 'y_others',
+    'y_switch', 'y_while', 'y_for', 'y_foreach', 'y_break', 'y_continue', 'y_block'] },
+  { id: 'y-expr', name: t('式'), cat: 'operators', entries: [
+    { note: t('数・文字列・変数の名前は、欄にそのまま書きます（"こんにちは"・10・_x）。欄の文字は YAYA の式として読みます。') },
+    'y_bin', 'y_unary', 'y_incdec_r', 'y_call', 'y_index', 'y_list', 'y_paren', 'y_ref'] },
+  { id: 'y-other', name: t('コメント'), cat: 'parts', entries: ['y_comment', 'y_directive'] },
+];
+
+/** 辞書のテキストに入るかたまりか（関数・関数の外のコメントと # の行だけのかたまり）。入らないものは「はみ出したブロック」 */
+export function goesIntoText(s) {
+  if (s.kind === 'yfunc' || s.kind === 'ytop') return true;
+  return (s.blocks || []).length > 0 && s.blocks.every((b) => TOP_TYPES.has(b.type));
+}
+const TOP_TYPES = new Set(['y_comment', 'y_directive', 'y_raw']);
 
 // ------------------------------------------------------------------ 木 → ブロック
 const isLeaf = (e) => e.type === 'num' || e.type === 'str' || e.type === 'heredoc' || e.type === 'name';
@@ -300,7 +309,7 @@ function nameOf(v, what) {
   const s = String(v == null ? '' : v).trim();
   let tk = null;
   try { tk = lex(s); } catch { tk = null; }
-  if (!tk || tk.length !== 2 || tk[0].t !== 'name') throw new YBlockError('bad_name', `${what}: ${s}`);
+  if (!tk || tk.length !== 2 || tk[0].t !== 'name') throw new YBlockError('bad_name', s || what);
   return s;
 }
 
@@ -364,7 +373,7 @@ export function blocksToStmts(blocks) {
       let k = out.length - 1;
       while (k >= 0 && out[k].type === 'comment') k--;
       const prev = out[k];
-      if (!prev || prev.type !== 'if' || prev.else) throw new YBlockError('orphan_else', b.type);
+      if (!prev || prev.type !== 'if' || prev.else) throw Object.assign(new YBlockError('orphan_else', b.type), { block: b });
       const cs = out.splice(k + 1).map((c) => c.text);
       if (b.type === 'y_elseif') prev.branches.push({ cond: slotToExpr(b.cond), body: blockBody(b), comments: cs });
       else { prev.else = blockBody(b); prev.elseComments = cs; }
@@ -372,7 +381,13 @@ export function blocksToStmts(blocks) {
       continue;
     }
     if (b.gap && out.length) out.push({ type: 'blank' });
-    const s = blockToStmt(b);
+    let s;
+    try {
+      s = blockToStmt(b);
+    } catch (e) {
+      if (e instanceof YBlockError && !e.block) e.block = b;   // どのブロックか（辞書の画面で、そのブロックに印を付ける）
+      throw e;
+    }
     out.push(s);
     // うしろのコメント。} のうしろのコメントは、YAYA の文を読むときと同じく、次の行のコメントにする
     if (b.trail && s.type !== 'comment' && s.type !== 'directive') {
@@ -432,19 +447,30 @@ function blockToStmt(b) {
   }
 }
 
-/** ブロックのビューを、辞書の木にする（関数の外にはみ出したブロックは、数だけ返して木には入れない） */
+/**
+ * ブロックのビューを、辞書の木にする。かたまりは上から（同じ高さなら左から）順に書きます。
+ * 関数の外にはみ出したブロックは、数だけ返して木には入れません（コメントと # の行だけのかたまりは、関数の外のコメントにします）
+ */
 export function viewToAst(view) {
   const items = [];
   let loose = 0;
-  for (const s of (view && view.scripts) || []) {
+  const scripts = ((view && view.scripts) || []).slice().sort((a, b) => (a.y || 0) - (b.y || 0) || (a.x || 0) - (b.x || 0));
+  for (const s of scripts) {
     if (s.kind === 'yfunc') {
       if (s.gap && items.length) items.push({ type: 'blank' });
-      const f = { type: 'func', name: nameOf(s.name, 'function'), mode: s.mode ? String(s.mode) : null,
+      let name;
+      try {
+        name = nameOf(s.name, 'function');
+      } catch (e) {
+        e.block = s;   // 帽子（かたまり）に印を付ける
+        throw e;
+      }
+      const f = { type: 'func', name, mode: s.mode ? String(s.mode) : null,
         body: { type: 'block', mode: null, items: blocksToStmts(s.blocks) } };
       if (s.comments && s.comments.length) f.comments = s.comments.slice();
       if (s.trail) f.trail = s.trail;
       items.push(f);
-    } else if (s.kind === 'ytop') {
+    } else if (goesIntoText(s)) {
       s.blocks.forEach((b, i) => {
         if ((i === 0 ? s.gap : b.gap) && items.length) items.push({ type: 'blank' });
         if (b.type === 'y_comment') items.push({ type: 'comment', text: String(b.text || '') });

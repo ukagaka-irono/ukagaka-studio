@@ -117,7 +117,8 @@ The **Speech** page lists the speech of every “says” block so you can edit i
 spreadsheet and open it again to write back only the lines that changed.
 On the **Dictionaries** page you create YAYA dictionaries (.dic) inside the project and write them as text, with line numbers and
 colouring; lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). They go into the ghost
-on export, and events defined there run instead of the blocks for the same event. Blocks call their functions with “call YAYA function F with A B”.
+on export, and events defined there run instead of the blocks for the same event. Beside the text, the same dictionary is shown as blocks (one block per YAYA construct). Typing in the text rewrites the blocks, and changing
+the blocks rewrites the text (pretty-printed when a block changes; comments are kept). Blocks call their functions with “call YAYA function F with A B”.
 Under “Thumbnail and readme” on the **Ghost info** page you choose the picture shown in SSP's ghost list (thumbnail.png) and
 the text of readme.txt (leave the readme empty to have it made from the name, author, version and description).
 You build with blocks on the **Talk** page. How to use it and the keyboard shortcuts are under the **?** at the top right.
@@ -473,7 +474,7 @@ ukagaka-studio/
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
 │           ├── starter.js  the starter wizard behind “New” in the top bar
-│           ├── dictionary.js “Dictionaries” (the project's YAYA dictionaries and their text editor)
+│           ├── dictionary.js “Dictionaries” (the project's YAYA dictionaries, their text editor and blocks)
 │           ├── graph.js    “Links” below the canvas (the diagram of where choices lead)
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page

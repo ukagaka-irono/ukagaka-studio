@@ -283,11 +283,35 @@
         <button id="btn-dic-rename" class="btn small">名前を変える</button>
         <button id="btn-dic-delete" class="btn small">消す</button>
       </div>
-      <div class="dic-editor">
-        <div class="dic-gutter-wrap"><div id="dic-gutter"></div></div>
-        <div class="dic-code">
-          <pre id="dic-highlight" aria-hidden="true"></pre>
-          <textarea id="dic-text" spellcheck="false" wrap="off" aria-label="辞書のテキスト"></textarea>
+      <!-- 左にテキスト、右に同じ辞書のブロック（どちらを変えても、もう一方が書きかわります） -->
+      <div class="dic-split">
+        <div class="dic-editor">
+          <div class="dic-gutter-wrap"><div id="dic-gutter"></div></div>
+          <div class="dic-code">
+            <pre id="dic-highlight" aria-hidden="true"></pre>
+            <textarea id="dic-text" spellcheck="false" wrap="off" aria-label="辞書のテキスト"></textarea>
+          </div>
+        </div>
+        <div class="dic-blocks">
+          <aside id="dic-palette">
+            <div id="dic-cat-list"></div>
+            <div id="dic-palette-scroll">
+              <div id="dic-palette-blocks"></div>
+            </div>
+          </aside>
+          <section id="dic-workspace-wrap">
+            <div id="dic-workspace">
+              <div id="dic-canvas"></div>
+            </div>
+            <div id="dic-canvas-hint">
+              <b>ここに辞書のブロックが出ます</b>
+              <ol class="steps">
+                <li>左のテキストに関数を書くか、<i>関数と出力</i> のいちばん上の帽子をここにドラッグ</li>
+                <li>ブロックを変えると、テキストも書きかわります</li>
+              </ol>
+            </div>
+            <div id="dic-trash" title="ここに落とすと削除">🗑</div>
+          </section>
         </div>
       </div>
       <div id="dic-errors" class="check-list"></div>
@@ -455,6 +479,7 @@
             <tr><td>Ctrl+ホイール</td><td>拡大・縮小</td></tr>
           </table>
           <p class="hint">Ctrl+V は、えらんでいるブロックのすぐ下（帽子をえらんでいるときは、かたまりのいちばん上）にはりつけます。</p>
+          <p class="hint">辞書の画面のブロックで使えるのは、Ctrl+D と Delete です（コピー・はりつけと右クリックのメニューは、トークの画面のブロックだけ）。</p>
         </section>
 
         <section class="card">

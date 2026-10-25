@@ -85,6 +85,7 @@ const Model = {
   undoStack: [],
   redoStack: [],
   listeners: [],
+  commitHooks: [],
   dirty: false,
 
   uid,
@@ -288,6 +289,12 @@ const Model = {
   // --------------------------------------------------------------- events
   onChange(fn) { Model.listeners.push(fn); },
   emit() { Model.listeners.forEach((fn) => fn(Model.project)); },
+  /**
+   * 「元にもどす」に積む前に、画面の側で持っているものをプロジェクトに書きもどす
+   * （辞書の画面のブロックは、プロジェクトの外に持っていて、変わったら辞書のテキストに書きます。panels/dictionary.js）
+   */
+  onCommit(fn) { Model.commitHooks.push(fn); },
+  flush() { Model.commitHooks.forEach((fn) => fn()); },
 
   /** すべての変更はこれを通す（Undo 用のスナップショットを取る） */
   act(fn) {
@@ -295,6 +302,7 @@ const Model = {
     let result;
     try {
       result = fn();
+      Model.flush();
     } catch (e) {
       console.error(e);
       Model.project = snap;
@@ -313,6 +321,7 @@ const Model = {
   /** 入力欄の編集など、すでに書き換えたあとで Undo 履歴だけ積みたいとき */
   pushUndo(snapshot) {
     if (!snapshot) return;
+    Model.flush();
     if (JSON.stringify(snapshot) === JSON.stringify(Model.project)) return;
     Model.undoStack.push(snapshot);
     if (Model.undoStack.length > 80) Model.undoStack.shift();

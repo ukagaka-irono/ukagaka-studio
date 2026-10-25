@@ -1,15 +1,22 @@
-/* 伺かスタジオ - 「辞書」の画面（プロジェクトの YAYA の辞書と、そのテキストエディタ。段階 8-3）
+/* 伺かスタジオ - 「辞書」の画面（プロジェクトの YAYA の辞書と、そのテキストエディタとブロック。段階 8-3・8-5）
  *
- * 左にプロジェクトの辞書（project.dics。model/dics.js）、右にえらんだ辞書のテキストを出します。
+ * 左にプロジェクトの辞書（project.dics。model/dics.js）、まんなかにえらんだ辞書のテキスト、右に同じ辞書のブロックを出します。
  * テキストは打つたびに辞書に入れ、色分け（model/yayatext.js の highlightYaya）と行番号を付けなおし、
  * 少し待ってから読みなおして（parseYaya）、YAYA として読めない行を行番号の横と下の一覧に出します。
  * 「元にもどす」の記録は、テキストから離れたときに 1 つだけ積みます（打つたびに積まない。editor/notes.js と同じ）。
  * テキストの中の Ctrl+Z は、プロジェクトの「元にもどす」ではなく、テキストの元にもどすです。
+ *
+ * ブロック（model/yblocks.js）は、プロジェクトの外（このファイルの view）に持ちます。辞書のテキストがもとで、
+ *   テキストが変わったら … 読みなおしたときに、ブロックを作りなおす（読めない関数は「読めない YAYA」のブロックに）
+ *   ブロックが変わったら … テキストに書く（整えた形で。Model.act・pushUndo が「元にもどす」に積む前に。Model.onCommit）
+ * ブロックが変わっていなければ、テキストは書いたままの形で残します。
  */
 
 import { Model } from '../model/model.js';
 import { dicNameOk } from '../model/dics.js';
-import { parseYaya, highlightYaya } from '../model/yayatext.js';
+import { parseYaya, highlightYaya, printYaya } from '../model/yayatext.js';
+import { astToView, viewToAst, goesIntoText, YPALETTE, YBlockError } from '../model/yblocks.js';
+import { Drag } from '../editor/drag.js';
 import { $, escapeHtml } from '../core/dom.js';
 import { toast } from '../core/toast.js';
 import { updateTitle } from '../core/title.js';
@@ -39,8 +46,26 @@ export function errorText(e) {
   return f ? f(e.detail || '') : e.code;
 }
 
+// ブロックを YAYA にできないときのコード（model/yblocks.js）を、画面の言葉に
+const BLOCK_ERRORS = {
+  empty_slot: () => t('空の欄があります'),
+  bad_expr: (d) => t('「{at}」は、YAYA の式として読めません', { at: d }),
+  bad_name: (d) => t('「{at}」は、関数の名前に使えません', { at: d }),
+  orphan_else: () => t('「そうでなくて」「そうでなければ」は、「もし」のすぐ下につなげます'),
+  bad_labels: (d) => t('when のうしろの「{at}」が読めません（数か文字列を , で区切ります）', { at: d }),
+  bad_vars: (d) => t('foreach の「{at}」が読めません（変数の名前を 1 つか 2 つ）', { at: d }),
+  not_in_case: () => t('case の中には、when・others・コメントだけを入れます'),
+  outside_case: () => t('when・others は、case の中に入れます'),
+  bad_op: (d) => t('演算子「{at}」が読めません', { at: d }),
+};
+const blockErrorText = (e) => (BLOCK_ERRORS[e.code] ? BLOCK_ERRORS[e.code](e.detail || '') : t('このブロックは、ここには置けません'));
+
 let editing = null;     // テキストを打ちはじめる前のプロジェクト（離れたときに「元にもどす」の記録にする）
 let parseTimer = 0;
+let blockTimer = 0;
+// ブロックの側。name・text … どの辞書のどのテキストから作ったか、printed … そのときのブロックを書いたテキスト、
+// error … YAYA にできないブロック（YBlockError）、loose … 関数の外にはみ出したブロックの数
+let view = null;
 
 const dics = () => Model.project.dics || [];
 function current() {
@@ -69,17 +94,25 @@ function syncScroll() {
   $('#dic-gutter').style.transform = `translateY(${-area.scrollTop}px)`;
 }
 
-/** 読みなおして、読めない行を出す */
+/**
+ * 読みなおして、読めない行を出す。テキストがブロックを作ったときから変わっていれば、ブロックを作りなおします
+ * （作りなおしたら true。キャンバスを描きなおすのは、よんだ側）
+ */
 function check(d) {
   const r = parseYaya(d.text);
+  let rebuilt = false;
+  if (!view || view.name !== d.name || view.text !== d.text) {
+    view = { name: d.name, text: d.text, scripts: astToView(r.dic).scripts, error: null, loose: 0 };
+    try { view.printed = printView(view); } catch { view.printed = null; }
+    rebuilt = true;
+  }
   const lines = new Set(r.errors.map((e) => e.line));
   paint(d.text, lines);
   const box = $('#dic-errors');
   box.textContent = '';
   const funcs = r.dic.items.filter((x) => x.type === 'func').length;
-  if (!r.errors.length) {
+  if (!r.errors.length && !view.error && !view.loose) {
     box.appendChild(Render.div('status-line status-ok', t('YAYA として読めます（関数 {n} こ）', { n: funcs })));
-    return;
   }
   // チェックタブと同じ「押すとその場所へ動く」並び（search.js の .check-item）
   for (const e of r.errors) {
@@ -90,6 +123,198 @@ function check(d) {
     row.addEventListener('click', () => goLine(e.line));
     box.appendChild(row);
   }
+  // ブロックの側（YAYA にできないブロックは、テキストに書かずに、ここで知らせる）
+  if (view.error) {
+    const row = Render.el('button', 'check-item is-error');
+    row.appendChild(Render.el('span', 'mark', '⛔'));
+    row.appendChild(Render.div('msg', t('ブロック: {message}（直すまで、テキストは書きかえません）', { message: blockErrorText(view.error) })));
+    if (view.error.block) {
+      row.title = t('クリックでその場所へ移動します');
+      row.addEventListener('click', showErrorBlock);
+    } else {
+      row.style.cursor = 'default';   // 動く先の無い行（チェックタブと同じ）
+    }
+    box.appendChild(row);
+  }
+  if (view.loose) {
+    const row = Render.el('button', 'check-item is-warn');
+    row.style.cursor = 'default';   // 押しても動かない行（チェックタブと同じ）
+    row.appendChild(Render.el('span', 'mark', '⚠'));
+    row.appendChild(Render.div('msg', t('関数の外にあるブロック {n} こは、辞書に入りません。関数の帽子の下につなげてください。', { n: view.loose })));
+    box.appendChild(row);
+  }
+  return rebuilt;
+}
+
+// ------------------------------------------------------------------ ブロック
+/** ブロックを辞書のテキストにする（YAYA にできないブロックがあれば YBlockError を投げる） */
+function printView(v) {
+  const r = viewToAst(v);
+  v.loose = r.loose;
+  return printYaya(r.dic);
+}
+
+/**
+ * ブロックが変わっていたら、テキストに書く（変わっていたら true）。
+ * Model.act・pushUndo が「元にもどす」に積む前（Model.onCommit）と、ブロックの欄を打っているあいだによびます
+ */
+function syncFromBlocks() {
+  const d = current();
+  if (!view || !d || view.name !== d.name || view.text !== d.text) return false;
+  let text;
+  try {
+    text = printView(view);
+    view.error = null;
+  } catch (e) {
+    if (!(e instanceof YBlockError)) throw e;
+    view.error = e;
+    return false;
+  }
+  if (text === view.printed) return false;   // ブロックは変わっていない（テキストは書いたままの形で残す）
+  d.text = text;
+  view.text = text;
+  view.printed = text;
+  Model.dirty = true;
+  return true;
+}
+
+/** テキストの欄に、いまの辞書のテキストを入れる（打っている最中は、テキストとカーソルをさわらない） */
+function fillText(d) {
+  const area = $('#dic-text');
+  if (document.activeElement === area && area.dataset.dic === d.name) return;
+  if (area.value !== d.text) {
+    const top = area.scrollTop;
+    area.value = d.text;
+    area.scrollTop = top;
+  }
+  area.dataset.dic = d.name;
+}
+
+const viewFunctionNames = () => (view ? view.scripts.filter((s) => s.kind === 'yfunc').map((s) => s.name) : []);
+
+// かたまりの道具（たたむ・複製・削除）。ブロックはプロジェクトの外にあるので、editor/scripts.js のかわりにこちらで
+const HOST = {
+  toggleFold(s) {
+    if (s.folded) delete s.folded;
+    else s.folded = true;
+    renderBlocks();
+  },
+  duplicateScript(s) {
+    Model.act(() => {
+      const copy = Model.clone(s);
+      copy.id = Model.uid('s');
+      copy.y = (s.y || 0) + 1;   // すぐ下（テキストでは、すぐうしろ）に
+      if (copy.kind === 'yfunc') copy.name = Drag.uniqueIn(viewFunctionNames(), copy.name);
+      view.scripts.push(copy);
+    });
+  },
+  deleteScript(s) {
+    const title = s.kind === 'yfunc' ? s.name : t('関数の外のコメント');
+    if ((s.blocks || []).length && !confirm(t('「{title}」を削除しますか？', { title }))) return;
+    Model.act(() => { removeViewScript(s); });
+    toast(t('削除しました'));
+  },
+};
+
+function removeViewScript(s) {
+  const i = view ? view.scripts.indexOf(s) : -1;
+  if (i >= 0) view.scripts.splice(i, 1);
+}
+
+/** ブロックのキャンバスを描きなおす */
+function renderBlocks() {
+  const canvas = $('#dic-canvas');
+  canvas.textContent = '';
+  const scripts = view ? view.scripts : [];
+  for (const s of scripts) canvas.appendChild(Render.buildScriptEl(s, Model.project, { host: HOST }));
+  layout();
+  $('#dic-canvas-hint').style.display = scripts.length ? 'none' : '';
+  markErrorBlock();
+  Drag.reselect();
+}
+
+/** テキストに入るかたまりを、テキストと同じ順に、上から 1 列に並べる（はみ出したブロックは、置いたところのまま） */
+function layout() {
+  const els = Array.from($('#dic-canvas').children).filter((el) => el._script && goesIntoText(el._script));
+  els.sort((a, b) => (a._script.y || 0) - (b._script.y || 0) || (a._script.x || 0) - (b._script.x || 0));
+  let y = 32;
+  for (const el of els) {
+    const h = el.offsetHeight;
+    if (!h) return;   // 画面が見えていない（見えたときに並べなおす）
+    el._script.x = 24;
+    el._script.y = y;
+    el.style.left = '24px';
+    el.style.top = y + 'px';
+    y += h + 32;
+  }
+}
+
+function errorBlockEl() {
+  const b = view && view.error && view.error.block;
+  if (!b) return null;
+  // 関数の名前のまちがいは、帽子（b はかたまり）に
+  return Array.from($('#dic-canvas').querySelectorAll('.blk')).find((el) => el._blk === b || (el._isHat && el._script === b)) || null;
+}
+function markErrorBlock() {
+  const el = errorBlockEl();
+  if (el) el.classList.add('has-error');
+}
+/** YAYA にできないブロックへ動いて、光らせる（チェックタブの「押すとその場所へ動く」と同じ。panels/search.js の jumpTo） */
+function showErrorBlock() {
+  const b = view && view.error && view.error.block;
+  if (!b) return;
+  // たたんだかたまりの中なら、ひろげてから
+  const holder = view.scripts.find((s) => contains(s.blocks, b));
+  if (holder && holder.folded) { delete holder.folded; renderBlocks(); }
+  const el = errorBlockEl();
+  if (!el) return;
+  const ws = $('#dic-workspace');
+  const box = el.getBoundingClientRect();
+  const area = ws.getBoundingClientRect();
+  ws.scrollLeft += box.left - area.left - Math.max(40, (area.width - box.width) / 2);
+  ws.scrollTop += box.top - area.top - Math.max(40, (area.height - box.height) / 2);
+  el.classList.remove('flash');
+  void el.offsetWidth;          // アニメーションをやり直させる
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 2600);
+}
+
+/** x の中に、ブロック b がある */
+function contains(x, b) {
+  if (x === b) return true;
+  if (Array.isArray(x)) return x.some((y) => contains(y, b));
+  if (x && typeof x === 'object') return Object.values(x).some((y) => y && typeof y === 'object' && contains(y, b));
+  return false;
+}
+
+/** ブロックの欄を打っているあいだ、テキストを書きかえる（キャンバスは描きなおさない。打っている欄が消えないように） */
+function blocksTyped() {
+  const d = current();
+  if (!d || Pages.current !== 'dics') return;
+  const before = view && view.error;
+  syncFromBlocks();
+  fillText(d);
+  check(d);
+  const err = $('#dic-canvas .has-error');
+  if (err && !(view && view.error)) err.classList.remove('has-error');
+  if (view && view.error && view.error !== before) markErrorBlock();
+}
+
+/** パレット（トークの画面のパレットと同じ形。カテゴリは model/yblocks.js の YPALETTE） */
+function renderPalette() {
+  const list = $('#dic-cat-list');
+  list.textContent = '';
+  for (const cat of YPALETTE) {
+    const b = Render.el('button', 'cat-btn' + (cat.id === Session.dicCategory ? ' is-active' : ''));
+    const dot = Render.el('span', 'cat-dot');
+    dot.style.background = `var(--cat-${cat.cat})`;
+    b.appendChild(dot);
+    b.appendChild(Render.el('span', null, cat.name));
+    b.addEventListener('click', () => { Session.dicCategory = cat.id; renderPalette(); });
+    list.appendChild(b);
+  }
+  const cat = YPALETTE.find((c) => c.id === Session.dicCategory) || YPALETTE[0];
+  Render.renderPaletteEntries($('#dic-palette-blocks'), cat.entries, Model.project);
 }
 
 /** テキストの n 行目にカーソルを置く */
@@ -127,14 +352,12 @@ function render() {
   $('#btn-dic-rename').disabled = !has;
   $('#btn-dic-delete').disabled = !has;
   $('#dic-name').textContent = has ? d.name : '';
-  if (!has) return;
-  const area = $('#dic-text');
-  // 打っている最中は、テキストとカーソルをさわらない
-  if (document.activeElement !== area || area.dataset.dic !== d.name) {
-    area.value = d.text;
-    area.dataset.dic = d.name;
-  }
+  if (!has) { view = null; return; }
+  syncFromBlocks();   // ドラッグをはじめたときなど、「元にもどす」に積まずに描きなおすときの分
+  fillText(d);
   check(d);
+  if (!$('#dic-palette-blocks').childElementCount) renderPalette();
+  renderBlocks();
 }
 
 /** 名前をたずねる（使えない名前・もうある名前なら null） */
@@ -197,7 +420,7 @@ function init() {
     updateTitle();
     paint(d.text, null);
     clearTimeout(parseTimer);
-    parseTimer = setTimeout(() => check(d), 250);
+    parseTimer = setTimeout(() => { if (check(d)) renderBlocks(); }, 250);
   });
   area.addEventListener('blur', () => {
     const before = editing;
@@ -221,6 +444,20 @@ function init() {
     const k = e.key.toLowerCase();
     if (e.ctrlKey && (k === 'z' || k === 'y')) e.stopPropagation();
   });
+
+  // ブロックの側
+  Drag.addRoot({
+    ws: $('#dic-workspace'), canvas: $('#dic-canvas'), palette: $('#dic-palette'), trash: $('#dic-trash'),
+    scripts: () => (view ? view.scripts : []),
+    removeScript: removeViewScript,
+    uniqueName: (name) => Drag.uniqueIn(viewFunctionNames(), name),
+  });
+  Model.onCommit(() => { if (Pages.current === 'dics') syncFromBlocks(); });
+  $('#dic-canvas').addEventListener('input', () => {
+    clearTimeout(blockTimer);
+    blockTimer = setTimeout(blocksTyped, 120);
+  });
+  renderPalette();
 }
 
 /** 辞書の画面を開いて、その辞書の line 行目へ動く（チェックタブの「辞書の何行目が読めません」から。panels/search.js） */

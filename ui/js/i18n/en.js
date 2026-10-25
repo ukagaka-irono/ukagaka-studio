@@ -1296,4 +1296,33 @@ export const en = {
   '--（使ってから 1 引く）': '-- (use, then subtract 1)',
   '++ を前に（1 足してから使う）': '++ in front (add 1, then use)',
   '-- を前に（1 引いてから使う）': '-- in front (subtract 1, then use)',
+  '関数と出力': 'Functions',
+  '式': 'Expressions',
+  '数・文字列・変数の名前は、欄にそのまま書きます（"こんにちは"・10・_x）。欄の文字は YAYA の式として読みます。':
+    'Write numbers, strings and variable names straight into a slot ("hello", 10, _x). Slot text is read as a YAYA expression.',
+  'コメント': 'Comments',
+
+  // ---- ui\js\panels\dictionary.js（ブロック）
+  '空の欄があります': 'A slot is empty',
+  '「{at}」は、YAYA の式として読めません': '“{at}” is not a valid YAYA expression',
+  '「{at}」は、関数の名前に使えません': '“{at}” cannot be used as a function name',
+  '「そうでなくて」「そうでなければ」は、「もし」のすぐ下につなげます': '“else if” and “else” go right below an “if”',
+  'when のうしろの「{at}」が読めません（数か文字列を , で区切ります）': 'Cannot read “{at}” after when (numbers or strings separated by ,)',
+  'foreach の「{at}」が読めません（変数の名前を 1 つか 2 つ）': 'Cannot read “{at}” in foreach (one or two variable names)',
+  'case の中には、when・others・コメントだけを入れます': 'Only when, others and comments go inside a case',
+  'when・others は、case の中に入れます': 'when and others go inside a case',
+  '演算子「{at}」が読めません': 'Cannot read the operator “{at}”',
+  'このブロックは、ここには置けません': 'This block cannot go here',
+  'ブロック: {message}（直すまで、テキストは書きかえません）': 'Blocks: {message} (the text is not updated until this is fixed)',
+  '関数の外にあるブロック {n} こは、辞書に入りません。関数の帽子の下につなげてください。':
+    '{n} block(s) outside any function are not part of the dictionary. Attach them under a function hat.',
+  '関数の外のコメント': 'comments outside functions',
+
+  // ---- ui\index.html（辞書の画面のブロック）
+  'ここに辞書のブロックが出ます': "The dictionary's blocks appear here",
+  '左のテキストに関数を書くか、': 'Write a function in the text on the left, or drag the top hat of',
+  'のいちばん上の帽子をここにドラッグ': 'here',
+  'ブロックを変えると、テキストも書きかわります': 'Changing the blocks rewrites the text too',
+  '辞書の画面のブロックで使えるのは、Ctrl+D と Delete です（コピー・はりつけと右クリックのメニューは、トークの画面のブロックだけ）。':
+    'On the Dictionaries page, blocks support Ctrl+D and Delete (copy, paste and the right-click menu are for Talk page blocks only).',
 };

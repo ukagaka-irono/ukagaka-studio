@@ -32,12 +32,24 @@ function onKeyDown(e) {
   if (e.key === 'Escape') { ContextMenu.close(); Picker.close(); return; }
 
   // ここから下はキャンバスのブロックの操作。キャンバスが見えていないときは何もしない
-  // （ほかの画面で Delete を押して、見えないブロックが消えないように）
+  // （ほかの画面で Delete を押して、見えないブロックが消えないように）。えらんでいるのが、その画面のキャンバスのブロックのときだけ
+  const inCanvas = (id) => { const s = Drag.getSelected(); return s && s.el && document.getElementById(id).contains(s.el) ? s : null; };
+  if (Pages.current === 'dics') {
+    // 辞書の画面のブロックは、消す・複製するだけ（コピー・はりつけは、トークのブロックどうし）
+    const sel = inCanvas('dic-canvas');
+    if (!sel || !Array.isArray(sel.stack)) return;
+    if (e.ctrlKey && e.key.toLowerCase() === 'd') { e.preventDefault(); Clipboard.duplicate(sel.stack, sel.index); }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      if (Clipboard.remove(sel.stack, sel.index)) Drag.select(null);
+    }
+    return;
+  }
   if (Pages.current !== 'talk') return;
 
   if (e.key === '/' && !e.ctrlKey && !e.altKey) { e.preventDefault(); Picker.open(); return; }
 
-  const sel = Drag.getSelected();
+  const sel = inCanvas('canvas');
   const key = e.key.toLowerCase();
   if (e.ctrlKey && key === 'c') {
     if (sel && sel.block) { e.preventDefault(); Clipboard.copy(sel.block); }

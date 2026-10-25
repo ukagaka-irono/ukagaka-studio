@@ -263,6 +263,13 @@ section('辞書のブロック（yblocks.js）');
     ['empty_slot', 'bad_expr', 'orphan_else', 'outside_case', 'bad_name']);
   check('関数の外にはみ出したブロックは、数えて辞書には入れない',
     YB.viewToAst({ scripts: [{ kind: 'loose', blocks: [{ type: 'y_out', value: '1' }] }] }).loose, 1);
+  const two = { scripts: [
+    { kind: 'yfunc', name: 'B', mode: '', blocks: [], x: 24, y: 200 },
+    { kind: 'loose', blocks: [{ type: 'y_comment', text: '// c' }], x: 300, y: 10 },
+    { kind: 'yfunc', name: 'A', mode: '', blocks: [], x: 24, y: 100 },
+  ] };
+  check('かたまりは上から順に書く（関数の外に置いたコメントだけのかたまりは、関数の外のコメント）',
+    printYaya(YB.viewToAst(two).dic), '// c\nA\n{\n}\nB\n{\n}\n');
 
   // YAYA に元からある関数の一覧が、本物の辞書でよばれている名前をみな知っているか
   const defined = new Set();
