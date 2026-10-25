@@ -1125,7 +1125,7 @@ found while building stage 8.
 | 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | done |
 | 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | done |
 | 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | |
-| 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | |
+| 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | done |
 
 > **9-1 is done.** The Check tab (`dicIssues` in `ui/js/model/dics.js`) warns (⚠, with dictionary and line; click to go there) about calls to
 > functions found nowhere: not in the project's dictionaries, YAYA's built-in functions (`YAYA_SYSTEM_FUNCTIONS`), yaya_base, the studio's
@@ -1140,6 +1140,10 @@ found while building stage 8.
 > the Talk page; on the wrong page nothing is pasted and a message says why (`editor/clipboard.js`). Dictionary blocks are rebuilt from the
 > text, so “disable”, notes, “save as part” and “show YAYA”, which the text has no place for, are not offered. The menu reuses the Talk
 > canvas's menu parts and was checked by a separate agent. 1 editor check (207).
+
+> **9-4 is done.** The block reference (`docs/blocks.md` and its English version) ends with a “Dictionary blocks” section: a table of the 30
+> dictionary blocks with their UI names, types and the YAYA each becomes (plus how slots take YAYA text and where a comment after `}` goes). The
+> YAYA text test checks that every dictionary block has a row in both tables (85).
 
 ---
 

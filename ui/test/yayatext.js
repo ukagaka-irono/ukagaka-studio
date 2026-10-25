@@ -245,6 +245,9 @@ section('辞書のブロック（yblocks.js）');
   for (const text of dics.concat([extra])) walk(YB.astToView(parseYaya(text).dic));
   check('どのブロックも、本物の辞書か例のどこかに出てくる（使われないブロックが無い）', yTypes.filter((k) => !seen.has(k)), []);
   check('構文のブロックは 30 こ', yTypes.length, 30);
+  // ブロックの説明（docs/blocks.md と英語版）の「辞書のブロック」の表に、どのブロックも書いてあるか（段階 9-4）
+  const docs = ['blocks.md', path.join('en', 'blocks.md')].map((f) => fs.readFileSync(path.join(root, 'docs', f), 'utf8'));
+  check('ブロックの説明（日本語・英語）に、どの辞書のブロックの行もある', docs.map((d) => yTypes.filter((k) => !d.includes('| `' + k + '` |'))), [[], []]);
   check('読めない関数は「読めない YAYA」のブロックで、書いたままもどる', viaBlocks(parseYaya(extra).dic), printYaya(parseYaya(extra).dic));
 
   // 欄に書いた文字
