@@ -390,8 +390,8 @@ export const en = {
   '{n} か所置きかえました（元にもどすで、まとめて戻せます）': 'Replaced {n} places (undo puts them all back)',
   'すべて置きかえる（{n}）': 'Replace all ({n})',
   'すべて置きかえる': 'Replace all',
-  '置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）だけです。YAYA のコードの欄と変数の名前は置きかえません。':
-    'Only text fields of blocks (speech, choices and so on) are replaced. YAYA code fields and variable names are not.',
+  '置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）と、辞書の文字列の中だけです。YAYA のコードと変数の名前は置きかえません。':
+    'Only text fields of blocks (speech, choices and so on) and the insides of dictionary strings are replaced. YAYA code and variable names are not.',
   '置きかえる言葉': 'Replace with',
 
   // ---- ui/js/panels/lines.js
@@ -1118,8 +1118,8 @@ export const en = {
   '記録を消して、止めます': 'Delete the log and stop',
   '好感度やフラグなど、ゴーストが覚えておく値です。終了時に自動で保存されます。': 'Values the ghost remembers, such as affection or flags. They are saved automatically when the ghost closes.',
   'おかしなところを探します。クリックすると、そのブロックまで移動します。': 'Finds things that look wrong. Click one to jump to that block.',
-  'セリフ・変数・トーク名などから探します（Ctrl+F）。 クリックすると、そのブロックまで移動します。':
-    'Search speech, variables, talk names and more (Ctrl+F). Click a result to jump to that block.',
+  'セリフ・変数・トーク名・辞書などから探します（Ctrl+F）。 クリックすると、その場所まで移動します。':
+    'Search speech, variables, talk names, dictionaries and more (Ctrl+F). Click a result to jump to that place.',
   'さがす言葉': 'Search words',
 
   // ---- ui\index.html（キャラと絵）
@@ -1358,5 +1358,6 @@ export const en = {
   '辞書の何もないところ': 'On empty space in a dictionary',
   'ここにはりつけ・すべてたたむ・すべてひろげる': 'Paste here, fold all, unfold all',
   '辞書のブロックは、辞書の画面にはりつけます': 'Dictionary blocks can only be pasted on the Dictionaries page',
+  '辞書「{dic}」の {line} 行目': 'Line {line} of dictionary “{dic}”',
   'トークのブロックは、トークの画面にはりつけます': 'Talk blocks can only be pasted on the Talk page',
 };

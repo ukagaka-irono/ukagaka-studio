@@ -1124,7 +1124,7 @@ found while building stage 8.
 |---|---|---|
 | 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | done |
 | 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | done |
-| 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | |
+| 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | done |
 | 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | done |
 
 > **9-1 is done.** The Check tab (`dicIssues` in `ui/js/model/dics.js`) warns (⚠, with dictionary and line; click to go there) about calls to
@@ -1140,6 +1140,12 @@ found while building stage 8.
 > the Talk page; on the wrong page nothing is pasted and a message says why (`editor/clipboard.js`). Dictionary blocks are rebuilt from the
 > text, so “disable”, notes, “save as part” and “show YAYA”, which the text has no place for, are not offered. The menu reuses the Talk
 > canvas's menu parts and was checked by a separate agent. 1 editor check (207).
+
+> **9-3 is done.** The Search tab (`panels/search.js`) also searches the project's dictionaries and lists matching lines as 📖 rows (the
+> line's text and “Line N of dictionary “…””; click to go to that line). “Replace all” (`model/replace.js`) replaces only inside dictionary strings
+> ("…", '…' and here-documents), never function or variable names, comments or code: the speech lives there, and a bulk replace must not break
+> YAYA. Strings are found with the colouring (`highlightYaya`), and the quotes are kept. The replace count includes dictionaries, and undo
+> reverts it. The rows follow the existing Search rows and were checked by a separate agent. 2 editor checks (209).
 
 > **9-4 is done.** The block reference (`docs/blocks.md` and its English version) ends with a “Dictionary blocks” section: a table of the 30
 > dictionary blocks with their UI names, types and the YAYA each becomes (plus how slots take YAYA text and where a comment after `}` goes). The

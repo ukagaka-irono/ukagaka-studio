@@ -796,6 +796,13 @@ section('さがして置きかえる (replace)');
     [n, b[0].text, b[1].text.a, b[2].name, b[2].a, b[3].ms],
     [4, 'いぬ$&が好き。いぬ$&！', 'いぬ$&', 'Hand.ねこ', 'いぬ$&', 500]);
   check('空の言葉では何もしない', [countText(Model.project, ''), replaceText(Model.project, '', 'x')], [0, 0]);
+  // 辞書は、文字列の中だけ（段階 9-3）。関数の名前・変数・コメントは置きかえない
+  Model.init({ format: 'ikaga/1', meta: { name: 'R2' }, scripts: [], dics: [{ name: 'a.dic',
+    text: 'ねこ.Say // ねこ\n{\n\t_ねこ = "ねこだよ" + \'ねこ\'\n\t_s = <<"\n\tねこの行\n">>\n}\n' }] });
+  check('辞書は、文字列とヒアドキュメントの中だけを数える', countText(Model.project, 'ねこ'), 3);
+  const m = replaceText(Model.project, 'ねこ', 'いぬ');
+  check('辞書の文字列の中だけを置きかえる', [m, Model.project.dics[0].text],
+    [3, 'ねこ.Say // ねこ\n{\n\t_ねこ = "いぬだよ" + \'いぬ\'\n\t_s = <<"\n\tいぬの行\n">>\n}\n']);
 }
 
 section('このソフトについて (about)');
