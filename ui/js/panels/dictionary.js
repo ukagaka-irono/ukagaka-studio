@@ -501,6 +501,14 @@ function init() {
     scripts: () => (view ? view.scripts : []),
     removeScript: removeViewScript,
     uniqueName: (name) => Drag.uniqueIn(viewFunctionNames(), name),
+    // すべてたたむ・ひろげる（右クリックのメニュー。たたむのはキャンバスの見た目だけで、テキストは変わらない）
+    foldAll: (on) => {
+      for (const s of (view ? view.scripts : [])) {
+        if (on && s.blocks && s.blocks.length) s.folded = true;
+        else delete s.folded;
+      }
+      renderBlocks();
+    },
   });
   Model.onCommit(() => { if (Pages.current === 'dics') syncFromBlocks(); });
   $('#dic-canvas').addEventListener('input', () => {

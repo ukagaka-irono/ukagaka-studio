@@ -1243,7 +1243,7 @@ export const en = {
   'コピー・切り取り・すぐ下にはりつけ・複製・ここから下を部品にする・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
     'Copy, cut, paste below, duplicate, save this and below as a part, disable for now, add a note, delete, delete this and everything below',
   'かたまりの帽子の上': "On a script's hat",
-  '実行してみる・複製・メモを付ける・このかたまりを部品にする・YAYA を見る・削除': 'Run, duplicate, add a note, save this script as a part, show YAYA, delete',
+  '実行してみる・複製・たたむ・メモを付ける・このかたまりを部品にする・YAYA を見る・削除': 'Run, duplicate, fold, add a note, save this script as a part, show YAYA, delete',
   'パレットの部品の上': 'On a part in the palette',
   '部品の名前を変える・部品を消す': 'Rename the part, delete the part',
   '何もないところ': 'On empty space',
@@ -1349,6 +1349,14 @@ export const en = {
   'いまある YAYA ゴーストから読みこむ': 'Import from an existing YAYA ghost',
   'yaya.txt に書いてある辞書（yaya_base はのぞく）を、このプロジェクトに写します。ゴーストのファイルは変えません。':
     "Copies the dictionaries listed in yaya.txt (except yaya_base) into this project. The ghost's files are not changed.",
-  '辞書の画面のブロックで使えるのは、Ctrl+D と Delete です（コピー・はりつけと右クリックのメニューは、トークの画面のブロックだけ）。':
-    'On the Dictionaries page, blocks support Ctrl+D and Delete (copy, paste and the right-click menu are for Talk page blocks only).',
+  '辞書の画面のブロックでも、同じキーでコピー・はりつけ・複製・削除ができます。辞書のブロックは辞書の画面に、トークのブロックはトークの画面にだけはりつけます。':
+    'Blocks on the Dictionaries page take the same keys for copy, paste, duplicate and delete. Dictionary blocks paste only on the Dictionaries page, Talk blocks only on the Talk page.',
+  '辞書のブロックの上': 'On a dictionary block',
+  'コピー・切り取り・すぐ下にはりつけ・複製・削除・ここから下をすべて削除': 'Copy, cut, paste below, duplicate, delete, delete everything below',
+  '辞書の関数の帽子の上': "On a dictionary function's hat",
+  '実行してみる・複製・たたむ・削除': 'Run, duplicate, fold, delete',
+  '辞書の何もないところ': 'On empty space in a dictionary',
+  'ここにはりつけ・すべてたたむ・すべてひろげる': 'Paste here, fold all, unfold all',
+  '辞書のブロックは、辞書の画面にはりつけます': 'Dictionary blocks can only be pasted on the Dictionaries page',
+  'トークのブロックは、トークの画面にはりつけます': 'Talk blocks can only be pasted on the Talk page',
 };

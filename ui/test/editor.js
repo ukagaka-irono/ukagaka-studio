@@ -709,6 +709,20 @@ section('プロジェクトをまたいだコピー (clipboard)');
   check('部品は、名前（前後の空白なし）・ブロックの写し・使っている変数の初期値を持つ',
     [part.name, part.blocks.length, part.blocks[0].who, part.variables],
     ['あいさつ', 2, 0, [{ name: 'なまえ', value: 'きみ' }, { name: '好感度', value: 5 }]]);
+
+  // 辞書のブロックは辞書の画面に、トークのブロックはトークの画面にだけはりつける（段階 9-2）
+  const dicStack = [{ type: 'y_out', value: '"a"', prefix: '' }];
+  Clipboard.copy(dicStack[0]);
+  const talkStack = [];
+  const intoTalk = Clipboard.paste(talkStack, 0);
+  const refusedTalk = say();
+  const intoDic = Clipboard.paste(dicStack, 1, { dic: true });
+  Clipboard.copy({ type: 'say', who: 0, text: 'やあ' });
+  const intoDic2 = Clipboard.paste(dicStack, 0, { dic: true });
+  const refusedDic = say();
+  check('辞書のブロックはトークの列にははらず、辞書の列にははる。トークのブロックは辞書の列にははらない',
+    [intoTalk, talkStack.length, refusedTalk, intoDic, dicStack.length, intoDic2, refusedDic],
+    [false, 0, '辞書のブロックは、辞書の画面にはりつけます', true, 2, false, 'トークのブロックは、トークの画面にはりつけます']);
   globalThis.setTimeout = realTimeout;
   delete globalThis.document;
   delete globalThis.localStorage;

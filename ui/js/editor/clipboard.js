@@ -7,6 +7,7 @@
  * プロジェクトをまたいでも使えます。コピーしたものは WebView2 の保存場所（localStorage）にも置くので、
  * 別のプロジェクトを開いても、言語を切りかえて読みなおしても、伺かスタジオを起動しなおしても、はりつけられます。
  * ブロックが使っている変数（名前と初期値）も一緒に持ち、はりつけた先のプロジェクトに無ければ足します。
+ * 辞書の画面のブロック（y_ ではじまるもの。model/yblocks.js）は辞書の画面に、トークのブロックはトークの画面にだけはりつけます（段階 9-2）。
  */
 
 import { Model } from '../model/model.js';
@@ -89,9 +90,18 @@ function cut(stack, index) {
   return true;
 }
 
-/** stack の index の位置に、コピーしたものをはりつける */
-function paste(stack, index) {
+/** コピーしたものが、はりつける画面とちがう種類なら知らせて true（dic … 辞書の画面にはりつける） */
+function wrongPlace(dic) {
+  const isDic = String((Session.clipboard || {}).type || '').startsWith('y_');
+  if (isDic === !!dic) return false;
+  toast(isDic ? t('辞書のブロックは、辞書の画面にはりつけます') : t('トークのブロックは、トークの画面にはりつけます'), true);
+  return true;
+}
+
+/** stack の index の位置に、コピーしたものをはりつける（opts.dic … 辞書の画面の列） */
+function paste(stack, index, opts = {}) {
   if (!held()) { toast(t('コピーしたブロックがありません'), true); return false; }
+  if (wrongPlace(opts.dic)) return false;
   if (!Array.isArray(stack)) {
     toast(t('はりつける場所のブロックを、先にクリックしてください'), true);
     return false;
@@ -105,12 +115,16 @@ function paste(stack, index) {
   return true;
 }
 
-/** キャンバスの x, y に、コピーしたものを新しいかたまりとしてはりつける */
-function pasteAt(x, y) {
+/**
+ * キャンバスの x, y に、コピーしたものを新しいかたまりとしてはりつける
+ * （opts.scripts … 置く先のかたまりの並び。辞書の画面なら、そのブロックの並びと opts.dic）
+ */
+function pasteAt(x, y, opts = {}) {
   if (!held()) { toast(t('コピーしたブロックがありません'), true); return false; }
+  if (wrongPlace(opts.dic)) return false;
   let added = [];
   Model.act(() => {
-    Model.project.scripts.push({
+    (opts.scripts || Model.project.scripts).push({
       id: Model.uid('s'), kind: 'loose', blocks: [Model.clone(Session.clipboard)],
       x: Math.max(0, Math.round(x)), y: Math.max(0, Math.round(y)),
     });

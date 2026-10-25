@@ -35,10 +35,20 @@ function onKeyDown(e) {
   // （ほかの画面で Delete を押して、見えないブロックが消えないように）。えらんでいるのが、その画面のキャンバスのブロックのときだけ
   const inCanvas = (id) => { const s = Drag.getSelected(); return s && s.el && document.getElementById(id).contains(s.el) ? s : null; };
   if (Pages.current === 'dics') {
-    // 辞書の画面のブロックは、消す・複製するだけ（コピー・はりつけは、トークのブロックどうし）
+    // 辞書の画面のブロック（コピーしたものは、辞書の画面にだけはりつけられます。editor/clipboard.js）
     const sel = inCanvas('dic-canvas');
-    if (!sel || !Array.isArray(sel.stack)) return;
-    if (e.ctrlKey && e.key.toLowerCase() === 'd') { e.preventDefault(); Clipboard.duplicate(sel.stack, sel.index); }
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey && k === 'v') {
+      const target = sel ? Drag.insertTarget() : null;
+      e.preventDefault();
+      Clipboard.paste(target ? target.stack : null, target ? target.index : 0, { dic: true });
+      return;
+    }
+    if (!sel) return;
+    if (e.ctrlKey && k === 'c') { if (sel.block) { e.preventDefault(); Clipboard.copy(sel.block); } return; }
+    if (!Array.isArray(sel.stack)) return;
+    if (e.ctrlKey && k === 'x') { e.preventDefault(); if (Clipboard.cut(sel.stack, sel.index)) Drag.select(null); return; }
+    if (e.ctrlKey && k === 'd') { e.preventDefault(); Clipboard.duplicate(sel.stack, sel.index); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       if (Clipboard.remove(sel.stack, sel.index)) Drag.select(null);

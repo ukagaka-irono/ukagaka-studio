@@ -1123,7 +1123,7 @@ found while building stage 8.
 | | What | |
 |---|---|---|
 | 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | done |
-| 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | |
+| 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | done |
 | 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | |
 | 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | |
 
@@ -1133,6 +1133,13 @@ found while building stage 8.
 > the names the colouring (`highlightYaya`) marks as followed by “(”, so comments and strings are left out. Each name is reported once per
 > dictionary. Unreadable dictionaries, and projects linked to a hand-written ghost, are not checked. Calling a function by its bare name (no
 > “(”) cannot be told apart from a variable and is not checked. 3 editor checks (206).
+
+> **9-2 is done.** The Dictionaries page's canvas takes Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D and Delete, and has a right-click menu (`dicMenu` in
+> `editor/contextmenu.js`: on a block copy, cut, paste below, duplicate, delete; on a function hat run, duplicate, fold, delete; on empty space
+> paste here, fold all, unfold all). There is one clipboard: dictionary blocks (types starting with y_) paste only on the Dictionaries page and Talk blocks only on
+> the Talk page; on the wrong page nothing is pasted and a message says why (`editor/clipboard.js`). Dictionary blocks are rebuilt from the
+> text, so “disable”, notes, “save as part” and “show YAYA”, which the text has no place for, are not offered. The menu reuses the Talk
+> canvas's menu parts and was checked by a separate agent. 1 editor check (207).
 
 ---
 

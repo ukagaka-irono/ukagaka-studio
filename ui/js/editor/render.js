@@ -485,6 +485,7 @@ function buildScriptEl(script, project, options) {
   const host = opts.host || Scripts;
   const wrap = div('script');
   wrap._script = script;
+  wrap._host = opts.host || null;   // 辞書の画面のかたまり（右クリックのメニューも、これで動かす。editor/contextmenu.js）
   if (!opts.noPosition) {
     wrap.style.left = (script.x || 0) + 'px';
     wrap.style.top = (script.y || 0) + 'px';

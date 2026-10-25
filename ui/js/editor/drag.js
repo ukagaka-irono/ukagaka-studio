@@ -49,6 +49,11 @@ function useRoot(root) {
 
 const inside = (el, target) => !!(el && target && el.contains(target));
 
+/** target をふくむルート（右クリックのメニューが、置く先のかたまりの並びを知るため。editor/contextmenu.js） */
+function rootFor(target) {
+  return ROOTS.find((r) => inside(r.ws, target)) || null;
+}
+
 function toCanvas(clientX, clientY) {
   const r = D.ws.getBoundingClientRect();
   return {
@@ -519,4 +524,4 @@ function setZoom(z) {
 }
 function getSelected() { return D.selected; }
 
-export const Drag = { init, addRoot, setZoom, select, reselect, getSelected, insertTarget, uniqueName, uniqueIn, cleanupEmptyScripts, D };
+export const Drag = { init, addRoot, rootFor, setZoom, select, reselect, getSelected, insertTarget, uniqueName, uniqueIn, cleanupEmptyScripts, D };
