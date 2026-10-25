@@ -1323,6 +1323,12 @@ export const en = {
   '左のテキストに関数を書くか、': 'Write a function in the text on the left, or drag the top hat of',
   'のいちばん上の帽子をここにドラッグ': 'here',
   'ブロックを変えると、テキストも書きかわります': 'Changing the blocks rewrites the text too',
+  // ---- ui\js\model\dics.js（どこにも無い関数。段階 9-1）
+  '辞書「{dic}」の {line} 行目でよんでいる「{name}」は、どこにも無い関数です':
+    'Dictionary “{dic}” calls “{name}” on line {line}, but no such function exists',
+  'YAYA は、無い関数をよぶと何もせずに先へ進みます。名前の書きまちがいか、まだ作っていない関数かもしれません。':
+    'YAYA silently skips calls to functions that do not exist. The name may be misspelt, or the function not written yet.',
+
   // ---- 「ためす」で辞書の関数・右の列の「YAYA」タブ（段階 8-7）
   '辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}':
     'That function is not in the dictionaries (YAYA may have failed to read them): {detail}',

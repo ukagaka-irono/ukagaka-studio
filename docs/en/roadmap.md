@@ -1122,10 +1122,17 @@ found while building stage 8.
 
 | | What | |
 |---|---|---|
-| 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | |
+| 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | done |
 | 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | |
 | 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | |
 | 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | |
+
+> **9-1 is done.** The Check tab (`dicIssues` in `ui/js/model/dics.js`) warns (⚠, with dictionary and line; click to go there) about calls to
+> functions found nowhere: not in the project's dictionaries, YAYA's built-in functions (`YAYA_SYSTEM_FUNCTIONS`), yaya_base, the studio's
+> machinery, or the blocks' events. YAYA silently skips a call to a missing function, so a misspelt name is otherwise easy to miss. Calls are
+> the names the colouring (`highlightYaya`) marks as followed by “(”, so comments and strings are left out. Each name is reported once per
+> dictionary. Unreadable dictionaries, and projects linked to a hand-written ghost, are not checked. Calling a function by its bare name (no
+> “(”) cannot be told apart from a variable and is not checked. 3 editor checks (206).
 
 ---
 

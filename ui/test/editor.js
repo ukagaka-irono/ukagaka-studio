@@ -802,6 +802,22 @@ section('このソフトについて (about)');
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
 }
 
+section('辞書でよんでいる、どこにも無い関数 (dicIssues。段階 9-1)');
+{
+  const { dicIssues } = require('../js/model/dics.js');
+  const found = (dics, opts) => {
+    const out = [];
+    dicIssues({ dics }, (level, msg, hint, where) => { if (/どこにも無い関数/.test(msg)) out.push([level, where.dic, where.line, msg.match(/「([^」]+)」は/)[1]]); }, opts);
+    return out;
+  };
+  const text = 'Greet\n{\n\t_n = STRLEN("a(b") + Helper(1) // Nope0(1)\n\tStudio.Event("OnBoot")\n\tif (_n) { Nope1(2) }\n\tSHIORI3FW.RegisterTempVar("x")\n\tNope1(3)\n\tOnBoot()\n}\nHelper\n{\n\t1\n}\n';
+  check('元からある関数・辞書の関数・しくみ・yaya_base・ブロックのイベントはよい。無いものは最初の 1 か所だけ（コメントと文字列はのぞく）',
+    found([{ name: 'a.dic', text }], { blockEvents: ['OnBoot'] }), [['warn', 'a.dic', 5, 'Nope1']]);
+  check('ほかの辞書の関数もよい', found([{ name: 'a.dic', text: 'A\n{\n\tB()\n}\n' }, { name: 'b.dic', text: 'B\n{\n\t1\n}\n' }]), []);
+  check('つないでいるあいだと、読めない辞書では見ない',
+    [found([{ name: 'a.dic', text: 'A\n{\n\tX()\n}\n' }], { linked: true }).length, found([{ name: 'a.dic', text: 'A\n{\n\tX(\n}\n' }]).length], [0, 0]);
+}
+
 section('ゴーストの辞書を読みこむときの名前 (importDicName)');
 {
   const { importDicName, dicNameOk } = require('../js/model/dics.js');

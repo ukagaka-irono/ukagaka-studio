@@ -118,7 +118,8 @@ spreadsheet and open it again to write back only the lines that changed.
 On the **Dictionaries** page you create YAYA dictionaries (.dic) inside the project and write them as text, with line numbers and
 colouring; lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). They go into the ghost
 on export, and events defined there run instead of the blocks for the same event. Beside the text, the same dictionary is shown as blocks (one block per YAYA construct). Typing in the text rewrites the blocks, and changing
-the blocks rewrites the text (pretty-printed when a block changes; comments are kept). Blocks call their functions with “call YAYA function F with A B”.
+the blocks rewrites the text (pretty-printed when a block changes; comments are kept). Blocks call their functions with “call YAYA function F with A B”. Besides unreadable lines and clashing functions, the Check tab points out
+calls to functions that exist nowhere (click one to go to that line).
 Entering a ghost folder under “Import from an existing YAYA ghost” and pressing “Import” copies that ghost's dictionaries (those listed in yaya.txt, except yaya_base) into the project,
 converting Shift_JIS dictionaries to UTF-8; the ghost's files are not changed.
 Dictionary functions also run in “Try” (“Dictionary functions” in the Try tab, or the ▶ on a function hat on the Dictionaries page), and events
@@ -456,7 +457,7 @@ ukagaka-studio/
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
 │       │   ├── yayatext.js reading (parsing) and pretty-printing YAYA dictionary text
-│       │   ├── dics.js     YAYA dictionaries inside the project (name rules, clashing functions)
+│       │   ├── dics.js     YAYA dictionaries inside the project (name rules, clashing functions, calls to missing functions)
 │       │   ├── yblocks.js  dictionary blocks (one per YAYA construct) and converting them to and from the dictionary tree
 │       │   ├── lines.js    the speech list and CSV in/out
 │       │   ├── replace.js  replacing text in bulk

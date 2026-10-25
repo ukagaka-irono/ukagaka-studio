@@ -7,7 +7,8 @@
  * DOM を触らないので、node のテスト（ui\test\editor.js）からそのまま使えます。
  */
 
-import { parseYaya } from './yayatext.js';
+import { parseYaya, highlightYaya } from './yayatext.js';
+import { YAYA_SYSTEM_FUNCTIONS } from './yblocks.js';
 import { t } from '../i18n/i18n.js';
 
 // スタジオが書くファイル（辞書の名前には使えない）
@@ -162,4 +163,26 @@ export function dicIssues(project, issue, { blockEvents = [], linked = false } =
       t("辞書のほうが動くので、ブロックの {event} は、辞書の {event} の中で Studio.Event('{event}') をよんだときだけ動きます。", { event: ev }),
       { dic: where.get(ev) });
   }
+  // どこにも無い関数をよんでいる（段階 9-1）。YAYA は無い関数をよんでも何も出さずに先へ進むので、書きまちがいに気づきにくい。
+  // つないだ手書きのゴーストの関数は、ここではわからないので、つないでいるあいだは見ません
+  if (linked) return;
+  const events = new Set(blockEvents);
+  const known = (name) => where.has(name) || reservedFunction(name) || SYSTEM_FUNCTIONS.has(name) || events.has(name);
+  for (const d of dics) {
+    if (parseDic(d).errors.length) continue;   // 読めない辞書は、先にそちらを直してもらう
+    const seen = new Set();
+    // 色分け（highlightYaya）で「( が続く名前」になったものが、関数をよんでいるところ（コメントと文字列の中はのぞかれます）
+    highlightYaya(d.text).forEach((spans, k) => {
+      for (const [cls, s] of spans) {
+        const name = s.trim();
+        if (cls !== 'call' || seen.has(name) || known(name)) continue;
+        seen.add(name);
+        issue('warn', t('辞書「{dic}」の {line} 行目でよんでいる「{name}」は、どこにも無い関数です', { dic: d.name, line: k + 1, name }),
+          t('YAYA は、無い関数をよぶと何もせずに先へ進みます。名前の書きまちがいか、まだ作っていない関数かもしれません。'),
+          { dic: d.name, line: k + 1 });
+      }
+    });
+  }
 }
+
+const SYSTEM_FUNCTIONS = new Set(Object.values(YAYA_SYSTEM_FUNCTIONS).flat());
