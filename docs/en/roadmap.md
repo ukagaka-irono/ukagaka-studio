@@ -1114,7 +1114,7 @@ The goal is to finish a YAYA ghost inside the studio without linking a hand-writ
 
 ---
 
-## Stage 9 — Making dictionaries as easy to write as blocks
+## Stage 9 — Making dictionaries as easy to write as blocks (done)
 
 Decided on 2026-10-25. Stage 8 made it possible to write, run and export YAYA dictionaries inside the studio. Some help that blocks have is
 still missing for dictionaries (Check tab warnings, copy and paste, search and replace, the block reference). This stage fills in those gaps,
