@@ -1329,6 +1329,18 @@ export const en = {
   'YAYA は、無い関数をよぶと何もせずに先へ進みます。名前の書きまちがいか、まだ作っていない関数かもしれません。':
     'YAYA silently skips calls to functions that do not exist. The name may be misspelt, or the function not written yet.',
 
+  // ---- プログラムやファイルにさわる YAYA（ui\js\model\lint.js・ui\js\panels\run.js）
+  '「ためす」でも、書き出したゴーストでも本当に動きます。人からもらったプロジェクトなら、中身を確かめてから「ためす」や書き出しをしてください。':
+    'It really runs, both in “Try” and in the exported ghost. If someone else gave you this project, check it before trying or exporting it.',
+  '辞書「{dic}」の {line} 行目で、プログラムやファイルにさわる関数「{name}」をよんでいます':
+    'Line {line} of dictionary “{dic}” calls “{name}”, which can run programs or change files',
+  '{title}の YAYA で、プログラムやファイルにさわる関数「{name}」をよんでいます':
+    'The YAYA in {title} calls “{name}”, which can run programs or change files',
+  'このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？':
+    'The YAYA in this project calls functions that can run programs or change files on this computer ({names}). They really run in “Try” too.\n\nOnly try projects you wrote yourself or got from someone you trust. Try it?',
+  'ためすのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。':
+    'Try was cancelled. Check the YAYA that can run programs or change files in the Check tab.',
+
   // ---- 「ためす」で辞書の関数・右の列の「YAYA」タブ（段階 8-7）
   '辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}':
     'That function is not in the dictionaries (YAYA may have failed to read them): {detail}',
