@@ -141,8 +141,8 @@ OnStudioPreview
 	Studio.PreviewAnswer(_res)
 }
 
-// 答えの JSON を 1 行で返す。yaya_base は「:chain=」をチェイントークとして読むので、= を = にしておく
+// 答えの JSON を 1 行で返す。yaya_base は「:chain=」を続きの印として読むので、= を全角の ＝ にしておく（Studio.NoChainMark）
 Studio.PreviewAnswer
 {
-	REPLACE(REPLACE(REPLACE(DUMPJSON(_argv[0]), CHR(13), ''), CHR(10), ''), ':chain=', ':chain=')
+	Studio.NoChainMark(REPLACE(REPLACE(DUMPJSON(_argv[0]), CHR(13), ''), CHR(10), ''))
 }
