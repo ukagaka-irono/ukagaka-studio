@@ -205,6 +205,8 @@ Studio.Event
 
 	// 応答の 1 行に収める（改行は \n にする）
 	_out = REPLACE(REPLACE(_out, CHR(13), ''), CHR(10), '\n')
+	// 答えに入った文字が、yaya_base の印として読まれないようにする
+	_out = Studio.NoChainMark(_out)
 
 	if _out != '' && Studio.reqCommTo != '' {
 		_to = REPLACE(REPLACE(Studio.reqCommTo, CHR(13), ''), CHR(10), '')
@@ -1105,6 +1107,13 @@ Studio.Scope : void
 	elseif _who == 1 { Studio.Emit('\1') }
 	else { Studio.Emit('\p[' + _who + ']') }
 	Studio.scope = _who
+}
+
+// yaya_base は答えの中の「:chain=」（設定によっては「:eval=」も）を、続きの印として読む。
+// 答えに入った文字がその印にならないよう、= を全角の ＝ にする（studio_preview.dic の Studio.PreviewAnswer も同じ）
+Studio.NoChainMark
+{
+	REPLACE(REPLACE(_argv[0], ':chain=', ':chain＝'), ':eval=', ':eval＝')
 }
 
 // 文字をさくらスクリプトに置ける形にする（\ と改行）

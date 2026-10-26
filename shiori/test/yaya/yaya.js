@@ -21,6 +21,7 @@
  *  12. プロジェクトの YAYA の辞書を exe で書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべるか
  *  13. いまある YAYA ゴーストの辞書を読みこむとき、yaya.txt の辞書（dicdir の中も）を UTF-8 にして読み、yaya_base とスタジオのファイルは読まないか
  *  14. 「ためす」でプロジェクトの辞書の関数を動かせるか（call:。イベントの情報は reference に入る）。ブロックのかたまりも、いっしょに動くか
+ *  15. セリフに「:chain=」という文字があっても、答えがそのまま届くか（yaya_base の印として読まれず、= は全角の ＝ になる）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -570,6 +571,21 @@ async function main() {
     expect('無い関数はエラー', none.error, 'function_not_found');
     expect('辞書があっても、ブロックのかたまりは動く', block.vars && block.vars['初期値つき'], 7);
     if (boot.script === '\\0辞書の起動\\e' && greet.script === '\\0abc/abc\\e') ok('「ためす」で、プロジェクトの辞書の関数を動かせます');
+  }
+
+  // ---- 15. セリフの中の「:chain=」 -----------------------------------------------
+  {
+    const mark = {
+      format: 'ikaga/1', meta: { name: '印のテスト' }, settings: { randomTalkEnabled: false }, variables: [],
+      scripts: [{ id: 'm1', kind: 'event', event: 'OnTalk', blocks: [{ type: 'say', who: 0, nl: 0, text: 'a:chain=b' }] }],
+    };
+    const ran = await host.runYayaProgram('chain-mark', mark, ['OnBoot', 'OnTalk']);
+    const tried = await host.runYayaPreview('chain-mark-try', mark, 'm1', {});
+    expect('SSP に返す答えでは、= が全角になって、そのまま届く', (ran[1] || {}).value, '\\0a:chain\uff1db\\e');
+    expect('「ためす」の答えも、そのまま届く', tried.script, '\\0a:chain\uff1db\\e');
+    if ((ran[1] || {}).value === '\\0a:chain\uff1db\\e' && tried.script === '\\0a:chain\uff1db\\e') {
+      ok('セリフに「:chain=」があっても、答えがそのまま届きます');
+    }
   }
 
   // ---- 表示 --------------------------------------------------------------------
