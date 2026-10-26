@@ -7,7 +7,7 @@
 import { getDef } from './blocks.js';
 import { Model } from './model.js';
 import { parseExpr } from './yayatext.js';
-import { dicIssues } from './dics.js';
+import { dicIssues, riskyCalls, RISKY_FUNCTIONS } from './dics.js';
 import { t } from '../i18n/i18n.js';
 
 const Lint = {};
@@ -401,6 +401,18 @@ Lint.run = function (project, ctx = {}) {
     linked: !!String((project.meta || {}).ghostDir || ''),
   });
 
+  // ---- このパソコンでプログラムやファイルにさわる YAYA（人からもらったプロジェクトに入っていたら、気づけるように）
+  for (const r of Lint.riskyCode(project)) {
+    const hint = t('「ためす」でも、書き出したゴーストでも本当に動きます。人からもらったプロジェクトなら、中身を確かめてから「ためす」や書き出しをしてください。');
+    if (r.dic) {
+      issue(out, 'warn', t('辞書「{dic}」の {line} 行目で、プログラムやファイルにさわる関数「{name}」をよんでいます', r), hint);
+      Object.assign(out[out.length - 1], { dic: r.dic, line: r.line });
+    } else {
+      issue(out, 'warn', t('{title}の YAYA で、プログラムやファイルにさわる関数「{name}」をよんでいます',
+        { title: Model.scriptTitle(r.script), name: r.name }), hint, r.script, r.block);
+    }
+  }
+
   // ---- 設定まわり
   const st = project.settings || {};
   if (st.randomTalkEnabled !== false) {
@@ -495,6 +507,31 @@ Lint.missingEvents = function (project, handwritten = []) {
   const out = COMMON_EVENTS.filter((e) => !have.has(e.event) && !hand.has(e.event))
     .map((e) => ({ kind: 'event', event: e.event, builtin: e.builtin }));
   if (!scripts.some((s) => s.kind === 'talk')) out.push({ kind: 'talk' });
+  return out;
+};
+
+/**
+ * プロジェクトの中で、このパソコンでプログラムを動かす・ファイルを書きかえるなどの関数（RISKY_FUNCTIONS）をよんでいるところ。
+ * 辞書は { name, dic, line }、ブロック（YAYA の式・YAYA の関数をよぶ）は { name, script, block }。
+ * チェックタブと、「ためす」の前の確かめ（panels/run.js）が使います
+ */
+Lint.riskyCode = function (project) {
+  const out = [];
+  for (const d of (project && project.dics) || []) {
+    for (const r of riskyCalls(d.text)) out.push({ name: r.name, dic: d.name, line: r.line });
+  }
+  for (const s of (project && project.scripts) || []) {
+    if (s.disabled) continue;
+    walk(s, (b) => {
+      if (b.disabled) return;
+      if (b.type === 'yaya_expr' && typeof b.code === 'string') {
+        // 行の頭の名前は関数の定義として色分けされるので、字下げしてから調べる
+        for (const r of riskyCalls('\t' + b.code)) out.push({ name: r.name, script: s, block: b });
+      } else if (b.type === 'yaya_call' && typeof b.name === 'string' && RISKY_FUNCTIONS.has(b.name.trim())) {
+        out.push({ name: b.name.trim(), script: s, block: b });
+      }
+    });
+  }
   return out;
 };
 

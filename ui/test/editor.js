@@ -823,6 +823,25 @@ section('このソフトについて (about)');
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
 }
 
+section('プログラムやファイルにさわる YAYA (Lint.riskyCode。「ためす」の前に確かめる)');
+{
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'R' }, variables: [],
+    dics: [{ name: 'a.dic', text: 'A\n{\n\t_x = STRLEN("FDEL(1)") // EXECUTE(1)\n\tFDEL("x")\n\tFDEL("y")\n}\n' }],
+    scripts: [{ id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'say', who: 0, text: { type: 'yaya_expr', code: 'MKDIR("x")' }, nl: 0 },
+      { type: 'yaya_call', name: 'LOADLIB', a: '', b: '' },
+      { type: 'yaya_call', name: 'Hand.Hi', a: '', b: '' },
+      { type: 'yaya_expr', code: 'EVAL("1")', disabled: true },
+    ] }],
+  });
+  const risky = Lint.riskyCode(Model.project).map((r) => [r.name, r.dic || r.block.type, r.line || 0]);
+  check('辞書（文字列とコメントはのぞく。名前ごとに 1 か所）と、YAYA の式・関数をよぶブロック（無効にしたものはのぞく）',
+    risky, [['FDEL', 'a.dic', 4], ['MKDIR', 'yaya_expr', 0], ['LOADLIB', 'yaya_call', 0]]);
+  const warns = Lint.run(Model.project).filter((i) => /プログラムやファイルにさわる/.test(i.message)).map((i) => i.message);
+  check('チェックタブに、どこで何をよんでいるかが出る', warns.length, 3);
+}
+
 section('辞書でよんでいる、どこにも無い関数 (dicIssues。段階 9-1)');
 {
   const { dicIssues } = require('../js/model/dics.js');

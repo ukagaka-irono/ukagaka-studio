@@ -186,3 +186,30 @@ export function dicIssues(project, issue, { blockEvents = [], linked = false } =
 }
 
 const SYSTEM_FUNCTIONS = new Set(Object.values(YAYA_SYSTEM_FUNCTIONS).flat());
+
+/**
+ * YAYA に元からある関数のうち、このパソコンでプログラムを動かす・DLL を読む・ファイルを書きかえる・辞書を足す・
+ * 文字を YAYA のコードとして動かすもの。人からもらったプロジェクトに入っていたら、「ためす」の前に確かめてもらいます
+ * （「ためす」も、書き出したゴーストと同じ yaya.dll で本当に動かすため）
+ */
+export const RISKY_FUNCTIONS = new Set([
+  'EXECUTE', 'EXECUTE_WAIT', 'LOADLIB', 'UNLOADLIB', 'REQUESTLIB', 'FUNCTIONEX', 'DICLOAD', 'DICUNLOAD', 'APPEND_RUNTIME_DIC',
+  'FOPEN', 'FWRITE', 'FWRITE2', 'FWRITEBIN', 'FWRITEDECODE', 'FWRITEJSON', 'FWRITETOML', 'FWRITEXML', 'FWRITEYAML',
+  'FDEL', 'FMOVE', 'FCOPY', 'FRENAME', 'MKDIR', 'RMDIR', 'EVAL', 'SETSETTING', 'FUNCDECL_WRITE', 'FUNCDECL_ERASE',
+]);
+
+/** YAYA の文（辞書のテキストや YAYA の式）で RISKY_FUNCTIONS をよんでいるところ（[{ name, line }]。名前ごとに最初の 1 か所） */
+export function riskyCalls(text) {
+  const out = [];
+  const seen = new Set();
+  // 色分け（highlightYaya）で「( が続く名前」になったところ（コメントと文字列の中はのぞかれます）
+  highlightYaya(String(text || '')).forEach((spans, k) => {
+    for (const [cls, s] of spans) {
+      const name = s.trim();
+      if (cls !== 'call' || seen.has(name) || !RISKY_FUNCTIONS.has(name)) continue;
+      seen.add(name);
+      out.push({ name, line: k + 1 });
+    }
+  });
+  return out;
+}

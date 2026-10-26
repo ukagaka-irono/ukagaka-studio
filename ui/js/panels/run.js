@@ -5,6 +5,7 @@ import { Model } from '../model/model.js';
 import { Player } from '../model/player.js';
 import { programOf, toYaya } from '../model/yaya.js';
 import { dicFunctionNames, dicIssues } from '../model/dics.js';
+import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -85,10 +86,28 @@ async function runPreview(script) {
 }
 
 /**
+ * プログラムを動かす・ファイルを書きかえるなどの関数（Lint.riskyCode）をよぶ YAYA が入っていたら、「ためす」の前に一度だけ確かめる。
+ * 「ためす」も本物の yaya.dll で動かすので、人からもらったプロジェクトのコードが、このパソコンでそのまま動くため。
+ * よんでいる関数が変わったら、もう一度たずねます
+ */
+let allowedCode = '';
+function codeAllowed() {
+  const risky = Lint.riskyCode(Model.project);
+  if (!risky.length) return true;
+  const names = [...new Set(risky.map((r) => r.name))].sort().join(', ');
+  const key = (Model.project.meta || {}).name + '\n' + names;
+  if (allowedCode === key) return true;
+  const ok = confirm(t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？', { names }));
+  if (ok) allowedCode = key;
+  return ok;
+}
+
+/**
  * scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす）か「call:関数の名前」。
  * プロジェクトの辞書もいっしょに渡し（段階 8-7）、辞書にあるイベントは、書き出したゴーストと同じく辞書の関数を動かします
  */
 function previewRequest(scriptId, refs) {
+  if (!codeAllowed()) return Promise.reject(new Error(t('ためすのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。')));
   const meta = Model.project.meta || {};
   const handwritten = dicFunctionNames(Model.project);
   if (scriptId.startsWith('event:') && handwritten.includes(scriptId.slice(6))) scriptId = 'call:' + scriptId.slice(6);
