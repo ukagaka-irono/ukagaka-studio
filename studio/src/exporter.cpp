@@ -18,6 +18,17 @@ namespace ikaga {
 
 // ------------------------------------------------------------------ 名前
 
+// CON・NUL・COM1 のような、Windows が機械の名前として取っておいている名前か（「NUL.json」「CON」なども同じ）。
+// そういう名前のファイルやフォルダは作れない（書いても消えてしまう）ので、前に _ を付けます
+static bool ReservedDeviceName(const std::string& name) {
+    std::string stem = name.substr(0, name.find('.'));
+    while (!stem.empty() && stem[stem.size() - 1] == ' ') stem.erase(stem.size() - 1);
+    for (size_t i = 0; i < stem.size(); i++) stem[i] = (char)toupper((unsigned char)stem[i]);
+    if (stem == "CON" || stem == "PRN" || stem == "AUX" || stem == "NUL" || stem == "CONIN$" || stem == "CONOUT$") return true;
+    if (stem.size() == 4 && (stem.compare(0, 3, "COM") == 0 || stem.compare(0, 3, "LPT") == 0) && stem[3] >= '1' && stem[3] <= '9') return true;
+    return false;
+}
+
 std::string SafeFolderName(const std::string& name, const char* fallback) {
     std::string out;
     for (size_t i = 0; i < name.size(); i++) {
@@ -29,6 +40,7 @@ std::string SafeFolderName(const std::string& name, const char* fallback) {
     }
     while (!out.empty() && (out[0] == '.' || out[0] == ' ')) out.erase(0, 1);
     while (!out.empty() && (out[out.size() - 1] == '.' || out[out.size() - 1] == ' ')) out.erase(out.size() - 1);
+    if (ReservedDeviceName(out)) out = "_" + out;
     return out.empty() ? std::string(fallback) : out;
 }
 

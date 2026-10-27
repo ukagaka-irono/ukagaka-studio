@@ -182,6 +182,35 @@ console.log('  ---- 大きな surfaces.txt の読みこみ');
   }
 }
 
+// ------------------------------------------------- Windows の機械の名前
+//
+// ゴーストの名前が CON・NUL・COM1 などだと、そのままではフォルダもファイルも作れないので、前に _ を付ける
+console.log('  ---- Windows の機械の名前（CON・NUL など）');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-dev-'));
+  try {
+    const folders = [];
+    for (const name of ['NUL', 'con.txt', 'COM1', 'Console']) {
+      const file = path.join(dir, 'p.json');
+      fs.writeFileSync(file, JSON.stringify({ format: 'ikaga/1', meta: { name }, scripts: [] }));
+      const out = run([file, '--dic', dicFor('plain.json')]).toString('utf8');
+      folders.push((/== folder: (.*?) \//.exec(out) || [])[1]);
+    }
+    checked++;
+    const want = ['_NUL', '_con.txt', '_COM1', 'Console'];
+    if (JSON.stringify(folders) === JSON.stringify(want)) {
+      console.log(`${green}  OK  ${off}CON・NUL・COM1 には _ を付け、ほかの名前はそのまま`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ Windows の機械の名前${off}`);
+      console.log(`        ほしい: ${JSON.stringify(want)}`);
+      console.log(`        出た  : ${JSON.stringify(folders)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- 長い当たり判定の名前
 //
 // うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること
