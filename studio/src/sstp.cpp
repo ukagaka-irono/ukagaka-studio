@@ -224,8 +224,8 @@ SspInfo DetectSsp(const std::wstring& hint) {
         std::wstring h = ExpandVars(hint);
         if (IsDirectory(h)) {
             if (PathExists(PathJoin(h, L"ssp.exe"))) exe = PathJoin(h, L"ssp.exe");
-        } else if (PathExists(h)) {
-            exe = h;
+        } else if (PathExists(h) && _wcsicmp(FileNameOf(h).c_str(), L"ssp.exe") == 0) {
+            exe = h;   // ファイルをさすときは ssp.exe だけ（「SSP を起動」は、ここを開くので）
         }
     }
 
