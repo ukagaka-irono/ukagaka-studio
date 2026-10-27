@@ -148,6 +148,50 @@ for (const [fixture, want, expected, how] of cases) {
   compare(expected, got);
 }
 
+// ------------------------------------------------- 長い当たり判定の名前
+//
+// うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること
+// （前は決まった大きさの入れものに書いていて、長い名前で exe ごと止まりました）
+console.log('  ---- うごきの当たり判定の長い名前');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-long-'));
+  try {
+    const name = 'N'.repeat(400);
+    const project = {
+      format: 'ikaga/1', meta: { name: 'long' }, scripts: [],
+      animations: [{ id: 1, base: 0, interval: 'always', patterns: [{ method: 'overlay', surface: 100, wait: 50, x: 0, y: 0 }],
+        collisions: [
+          { name, shape: 'rect', x1: 0, y1: 0, x2: 10, y2: 10 },
+          { name, shape: 'ellipse', x1: 1, y1: 2, x2: 3, y2: 4 },
+          { name, shape: 'circle', x1: 5, y1: 6, x2: 7 },
+        ] }],
+    };
+    const file = path.join(dir, 'long.json');
+    fs.writeFileSync(file, JSON.stringify(project));
+    checked++;
+    let out = '';
+    try {
+      out = run([file, 'shell/master/surfaces.txt', '--dic', dicFor('ghost.json')]).toString('utf8');
+    } catch (e) {
+      out = `（止まりました: ${e.status}）`;
+    }
+    const want = [
+      `animation1.collision0,0,0,10,10,${name}`,
+      `animation1.collisionex0,${name},ellipse,1,2,3,4`,
+      `animation1.collisionex1,${name},circle,5,6,7`,
+    ];
+    if (want.every((l) => out.includes(l + '\r\n'))) {
+      console.log(`${green}  OK  ${off}400 字の名前でも止まらず、四角・楕円・円の行がそのまま書ける`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ 長い当たり判定の名前${off}`);
+      console.log(`        出た  : ${out.slice(0, 200)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- ネットワーク更新の照合表
 //
 // 中身を作るところから確かめたいので、その場でフォルダを組み立てます。
