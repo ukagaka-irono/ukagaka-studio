@@ -148,6 +148,40 @@ for (const [fixture, want, expected, how] of cases) {
   compare(expected, got);
 }
 
+// ------------------------------------------------- 大きな surfaces.txt
+//
+// 見出しに番号をたくさん並べた surfaces.txt でも、読みこみがすぐ終わること（広げる番号は 1 つの見出しで 2000 まで）
+console.log('  ---- 大きな surfaces.txt の読みこみ');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-big-'));
+  try {
+    const ranges = [];
+    for (let i = 0; i < 10; i++) ranges.push(`${i * 2000}-${i * 2000 + 1999}`);
+    const body = [];
+    for (let i = 0; i < 5; i++) body.push(`animation${i}.interval,always`, `animation${i}.pattern0,overlay,100,50,0,0`);
+    for (let i = 0; i < 5; i++) body.push(`collision${i},0,0,10,10,Area${i}`);
+    fs.writeFileSync(path.join(dir, 'surfaces.txt'), [`surface${ranges.join(',')}`, '{', ...body, '}'].join('\r\n'));
+    checked++;
+    const started = Date.now();
+    let out = '';
+    try {
+      out = execFileSync(host, ['--shell', dir], { encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60000 });
+    } catch (e) {
+      out = '';
+    }
+    const ms = Date.now() - started;
+    const anims = out.split(/\r?\n/).filter((l) => l.startsWith('animation: ')).length;
+    if (out && ms < 20000 && anims === 2000 * 5) {
+      console.log(`${green}  OK  ${off}見出しの番号は 2000 までにして、すぐ読み終わる（${ms} ミリ秒）`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ 大きな surfaces.txt（${ms} ミリ秒、うごき ${anims} こ）${off}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- 長い当たり判定の名前
 //
 // うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること

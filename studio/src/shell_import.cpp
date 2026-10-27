@@ -7,11 +7,15 @@
 
 #include <algorithm>
 #include <map>
+#include <set>
 
 namespace ikaga {
 
 static const int kMaxSurface = 99999;   // これより大きい番号は、数えまちがいとみなす
 static const int kMaxRange = 2000;      // surfaces.txt の「100-200」のような範囲の、広げてよい数
+// 1 つの見出しで広げる番号の数と、読むうごきの数の上限（大きすぎる surfaces.txt で、読みこみが止まらないように）
+static const size_t kMaxHeaderNumbers = 2000;
+static const size_t kMaxAnimations = 10000;
 
 static bool HasShellFiles(const std::wstring& dir) {
     if (PathExists(PathJoin(dir, L"surfaces.txt"))) return true;
@@ -87,15 +91,16 @@ static std::vector<int> SurfaceHeaderNumbers(const std::string& line) {
     size_t brace = rest.find('{');                       // 「surface0{」のように同じ行に { があるとき
     if (brace != std::string::npos) rest = rest.substr(0, brace);
     if (rest.empty() || rest.find_first_not_of("0123456789,- \t") != std::string::npos) return out;
-    // カンマで分けて、a-b は広げる
+    // カンマで分けて、a-b は広げる（同じ番号は 1 つにまとめ、kMaxHeaderNumbers までにする）
+    std::set<int> seen;
     for (const std::string& part : SplitComma(rest)) {
         if (part.empty()) continue;
         size_t dash = part.find('-');
         int a = atoi(part.c_str());
         int b = dash == std::string::npos ? a : atoi(part.c_str() + dash + 1);
         if (b < a || b - a > kMaxRange || b > kMaxSurface) continue;
-        for (int n = a; n <= b; n++) {
-            if (std::find(out.begin(), out.end(), n) == out.end()) out.push_back(n);
+        for (int n = a; n <= b && out.size() < kMaxHeaderNumbers; n++) {
+            if (seen.insert(n).second) out.push_back(n);
         }
     }
     return out;
@@ -202,14 +207,23 @@ static bool PatternToJson(const std::string& value, JValue& out) {
 static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector<int>& numbers) {
     struct Anim { int base, id; std::string interval; int every = 4; std::map<int, JValue> patterns; std::vector<JValue> collisions; };
     std::vector<Anim> anims;
-    auto animOf = [&](int base, int id) -> Anim& {
-        for (Anim& a : anims) if (a.base == base && a.id == id) return a;
+    std::map<std::pair<int, int>, size_t> animIndex;   // (立ち絵の番号, うごきの番号) → anims の何番目か
+    // 無ければ作る。うごきが kMaxAnimations こを超えるときは null（それ以上は読まない）
+    auto animOf = [&](int base, int id) -> Anim* {
+        std::map<std::pair<int, int>, size_t>::iterator it = animIndex.find(std::make_pair(base, id));
+        if (it != animIndex.end()) return &anims[it->second];
+        if (anims.size() >= kMaxAnimations) return nullptr;
         Anim a;
         a.base = base;
         a.id = id;
+        animIndex[std::make_pair(base, id)] = anims.size();
         anims.push_back(a);
-        return anims.back();
+        return &anims.back();
     };
+    std::set<int> numberSet(numbers.begin(), numbers.end());
+    // 四角い当たり判定を、立ち絵の番号ごとに集める（さいごに r.areas へ。見つけた順に）
+    std::map<int, std::vector<JValue> > areaLists;
+    std::vector<int> areaOrder;
 
     std::vector<int> targets;   // いま読んでいるかたまりの番号（{ … } の中）
     bool inBlock = false;
@@ -220,7 +234,7 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
             std::vector<int> nums = SurfaceHeaderNumbers(line);
             if (!nums.empty()) {
                 pending = nums;
-                for (int n : nums) if (std::find(numbers.begin(), numbers.end(), n) == numbers.end()) numbers.push_back(n);
+                for (int n : nums) if (numberSet.insert(n).second) numbers.push_back(n);
             } else if (line.find('{') == std::string::npos) {
                 pending.clear();                         // descript など、立ち絵でないかたまり
             }
@@ -235,7 +249,9 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
         std::string key, value;
         if (AnimationKey(line, id, key, index, value)) {
             for (int base : targets) {
-                Anim& a = animOf(base, id);
+                Anim* ap = animOf(base, id);
+                if (!ap) break;
+                Anim& a = *ap;
                 if (key == "interval") {
                     std::vector<std::string> f = SplitComma(value);
                     std::string iv = Lower(f[0]);
@@ -262,15 +278,13 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
                 r.skipped++;                             // 四角でない当たり判定は、立ち絵の上では描けないので読まない
                 continue;
             }
+            JValue area = JValue::makeObj();
+            area.set("name", c["name"]);
+            area.set("x1", c["x1"]); area.set("y1", c["y1"]); area.set("x2", c["x2"]); area.set("y2", c["y2"]);
             for (int base : targets) {
-                std::string k = NumToStr(base);
-                JValue area = JValue::makeObj();
-                area.set("name", c["name"]);
-                area.set("x1", c["x1"]); area.set("y1", c["y1"]); area.set("x2", c["x2"]); area.set("y2", c["y2"]);
-                if (!r.areas[k.c_str()].isArr()) r.areas.set(k, JValue::makeArr());
-                JValue list = r.areas[k.c_str()];
-                list.arr.push_back(area);
-                r.areas.set(k, list);
+                std::vector<JValue>& list = areaLists[base];
+                if (list.empty()) areaOrder.push_back(base);
+                list.push_back(area);
             }
             continue;
         }
@@ -278,6 +292,13 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
         if (low[0] >= '0' && low[0] <= '9' && (low.find("interval") != std::string::npos || low.find("pattern") != std::string::npos)) {
             r.skipped++;
         }
+    }
+
+    for (int base : areaOrder) {
+        std::string k = NumToStr(base);
+        JValue list = r.areas[k.c_str()].isArr() ? r.areas[k.c_str()] : JValue::makeArr();
+        for (JValue& a : areaLists[base]) list.arr.push_back(a);
+        r.areas.set(k, list);
     }
 
     for (Anim& a : anims) {
@@ -391,10 +412,10 @@ ShellImport ImportShellFolder(const std::wstring& path) {
         std::string desc;
         if (ReadBinaryFile(PathJoin(r.folder, L"descript.txt"), desc)) ReadBindNames(ToUtf8(desc), r);
         std::sort(nums.begin(), nums.end());
+        std::set<int> imageIds;
+        for (size_t k = 0; k < r.images.size(); k++) imageIds.insert(r.images[k].id);
         for (size_t i = 0; i < nums.size(); i++) {
-            bool has = false;
-            for (size_t k = 0; k < r.images.size(); k++) if (r.images[k].id == nums[i]) { has = true; break; }
-            if (!has) r.compositeOnly.push_back(nums[i]);
+            if (!imageIds.count(nums[i])) r.compositeOnly.push_back(nums[i]);
         }
     }
     r.ok = true;
