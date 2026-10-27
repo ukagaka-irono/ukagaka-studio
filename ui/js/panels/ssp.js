@@ -147,6 +147,7 @@ async function installToSsp(opts) {
       change: t('SSP のゴーストを切り替えました。切り替わらないときは、新しいゴーストなので SSP を再起動してください。'),
       none: t('書き出しました。SSP を起動（または再起動）すると反映されます。'),
       failed: t('書き出しましたが、SSP への指示は届きませんでした。'),
+      manual: t('書き出しました。ゴーストの名前に [ ] \\ " , のどれかがあるので、SSP のメニューから切り替えてください。'),
     };
     box.innerHTML =
       t('<b>{folder}</b> を入れました（{files} ファイル）<br>', { folder: escapeHtml(r.folder), files: r.files }) +
