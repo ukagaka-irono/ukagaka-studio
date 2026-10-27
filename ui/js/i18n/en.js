@@ -1034,6 +1034,8 @@ export const en = {
     "Switched SSP to the ghost. If it doesn't switch, it's a new ghost; restart SSP.",
   '書き出しました。SSP を起動（または再起動）すると反映されます。': 'Exported. Start (or restart) SSP to see it.',
   '書き出しましたが、SSP への指示は届きませんでした。': "Exported, but the instruction didn't reach SSP.",
+  '書き出しました。ゴーストの名前に [ ] \\ " , のどれかがあるので、SSP のメニューから切り替えてください。':
+    'Exported. The ghost name contains one of [ ] \\ " , so please switch to it from the SSP menu.',
   '<b>{folder}</b> を入れました（{files} ファイル）<br>': 'Installed <b>{folder}</b> ({files} files)<br>',
   'SSP に入れました': 'Installed into SSP',
   '保存して、SSP にも入れました': 'Saved, and put into SSP too',
