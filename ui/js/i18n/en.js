@@ -37,6 +37,8 @@ export const en = {
   'そのかたまりが見つかりません: {detail}': 'Script not found: {detail}',
   'YAYA の辞書がありません': 'No YAYA dictionary was sent',
   'YAYA で動かせませんでした: {detail}': 'Could not run it on YAYA: {detail}',
+  'ネットワークの場所（\\\\…）は使えません。このパソコンのフォルダ（C:\\… など）に写してから使ってください: {detail}':
+    'Network locations (\\\\…) cannot be used. Copy it to a folder on this computer (C:\\… and so on) first: {detail}',
   'YAYA のゴーストではないようです（yaya.txt がありません）: {detail}': 'This does not look like a YAYA ghost (no yaya.txt): {detail}',
   'ゴーストに yaya.dll がありません': 'The ghost has no yaya.dll',
   'ゴーストの yaya.dll が古いので、スタジオのしくみが動きません（YAYA 6 系にしてください）': "The ghost's yaya.dll is too old for the studio's runtime (use YAYA 6.x)",

@@ -14,6 +14,11 @@ std::wstring PathJoin(const std::wstring& a, const std::wstring& b);
 std::wstring ParentDir(const std::wstring& path);
 std::wstring FileNameOf(const std::wstring& path);
 
+// C:\… のように、ドライブ文字ではじまるこのパソコンの場所か。
+// プロジェクトに書いてあるパス（立ち絵の絵・サムネイル・つないだゴースト）は、これだけを読みます
+// （\\… のネットワークの場所や \\?\ などは読まない。人からもらったプロジェクトで、開いただけでよそにつながらないように）
+bool IsLocalPath(const std::wstring& path);
+
 bool PathExists(const std::wstring& path);
 bool IsDirectory(const std::wstring& path);
 bool EnsureDir(const std::wstring& path);          // mkdir -p 相当

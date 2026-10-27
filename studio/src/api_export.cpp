@@ -32,6 +32,7 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
     ExportResult r;
     if (!linked.empty()) {
         nar = false;
+        if (!IsLocalPath(Utf8ToWide(linked))) { JsonError(res, 400, "network_path", linked); return; }
         r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
         if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
     } else {
@@ -62,6 +63,8 @@ void Api::InspectYaya(const HttpRequest& req, HttpResponse& res) {
     if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string raw = Unquote(body["path"].asStr());
     if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    // つないだゴーストは、プロジェクトを開いただけで調べるので、このパソコンの場所だけ
+    if (!IsLocalPath(Utf8ToWide(raw))) { JsonError(res, 400, "network_path", raw); return; }
     YayaGhostInfo info = InspectYayaGhost(Utf8ToWide(raw));
     if (!info.ok) { JsonError(res, 404, info.error, raw); return; }
     JValue o = JValue::makeObj();
