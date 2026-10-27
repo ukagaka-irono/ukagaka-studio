@@ -5,6 +5,8 @@
 #include "util.h"
 
 #include <algorithm>
+#include <cwctype>
+#include <set>
 
 namespace ikaga {
 
@@ -15,6 +17,35 @@ static const char* kEnd = "// ukagaka-studio: end";
 static const char* kStudioFiles[] = { "studio_runtime.dic", "studio_program.dic" };
 
 // ---------------------------------------------------------------- 小道具
+
+// yaya.txt に書ける辞書の数と、読む量の上限（同じ辞書を何度も書いたり、大きなファイルを並べたりしても、止まらないように）
+static const size_t kMaxDics = 2000;
+static const size_t kMaxDicBytes = 64u << 20;
+
+// 大文字小文字をそろえた、ほんとうの場所（.. や / をといたもの）。とけなければ空
+static std::wstring FullPathLower(const std::wstring& path) {
+    DWORD n = GetFullPathNameW(path.c_str(), 0, NULL, NULL);
+    if (n == 0) return std::wstring();
+    std::wstring buf(n, L'\0');
+    DWORD got = GetFullPathNameW(path.c_str(), n, &buf[0], NULL);
+    if (got == 0 || got >= n) return std::wstring();
+    buf.resize(got);
+    for (size_t i = 0; i < buf.size(); i++) buf[i] = (wchar_t)towlower(buf[i]);
+    return buf;
+}
+
+// yaya.txt に書いてある場所が、ghost/master の中を指しているか（.. で外へ出る・絶対パス・: をふくむものは読まない）。
+// 中なら、くらべるための場所（FullPathLower）を key に入れて true
+static bool InsideMaster(const std::wstring& master, const std::string& rel, std::wstring& key) {
+    if (rel.empty() || rel.find(':') != std::string::npos || rel[0] == '\\' || rel[0] == '/') return false;
+    std::wstring root = FullPathLower(master);
+    std::wstring full = FullPathLower(PathJoin(master, Utf8ToWide(rel)));
+    if (root.empty() || full.empty()) return false;
+    if (root[root.size() - 1] != L'\\') root += L'\\';
+    if (full.compare(0, root.size(), root) != 0) return false;
+    key = full;
+    return true;
+}
 
 static std::wstring FindMaster(const std::wstring& path) {
     std::wstring m = PathJoin(PathJoin(path, L"ghost"), L"master");
@@ -68,7 +99,7 @@ static bool InYayaBase(const std::string& rel) {
 }
 
 // 辞書の中の、いちばん外側に書いてある関数の名前を集める（文字列とコメントの中は見ない）
-static void CollectFunctions(const std::string& text, std::vector<std::string>& out) {
+static void CollectFunctions(const std::string& text, std::vector<std::string>& out, std::set<std::string>& seen) {
     static const char* kWords[] = { "if", "elseif", "else", "while", "for", "foreach", "case", "when",
                                     "others", "switch", "return", "break", "continue", "void", NULL };
     int depth = 0;
@@ -109,7 +140,7 @@ static void CollectFunctions(const std::string& text, std::vector<std::string>& 
                 if (colon != std::string::npos) name = Trim(name.substr(0, colon));
                 bool ok = !name.empty() && name.find_first_of(" \t=;,()[]+-*<>!&|\"'") == std::string::npos;
                 for (int w = 0; ok && kWords[w]; w++) if (name == kWords[w]) ok = false;
-                if (ok && std::find(out.begin(), out.end(), name) == out.end()) out.push_back(name);
+                if (ok && seen.insert(name).second) out.push_back(name);
                 pending.clear();
             }
             depth++;
@@ -160,6 +191,13 @@ YayaGhostInfo InspectYayaGhost(const std::wstring& path) {
     info.linked = txt.find("ukagaka-studio: begin") != std::string::npos;
     bool baseListed = false;
     std::vector<std::string> lines = SplitLines(txt);
+    // 辞書の場所は ghost/master の中だけ。同じ辞書は 1 回だけ、数にも上限
+    std::set<std::wstring> listed;
+    auto addDic = [&](const std::string& rel) {
+        std::wstring key;
+        if (info.dics.size() >= kMaxDics || !InsideMaster(info.master, rel, key)) return;
+        if (listed.insert(key).second) info.dics.push_back(rel);
+    };
     for (size_t i = 0; i < lines.size(); i++) {
         std::string k, v;
         if (!KeyValue(lines[i], k, v)) continue;
@@ -167,20 +205,26 @@ YayaGhostInfo InspectYayaGhost(const std::wstring& path) {
         if (InYayaBase(v)) { baseListed = true; continue; }
         if (IsStudioFile(v)) continue;
         if (k == "dicdir") {
+            std::wstring key;
+            if (!InsideMaster(info.master, v, key)) continue;
             std::wstring dir = PathJoin(info.master, Utf8ToWide(v));
             std::vector<std::wstring> files = ListFilesDeep(dir);
             std::sort(files.begin(), files.end());
             for (size_t f = 0; f < files.size(); f++) {
                 std::string rel = v + "/" + WideToUtf8(files[f]);
-                if (Lower(rel).size() > 4 && Lower(rel).compare(rel.size() - 4, 4, ".dic") == 0) info.dics.push_back(rel);
+                if (Lower(rel).size() > 4 && Lower(rel).compare(rel.size() - 4, 4, ".dic") == 0) addDic(rel);
             }
         } else {
-            info.dics.push_back(v);
+            addDic(v);
         }
     }
-    for (size_t i = 0; i < info.dics.size(); i++) {
+    std::set<std::string> seen;
+    size_t total = 0;
+    for (size_t i = 0; i < info.dics.size() && total < kMaxDicBytes; i++) {
         std::string d;
-        if (ReadBinaryFile(PathJoin(info.master, Utf8ToWide(info.dics[i])), d)) CollectFunctions(ToUtf8(d), info.functions);
+        if (!ReadBinaryFile(PathJoin(info.master, Utf8ToWide(info.dics[i])), d)) continue;
+        total += d.size();
+        CollectFunctions(ToUtf8(d), info.functions, seen);
     }
 
     // スタジオのしくみが動くのに足りているか
@@ -222,11 +266,13 @@ YayaGhostInfo InspectYayaGhost(const std::wstring& path) {
 
 // ---------------------------------------------------------------- 読みこむ
 bool ReadYayaGhostDics(const std::wstring& path, std::vector<YayaDicFile>& out, std::string& error) {
-    YayaGhostInfo info = InspectYayaGhost(path);
+    YayaGhostInfo info = InspectYayaGhost(path);   // 辞書の場所は ghost/master の中だけ・同じものは 1 回（InsideMaster）
     if (!info.ok) { error = info.error; return false; }
-    for (size_t i = 0; i < info.dics.size(); i++) {
+    size_t total = 0;
+    for (size_t i = 0; i < info.dics.size() && total < kMaxDicBytes; i++) {
         std::string raw;
         if (!ReadBinaryFile(PathJoin(info.master, Utf8ToWide(info.dics[i])), raw)) continue;   // dicif の無いファイルなど
+        total += raw.size();
         std::string text = ToUtf8(raw), lf;
         lf.reserve(text.size());
         for (size_t k = 0; k < text.size(); k++) if (text[k] != '\r') lf += text[k];

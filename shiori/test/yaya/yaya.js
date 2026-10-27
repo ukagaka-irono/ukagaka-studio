@@ -545,8 +545,13 @@ async function main() {
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(path.join(master, 'dic'), { recursive: true });
     fs.writeFileSync(path.join(master, 'descript.txt'), 'charset,UTF-8\r\ntype,ghost\r\nname,よみこみ\r\n');
+    // ゴーストの外を指す行（.. のファイルとフォルダ）と、同じ辞書をもう一度書いた行は読まない
+    fs.writeFileSync(path.join(dir, '..', 'outside.txt'), 'Outside\n{\n\t"外"\n}\n');
+    fs.mkdirSync(path.join(dir, '..', 'outside-dir'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '..', 'outside-dir', 'out.dic'), 'OutDir\n{\n\t"外"\n}\n');
     fs.writeFileSync(path.join(master, 'yaya.txt'),
-      'dic, yaya_base/shiori3.dic\r\ndic, aya_talk.dic\r\ndicdir, dic\r\ndic, studio_runtime.dic\r\n');
+      'dic, yaya_base/shiori3.dic\r\ndic, aya_talk.dic\r\ndicdir, dic\r\ndic, studio_runtime.dic\r\n' +
+      'dic, ..\\..\\..\\outside.txt\r\ndicdir, ..\\..\\..\\outside-dir\r\ndic, AYA_TALK.dic\r\ndic, dic/../aya_talk.dic\r\n');
     // Shift_JIS・CRLF の辞書（「こんにちは」）と、BOM つき UTF-8 の辞書
     const sjis = Buffer.from([0x82, 0xB1, 0x82, 0xF1, 0x82, 0xC9, 0x82, 0xBF, 0x82, 0xCD]);
     fs.writeFileSync(path.join(master, 'aya_talk.dic'),
@@ -554,7 +559,7 @@ async function main() {
     fs.writeFileSync(path.join(master, 'dic', 'sub.dic'), '﻿Sub\n{\n\t"さぶ"\n}\n');
     fs.writeFileSync(path.join(master, 'studio_runtime.dic'), '// ukagaka-studio: generated\n');
     const out = require('child_process').execFileSync(exportHost, ['--dics', dir], { encoding: 'utf8' });
-    expect('ゴーストの辞書を読みこむ（Shift_JIS も UTF-8 に・改行は LF・dicdir の中も・yaya_base とスタジオのファイルは読まない）', out,
+    expect('ゴーストの辞書を読みこむ（Shift_JIS も UTF-8 に・改行は LF・dicdir の中も・yaya_base とスタジオのファイル、ゴーストの外、同じ辞書の 2 回めは読まない）', out,
       '== aya_talk.dic\nOnBoot\n{\n\t"こんにちは"\n}\n== dic/sub.dic\nSub\n{\n\t"さぶ"\n}\n');
     if (out.startsWith('== aya_talk.dic')) ok('いまある YAYA ゴーストの辞書を、UTF-8 にして読みこめます');
   }
