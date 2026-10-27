@@ -128,12 +128,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}   # checkout していないので、どこの話か教える
+          # タグの名前は、スクリプトの文にはめこまず、環境変数でわたす（' などの字が入っていても、文として読まれないように）
+          TAG_NAME: ${{ github.ref_name }}
         run: |
           # gh は「まだ無い」ときに 1 で終わります。それを失敗あつかいさせない
           $ErrorActionPreference = 'Continue'
           $PSNativeCommandUseErrorActionPreference = $false
 
-          $tag = '${{ github.ref_name }}'
+          $tag = $env:TAG_NAME
           $zip = (Get-ChildItem dist\*.zip | Select-Object -First 1)
           if (-not $zip) { throw '配る zip が見つかりません。' }
           Write-Host "$tag に $($zip.Name) を貼ります"
