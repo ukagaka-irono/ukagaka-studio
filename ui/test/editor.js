@@ -823,6 +823,22 @@ section('このソフトについて (about)');
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
 }
 
+section('使えないイベント名 (eventNameOk。しくみ・yaya_base の関数と同じ名前)');
+{
+  const { toYaya, programOf } = require('../js/model/yaya.js');
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'E' }, variables: [],
+    scripts: ['ChainTalk', 'Studio.Event', 'OnBoot'].map((event, i) => ({ id: 'e' + i, kind: 'event', event,
+      blocks: [{ type: 'say', who: 0, text: 'a', nl: 0 }] })),
+  });
+  const dic = toYaya(programOf(Model.project));
+  const defined = (name) => dic.split(/\r?\n/).includes(name);
+  check('しくみ・yaya_base の関数と同じ名前の入り口は書かない（OnBoot は書く）',
+    [defined('ChainTalk'), defined('Studio.Event'), defined('OnBoot')], [false, false, true]);
+  const warns = Lint.run(Model.project).filter((i) => /使えないので、このかたまりは書き出しません/.test(i.message)).map((i) => i.message);
+  check('チェックタブで知らせる', warns.length, 2);
+}
+
 section('プログラムやファイルにさわる YAYA (Lint.riskyCode。「ためす」の前に確かめる)');
 {
   Model.init({

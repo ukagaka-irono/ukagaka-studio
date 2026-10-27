@@ -8,6 +8,7 @@ import { getDef } from './blocks.js';
 import { Model } from './model.js';
 import { parseExpr } from './yayatext.js';
 import { dicIssues, riskyCalls, RISKY_FUNCTIONS } from './dics.js';
+import { eventNameOk } from './yaya.js';
 import { t } from '../i18n/i18n.js';
 
 const Lint = {};
@@ -123,6 +124,10 @@ Lint.run = function (project, ctx = {}) {
     if (s.kind === 'event' && !String(s.event || '').trim()) {
       issue(out, 'error', t('イベント名が空のかたまりがあります'),
         t('イベントをえらぶか、名前を直接入力してください。'), s);
+    } else if (s.kind === 'event' && !eventNameOk(String(s.event))) {
+      // YAYA の関数名にできない名前・しくみや yaya_base の関数と同じ名前は、書き出さない（model/yaya.js）
+      issue(out, 'warn', t('イベント名「{event}」は使えないので、このかたまりは書き出しません', { event: s.event }),
+        t('On ではじまる、記号の無い名前にしてください。Studio.〜 や yaya_base の関数と同じ名前は使えません。'), s);
     }
     if (s.kind === 'event' && s.event === 'OnStudioAlarm') {
       const h = Number(s.hour), m = Number(s.minute);

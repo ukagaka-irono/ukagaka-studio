@@ -12,6 +12,8 @@
  * DOM を触らないので、node のテストからそのまま使えます。
  */
 
+import { reservedFunction } from './dics.js';
+
 /** yaya_base（third_party/yaya-dic/yaya_base）の #globaldefine の名前。
  *  YAYA は、この名前を文字列の中でも置きかえてしまうので、人の書いた文に出てきたら
  *  文字列を 2 つに分けて、置きかえられないようにします（shiori\test\yaya\ が、この一覧が
@@ -206,10 +208,14 @@ export function yayaNameOk(name) {
   return !/[\s!"#$%&'()*+,\-/:;<=>?@[\\\]^`{|}~]/.test(name);
 }
 
-/** イベントの名前が、そのまま YAYA の関数名にできるか */
-function eventNameOk(ev) {
+/**
+ * イベントの名前が、そのまま YAYA の関数名にできるか。
+ * しくみ（Studio.〜）や yaya_base の関数（ChainTalk など）と同じ名前だと、同じ関数が 2 つになって
+ * YAYA が辞書をまるごと読まなくなるので、それも使えない（model/dics.js の reservedFunction。辞書の関数と同じ決まり）
+ */
+export function eventNameOk(ev) {
   if (!yayaNameOk(ev)) return false;
-  if (RESERVED_EVENT.includes(ev)) return false;
+  if (RESERVED_EVENT.includes(ev) || reservedFunction(ev)) return false;
   return !RESERVED_PREFIX.some((p) => ev.startsWith(p));
 }
 

@@ -707,6 +707,9 @@ export const en = {
   'ブロックをつなげるか、いらなければ削除してください。': "Attach blocks, or delete it if you don't need it.",
   'イベント名が空のかたまりがあります': 'A script has no event name',
   'イベントをえらぶか、名前を直接入力してください。': 'Choose an event or type its name.',
+  'イベント名「{event}」は使えないので、このかたまりは書き出しません': 'The event name “{event}” cannot be used, so this script is not exported',
+  'On ではじまる、記号の無い名前にしてください。Studio.〜 や yaya_base の関数と同じ名前は使えません。':
+    'Use a name that starts with On and has no symbols. Names of Studio.… or yaya_base functions cannot be used.',
   '名前のないトークがあります': 'A talk has no name',
   '名前をつけないと、よび出せません。': "It can't be called without a name.",
   '{title}のえらばれやすさがマイナスです': 'The weight of {title} is negative',
