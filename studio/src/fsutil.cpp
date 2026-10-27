@@ -36,6 +36,13 @@ std::wstring FileNameOf(const std::wstring& path) {
     return p == std::wstring::npos ? path : path.substr(p + 1);
 }
 
+bool IsLocalPath(const std::wstring& path) {
+    if (path.size() < 3) return false;
+    wchar_t d = path[0];
+    bool letter = (d >= L'A' && d <= L'Z') || (d >= L'a' && d <= L'z');
+    return letter && path[1] == L':' && (path[2] == L'\\' || path[2] == L'/');
+}
+
 bool PathExists(const std::wstring& path) {
     return GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
 }

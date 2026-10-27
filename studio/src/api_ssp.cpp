@@ -109,6 +109,7 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
     std::string name = project["meta"]["name"].asStr();
     ExportResult r;
     if (!linked.empty()) {
+        if (!IsLocalPath(Utf8ToWide(linked))) { JsonError(res, 400, "network_path", linked); return; }
         std::vector<OutFile> kit = YayaKitFiles();
         r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
         if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }

@@ -298,6 +298,17 @@ console.log('  ---- サムネイルと readme');
         .startsWith('みかんのゴーストです。\r\nよろしくね。\r\n\r\n----\r\n')],
       ['サムネイルをえらんでいなければ thumbnail.png は無い', () => !run([path.join(fixtureDir, 'plain.json'), '--dic', dic])
         .toString('utf8').includes('thumbnail.png')],
+      // プロジェクトに書いてあるネットワークの場所（\\…）は読まない（同じ PNG を \\localhost\C$\… でさしても入らない）
+      ['ネットワークの場所のサムネイルと立ち絵は読まない', () => {
+        const unc = '\\\\localhost\\' + path.join(dir, 'thumb.png').replace(/^([A-Za-z]):/, '$1$');
+        const p2 = JSON.parse(fs.readFileSync(fx, 'utf8'));
+        p2.meta.thumbnail.path = unc;
+        p2.shell = Object.assign({}, p2.shell, { images: [{ id: 0, path: unc, name: 'thumb.png', w: 4, h: 3 }] });
+        const fx2 = path.join(dir, 'project-unc.json');
+        fs.writeFileSync(fx2, JSON.stringify(p2));
+        const list = run([fx2, '--dic', dic]).toString('utf8');
+        return !list.includes('thumbnail.png') && !list.includes(`---- shell/master/surface0.png (${thumb.length} バイト)`);
+      }],
     ];
     for (const [label, fn] of steps) {
       checked++;

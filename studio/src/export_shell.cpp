@@ -230,7 +230,7 @@ void AppendShell(std::vector<OutFile>& files, const JValue& project) {
         std::string path = ShellImagePath(project, list[i].id);
         std::string data;
         int w = 0, h = 0;
-        if (!path.empty() && ReadBinaryFile(Utf8ToWide(path), data) && PngSize(data, &w, &h)) {
+        if (!path.empty() && IsLocalPath(Utf8ToWide(path)) && ReadBinaryFile(Utf8ToWide(path), data) && PngSize(data, &w, &h)) {
             f.data = data;
             f.shell = false;   // 自分でえらんだ絵は、既存があっても書きこむ
             list[i].w = w;

@@ -172,7 +172,8 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
     std::string thumbPath = meta["thumbnail"]["path"].asStr("");
     std::string thumb;
     int tw = 0, th = 0;
-    if (!thumbPath.empty() && ReadBinaryFile(Utf8ToWide(thumbPath), thumb) && PngSize(thumb, &tw, &th)) {
+    if (!thumbPath.empty() && IsLocalPath(Utf8ToWide(thumbPath)) && ReadBinaryFile(Utf8ToWide(thumbPath), thumb) &&
+        PngSize(thumb, &tw, &th)) {
         f.name = "thumbnail.png";
         f.data = thumb;
         files.push_back(f);
