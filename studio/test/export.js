@@ -230,14 +230,14 @@ console.log('  ---- Windows の機械の名前（CON・NUL など）');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-dev-'));
   try {
     const folders = [];
-    for (const name of ['NUL', 'con.txt', 'COM1', 'Console']) {
+    for (const name of ['NUL', 'con.txt', 'COM1', 'Console', 'LPT0', 'COM²']) {
       const file = path.join(dir, 'p.json');
       fs.writeFileSync(file, JSON.stringify({ format: 'ikaga/1', meta: { name }, scripts: [] }));
       const out = run([file, '--dic', dicFor('plain.json')]).toString('utf8');
       folders.push((/== folder: (.*?) \//.exec(out) || [])[1]);
     }
     checked++;
-    const want = ['_NUL', '_con.txt', '_COM1', 'Console'];
+    const want = ['_NUL', '_con.txt', '_COM1', 'Console', '_LPT0', '_COM²'];
     if (JSON.stringify(folders) === JSON.stringify(want)) {
       console.log(`${green}  OK  ${off}CON・NUL・COM1 には _ を付け、ほかの名前はそのまま`);
     } else {

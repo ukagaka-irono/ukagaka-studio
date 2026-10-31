@@ -25,8 +25,11 @@ static bool ReservedDeviceName(const std::string& name) {
     while (!stem.empty() && stem[stem.size() - 1] == ' ') stem.erase(stem.size() - 1);
     for (size_t i = 0; i < stem.size(); i++) stem[i] = (char)toupper((unsigned char)stem[i]);
     if (stem == "CON" || stem == "PRN" || stem == "AUX" || stem == "NUL" || stem == "CONIN$" || stem == "CONOUT$") return true;
-    if (stem.size() == 4 && (stem.compare(0, 3, "COM") == 0 || stem.compare(0, 3, "LPT") == 0) && stem[3] >= '1' && stem[3] <= '9') return true;
-    return false;
+    if (stem.compare(0, 3, "COM") != 0 && stem.compare(0, 3, "LPT") != 0) return false;
+    if (stem.size() == 4 && stem[3] >= '0' && stem[3] <= '9') return true;
+    // COM¹・LPT² のような上つきの数字（UTF-8 で C2 B9・C2 B2・C2 B3）も同じ
+    return stem.size() == 5 && (unsigned char)stem[3] == 0xC2 &&
+           ((unsigned char)stem[4] == 0xB9 || (unsigned char)stem[4] == 0xB2 || (unsigned char)stem[4] == 0xB3);
 }
 
 std::string SafeFolderName(const std::string& name, const char* fallback) {
@@ -89,7 +92,10 @@ bool DicNameOk(const std::string& name) {
     for (size_t i = 0; i < name.size(); i++) {
         unsigned char c = (unsigned char)name[i];
         if (c < 0x20 || c == '\\' || c == '/' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') return false;
+        // ~ は 8.3 の短い名前（STUDIO~1.DIC がスタジオのファイルになる）、, は yaya.txt の区切りになる
+        if (c == '~' || c == ',') return false;
     }
+    if (ReservedDeviceName(name)) return false;
     std::string lower = name;
     for (size_t i = 0; i < lower.size(); i++) lower[i] = (char)tolower((unsigned char)lower[i]);
     return lower != "studio_runtime.dic" && lower != "studio_program.dic" && lower != "studio_preview.dic";

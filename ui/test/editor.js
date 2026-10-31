@@ -331,6 +331,9 @@ check('◯秒後によぶ先が空',
   const { dicNameOk, dicFunctionNames } = require('../js/model/dics.js');
   check('辞書の名前', ['talk.dic', 'ＡＩ.DIC', '../x.dic', 'a\\b.dic', 'x.txt', '.dic', 'studio_runtime.dic', 'Studio_Program.dic'].map(dicNameOk),
     [true, true, false, false, false, false, false, false]);
+  check('8.3 の短い名前・yaya.txt の区切り・Windows の機械の名前は使えない（Console.dic はよい）',
+    ['STUDIO~1.DIC', 'a,b.dic', 'NUL.dic', 'com1.dic', 'LPT¹.dic', 'con .dic', 'Console.dic'].map(dicNameOk),
+    [false, false, false, false, false, false, true]);
   const p = Model.normalize({ scripts: [], dics: [{ name: 'a.dic', text: 'X\r\n{\r\n\t1\r\n}\r\n' }, { name: 3 }, 'x', { name: 'b.dic' }] });
   check('読みこんだ辞書は、決まった形にする（改行は \\n、名前の無いものは落とす）', p.dics, [{ name: 'a.dic', text: 'X\n{\n\t1\n}\n' }, { name: 'b.dic', text: '' }]);
   check('新しいプロジェクトの辞書は空', Model.newProject().dics, []);
@@ -977,6 +980,9 @@ section('ゴーストの辞書を読みこむときの名前 (importDicName)');
   const long = 'x'.repeat(70) + '.dic';
   names.push(importDicName(long, [importDicName(long, [])]));
   check('どれも辞書の名前に使える（長い名前に _2 を付けても 64 字まで）', [names.every(dicNameOk), names[5].length, names[5].endsWith('_2.dic')], [true, 64, true]);
+  const odd = [importDicName('aitalk~1.dic', []), importDicName('a,b.dic', []), importDicName('nul.dic', [])];
+  check('~ と , は _ にし、機械の名前には _ を前に付ける', [odd, odd.every(dicNameOk)],
+    [['aitalk_1.dic', 'a_b.dic', '_nul.dic'], true]);
 }
 
 section('「元にもどす」に積む前に、画面の側のものを書きもどす (Model.onCommit。辞書の画面のブロック)');
