@@ -196,20 +196,74 @@ export const RISKY_FUNCTIONS = new Set([
   'EXECUTE', 'EXECUTE_WAIT', 'LOADLIB', 'UNLOADLIB', 'REQUESTLIB', 'FUNCTIONEX', 'DICLOAD', 'DICUNLOAD', 'APPEND_RUNTIME_DIC',
   'FOPEN', 'FWRITE', 'FWRITE2', 'FWRITEBIN', 'FWRITEDECODE', 'FWRITEJSON', 'FWRITETOML', 'FWRITEXML', 'FWRITEYAML',
   'FDEL', 'FMOVE', 'FCOPY', 'FRENAME', 'MKDIR', 'RMDIR', 'EVAL', 'SETSETTING', 'FUNCDECL_WRITE', 'FUNCDECL_ERASE',
+  'DIRECTSSTP', 'LETTONAME', 'SAVEVAR', 'RESTOREVAR', 'SQLOPEN', 'SQLEXEC', 'LOGGING', 'SETGLOBALDEFINE', 'UNDEFFUNC',
+  // yaya_base と、しくみ（studio_runtime.dic）の関数で、上のものを渡された文字のままよぶもの
+  // （ui/test/editor.js が、どちらの辞書にも漏れがないかを確かめます）
+  'CALLBYNAME', 'NAMETOVALUE', 'FUNCTIONLOAD', 'SAORI', 'AyaTest.Eval', 'AyaTest.EvalLines', 'AyaLoad.FuncEnumExec',
+  'EXECUTE_SSTP', 'SET_PROPERTY', 'SHIORI3FW.ExecuteInternalSaori', 'SHIORI3FW.ExecuteDl2ToDll', 'SHIORI3FW.RequestLib',
+  'SHIORI3FW.RaiseIDEvent', 'SHIORI3EV.On_ShioriEcho', 'Studio.YayaExpr', 'Studio.YayaCall',
+  // 「ためす」で SAORI を止めている印（書きかえると、SAORI の DLL を読めてしまう）
+  'Studio.noSaori',
 ]);
 
-/** YAYA の文（辞書のテキストや YAYA の式）で RISKY_FUNCTIONS をよんでいるところ（[{ name, line }]。名前ごとに最初の 1 か所） */
-export function riskyCalls(text) {
+const isNameChar = (c) => c !== undefined && !/[\s!"#$%&()*+,\-/:;<=>?@[\]`{|}~']/.test(c);
+
+/** 行の終わりの / でつないだ行を 1 行にする（[{ text, line }]。line は始まりの行） */
+function joinLines(lines) {
+  const out = [];
+  for (let k = 0; k < lines.length; k++) {
+    let text = lines[k];
+    const line = k + 1;
+    while (/\/[ \t]*$/.test(text) && k + 1 < lines.length) text = text.replace(/\/[ \t]*$/, '') + lines[++k].replace(/^[ \t]+/, '');
+    out.push({ text, line });
+  }
+  return out;
+}
+
+/** 辞書の #define・#globaldefine（[[前, 後], …]） */
+export function dicDefines(texts) {
+  const out = [];
+  for (const text of texts) {
+    for (const line of String(text || '').split(/\r\n?|\n/)) {
+      const m = /^\s*#(?:global)?define\s+(\S+)\s+(.*?)\s*$/.exec(line);
+      if (m) out.push([m[1], m[2]]);
+    }
+  }
+  return out;
+}
+
+/**
+ * YAYA の文（辞書のテキストや YAYA の式）で RISKY_FUNCTIONS の名前が出てくるところ（[{ name, line }]。名前ごとに最初の 1 か所）。
+ * 人からもらったものを見るので、色分けとはちがって、かたく見ます。
+ * 文字列（%(…) で動く）とコメント（YAYA と読みかたがずれると、そこに隠せる）の中も、
+ * ( が続かない名前（#define で書きかえる・/ で次の行につなぐ）も、
+ * / でつないだ行と、defines（dicDefines）で書きかえたあとの文も見ます
+ */
+export function riskyCalls(text, defines = []) {
   const out = [];
   const seen = new Set();
-  // 色分け（highlightYaya）で「( が続く名前」になったところ（コメントと文字列の中はのぞかれます）
-  highlightYaya(String(text || '')).forEach((spans, k) => {
-    for (const [cls, s] of spans) {
-      const name = s.trim();
-      if (cls !== 'call' || seen.has(name) || !RISKY_FUNCTIONS.has(name)) continue;
-      seen.add(name);
-      out.push({ name, line: k + 1 });
+  const scan = (s, line) => {
+    for (let i = 0; i < s.length;) {
+      if (!isNameChar(s[i])) { i++; continue; }
+      let j = i;
+      while (j < s.length && isNameChar(s[j])) j++;
+      // 名前の終わりの . は名前に入れない（Studio.noSaori. のような書きかたもあるので、. で切ったものも見る）
+      const word = s.slice(i, j);
+      for (const name of [word, word.replace(/\.+$/, '')]) {
+        if (seen.has(name) || !RISKY_FUNCTIONS.has(name)) continue;
+        seen.add(name);
+        out.push({ name, line });
+      }
+      i = j;
     }
-  });
+  };
+  const expand = (s) => {
+    for (const [from, to] of defines) if (from) s = s.split(from).join(to);
+    return s;
+  };
+  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+  lines.forEach((s, k) => scan(s, k + 1));
+  for (const { text: s, line } of joinLines(lines)) { scan(s, line); scan(expand(s), line); }
+  out.sort((a, b) => a.line - b.line);
   return out;
 }

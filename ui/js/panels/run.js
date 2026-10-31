@@ -91,13 +91,15 @@ async function runPreview(script) {
  * よんでいる関数が変わったら、もう一度たずねます
  */
 let allowedCode = '';
-function codeAllowed() {
+function codeAllowed(install = false) {
   const risky = Lint.riskyCode(Model.project);
   if (!risky.length) return true;
   const names = [...new Set(risky.map((r) => r.name))].sort().join(', ');
   const key = (Model.project.meta || {}).name + '\n' + names;
   if (allowedCode === key) return true;
-  const ok = confirm(t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？', { names }));
+  const ok = confirm(install
+    ? t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。SSP に入れると本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、入れてください。SSP に入れますか？', { names })
+    : t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？', { names }));
   if (ok) allowedCode = key;
   return ok;
 }
@@ -328,4 +330,4 @@ function init() {
   $('#btn-log-clear').addEventListener('click', () => ghostLog('clear'));
 }
 
-export const Run = { init, render: renderTargets, currentScript, refsFor, runPreview, runScript, runEvent, renderVars };
+export const Run = { init, codeAllowed, render: renderTargets, currentScript, refsFor, runPreview, runScript, runEvent, renderVars };

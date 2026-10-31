@@ -241,6 +241,8 @@ const scenarios = [
       ['OnSecondChange:0,0,7', { status: '204 No Content' }],
       ['OnSecondChange:0,0,8', { status: '204 No Content' }],
       ['OnSecondChange:0,1,9', '\\0い\\e'],
+      // 無効にしたトーク（う）は、ランダムでも、名前や id で「よぶ」ブロックからも動かない
+      ['OnCallOff', '\\0え\\e'],
     ],
   },
   {

@@ -1398,6 +1398,10 @@ export const en = {
     'The YAYA in this project calls functions that can run programs or change files on this computer ({names}). They really run in “Try” too.\n\nOnly try projects you wrote yourself or got from someone you trust. Try it?',
   'ためすのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。':
     'Try was cancelled. Check the YAYA that can run programs or change files in the Check tab.',
+  'このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。SSP に入れると本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、入れてください。SSP に入れますか？':
+    'The YAYA in this project calls functions that can run programs or change files on this computer ({names}). They really run once it is in SSP.\n\nOnly install projects you wrote yourself or got from someone you trust. Install it in SSP?',
+  'SSP に入れるのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。':
+    'Installing in SSP was cancelled. Check the YAYA that can run programs or change files in the Check tab.',
 
   // ---- 「ためす」で辞書の関数・右の列の「YAYA」タブ（段階 8-7）
   '辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}':
