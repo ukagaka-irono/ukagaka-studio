@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cmath>
+#include <utility>
 
 namespace ikaga {
 
@@ -286,7 +287,7 @@ struct Parser {
                 i++;
                 JValue child;
                 if (!parseValue(child, depth + 1)) return false;
-                v.obj.push_back(std::make_pair(key, child));
+                v.obj.push_back(std::make_pair(std::move(key), std::move(child)));   // 写さずに移す（大きな木で、深さの数だけ写さないように）
                 skipWs();
                 if (i < s.size() && s[i] == ',') { i++; skipWs(); if (i < s.size() && s[i] == '}') { i++; return true; } continue; }
                 if (i < s.size() && s[i] == '}') { i++; return true; }
@@ -302,7 +303,7 @@ struct Parser {
             for (;;) {
                 JValue child;
                 if (!parseValue(child, depth + 1)) return false;
-                v.arr.push_back(child);
+                v.arr.push_back(std::move(child));
                 skipWs();
                 if (i < s.size() && s[i] == ',') { i++; skipWs(); if (i < s.size() && s[i] == ']') { i++; return true; } continue; }
                 if (i < s.size() && s[i] == ']') { i++; return true; }
