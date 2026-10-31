@@ -254,6 +254,21 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
 
 // -------------------------------------------------------------- 書き出し
 
+bool IsForeignGhostFolder(const std::wstring& root) {
+    if (!IsDirectory(root)) return false;
+    if (PathExists(PathJoin(root, L"ghost\\master\\ghost.json"))) return false;
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW(PathJoin(root, L"*").c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    bool empty = true;
+    do {
+        std::wstring name = fd.cFileName;
+        if (name != L"." && name != L"..") { empty = false; break; }
+    } while (FindNextFileW(h, &fd));
+    FindClose(h);
+    return !empty;
+}
+
 ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
                          const std::string& dic, bool includeShell, bool overwriteShell) {
     ExportResult r;
@@ -261,6 +276,13 @@ ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, cons
     std::vector<OutFile> files = BuildGhostFiles(project, kit, dic, includeShell, &folder);
     r.folder = folder;
     r.root = PathJoin(outDir, Utf8ToWide(folder));
+
+    // 同じ名前のフォルダに、ほかのゴーストがいたら書かない（上書きすると、そのゴーストが動かなくなる）
+    if (IsForeignGhostFolder(r.root)) {
+        r.error = "foreign_ghost_folder";
+        r.detail = folder;
+        return r;
+    }
 
     if (!EnsureDir(r.root)) {
         r.error = "mkdir_failed";

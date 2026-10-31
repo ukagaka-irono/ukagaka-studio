@@ -1222,6 +1222,10 @@ export const en = {
   // ---- ui\index.html（ゴースト情報）
   '名前と作者': 'Name and author',
   'ゴーストの名前': 'Ghost name',
+  '「{detail}」のフォルダには、伺かスタジオで作っていないゴーストがいるので、上書きしません。ゴースト情報の「書き出すフォルダの名前」を変えてください':
+    'The “{detail}” folder holds a ghost that was not made with Ukagaka Studio, so it was not overwritten. Change “Export folder name” on the Ghost info page.',
+  '書き出すフォルダの名前': 'Export folder name',
+  '空ならゴーストの名前': 'Ghost name if empty',
   '本体（さくら）の名前': 'Main character (Sakura) name',
   '相方（うにゅう）の名前': 'Partner (Kero) name',
   '作者名': 'Author',
