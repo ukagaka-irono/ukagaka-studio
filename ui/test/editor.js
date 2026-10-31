@@ -835,6 +835,10 @@ section('使えないイベント名 (eventNameOk。しくみ・yaya_base の関
   const defined = (name) => dic.split(/\r?\n/).includes(name);
   check('しくみ・yaya_base の関数と同じ名前の入り口は書かない（OnBoot は書く）',
     [defined('ChainTalk'), defined('Studio.Event'), defined('OnBoot')], [false, false, true]);
+  const { eventNameOk } = require('../js/model/yaya.js');
+  check('YAYA の言葉・ローカル変数の形・元からある関数・yaya_base の大域変数・#globaldefine の名前をふくむものも使えない',
+    ['if', 'others', '_x', 'STRLEN', 'reference', 'reference3', 'OnTALK_INTERVALx', 'OnBoot', 'OnMyEvent'].map(eventNameOk),
+    [false, false, false, false, false, false, false, true, true]);
   const warns = Lint.run(Model.project).filter((i) => /使えないので、このかたまりは書き出しません/.test(i.message)).map((i) => i.message);
   check('チェックタブで知らせる', warns.length, 2);
 }
