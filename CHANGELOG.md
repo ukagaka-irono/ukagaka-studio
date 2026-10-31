@@ -2,7 +2,7 @@
 
 新しいものが上です。日付は「その版を作った日」です。
 
-## 2.0.0-alpha（未リリース・Ukagaka Studio）
+## 2.0.0-alpha（2026-11-01・Ukagaka Studio）
 
 * **「なし栞 + なしスタジオ」からフォークしました。** 名前を変えています。
   * なしスタジオ（`nashi-studio.exe`）→ **伺かスタジオ / Ukagaka Studio**（`ukagaka-studio.exe`）
