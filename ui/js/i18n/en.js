@@ -1221,6 +1221,10 @@ export const en = {
 
   // ---- ui\index.html（ゴースト情報）
   '名前と作者': 'Name and author',
+  'このプロジェクトは「{path}」のゴーストにつながっています。書き出すと、このゴーストにスタジオのファイルを書き、yaya.txt に行を足します。\n\n自分でつないだゴーストですか？ このゴーストに書きこみますか？':
+    'This project is linked to the ghost at “{path}”. Exporting writes Studio’s files into that ghost and adds lines to its yaya.txt.\n\nDid you link this ghost yourself? Write into it?',
+  'つないだゴーストに書きこむのをやめました。書き出しの画面の「手書きの YAYA ゴーストにつなぐ」で確かめてください。':
+    'Writing into the linked ghost was cancelled. Check “Link to a hand-written YAYA ghost” on the Export page.',
   'ゴーストの名前': 'Ghost name',
   '「{detail}」のフォルダには、伺かスタジオで作っていないゴーストがいるので、上書きしません。ゴースト情報の「書き出すフォルダの名前」を変えてください':
     'The “{detail}” folder holds a ghost that was not made with Ukagaka Studio, so it was not overwritten. Change “Export folder name” on the Ghost info page.',

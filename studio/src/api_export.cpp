@@ -94,6 +94,8 @@ void Api::ReadYayaDics(const HttpRequest& req, HttpResponse& res) {
     if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string raw = Unquote(body["path"].asStr());
     if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    // 欄の最初の値は、プロジェクトのつないだゴースト（meta.ghostDir）なので、このパソコンの場所だけ
+    if (!IsLocalPath(Utf8ToWide(raw))) { JsonError(res, 400, "network_path", raw); return; }
     std::vector<YayaDicFile> files;
     std::string error;
     if (!ReadYayaGhostDics(Utf8ToWide(raw), files, error)) { JsonError(res, 404, error, raw); return; }

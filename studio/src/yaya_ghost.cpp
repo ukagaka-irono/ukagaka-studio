@@ -293,15 +293,15 @@ std::string WithStudioLines(const std::string& yayaTxt) {
                               "dic, studio_runtime.dic, UTF-8" + nl +
                               "dic, studio_program.dic, UTF-8" + nl +
                               kEnd + nl;
-    size_t b = yayaTxt.find("// ukagaka-studio: begin");
+    // 終わりの印と、そのすぐ前の始まりの印を組にする（終わりの無い始まりの印が前に残っていても、
+    // そこから書きかえて、あいだの手書きの行を消さないように）
+    size_t e = yayaTxt.find(kEnd);
+    size_t b = e == std::string::npos ? std::string::npos : yayaTxt.rfind("// ukagaka-studio: begin", e);
     if (b != std::string::npos) {
-        size_t e = yayaTxt.find(kEnd, b);
-        if (e != std::string::npos) {
-            e += strlen(kEnd);
-            if (yayaTxt.compare(e, 2, "\r\n") == 0) e += 2;
-            else if (e < yayaTxt.size() && yayaTxt[e] == '\n') e += 1;
-            return yayaTxt.substr(0, b) + block + yayaTxt.substr(e);
-        }
+        e += strlen(kEnd);
+        if (yayaTxt.compare(e, 2, "\r\n") == 0) e += 2;
+        else if (e < yayaTxt.size() && yayaTxt[e] == '\n') e += 1;
+        return yayaTxt.substr(0, b) + block + yayaTxt.substr(e);
     }
     std::string out = yayaTxt;
     if (!out.empty() && out[out.size() - 1] != '\n') out += nl;
@@ -333,7 +333,8 @@ ExportResult ExportLinked(const std::wstring& path, const std::string& runtime, 
     // yaya.txt は、印の行のところだけを書きかえる（ほかのバイトはそのまま）
     std::wstring txtPath = PathJoin(info.master, L"yaya.txt");
     std::string txt;
-    ReadBinaryFile(txtPath, txt);
+    // 読めないまま書くと、手書きの dic の行が消えるので、書かずに止める
+    if (!ReadBinaryFile(txtPath, txt)) { r.error = "read_failed"; r.detail = "yaya.txt"; return r; }
     std::string next = WithStudioLines(txt);
     if (next != txt) {
         if (!WriteBinaryFile(txtPath, next)) { r.error = "write_failed"; r.detail = "yaya.txt"; return r; }
