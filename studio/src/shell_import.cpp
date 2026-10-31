@@ -16,6 +16,12 @@ static const int kMaxRange = 2000;      // surfaces.txt の「100-200」のよ�
 // 1 つの見出しで広げる番号の数と、読むうごきの数の上限（大きすぎる surfaces.txt で、読みこみが止まらないように）
 static const size_t kMaxHeaderNumbers = 2000;
 static const size_t kMaxAnimations = 10000;
+// 見出しの番号ごとに写すので、1 行でも番号の数だけ増える。読むこま・当たり判定のぜんぶの数と大きさの上限
+static const size_t kMaxStoredItems = 200000;
+static const size_t kMaxStoredBytes = 32u << 20;
+// シェルの descript.txt の着せ替えの行と、1 行の addid の数の上限
+static const size_t kMaxBindLines = 4096;
+static const size_t kMaxBindIds = 256;
 
 static bool HasShellFiles(const std::wstring& dir) {
     if (PathExists(PathJoin(dir, L"surfaces.txt"))) return true;
@@ -94,8 +100,9 @@ static std::vector<int> SurfaceHeaderNumbers(const std::string& line) {
     // カンマで分けて、a-b は広げる（同じ番号は 1 つにまとめ、kMaxHeaderNumbers までにする）
     std::set<int> seen;
     for (const std::string& part : SplitComma(rest)) {
-        if (part.empty()) continue;
-        size_t dash = part.find('-');
+        size_t start = part.find_first_not_of(" \t");
+        if (start == std::string::npos || part[start] == '-') continue;   // 負の番号は無い
+        size_t dash = part.find('-', start);
         int a = atoi(part.c_str());
         int b = dash == std::string::npos ? a : atoi(part.c_str() + dash + 1);
         if (b < a || b - a > kMaxRange || b > kMaxSurface) continue;
@@ -221,6 +228,14 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
         return &anims.back();
     };
     std::set<int> numberSet(numbers.begin(), numbers.end());
+    // 読んだこま・当たり判定の数と大きさ（kMaxStoredItems・kMaxStoredBytes を超えたら、それより先は読まない）
+    size_t storedItems = 0, storedBytes = 0;
+    auto canStore = [&](size_t bytes) {
+        if (storedItems >= kMaxStoredItems || storedBytes + bytes > kMaxStoredBytes) return false;
+        storedItems++;
+        storedBytes += bytes;
+        return true;
+    };
     // 四角い当たり判定を、立ち絵の番号ごとに集める（さいごに r.areas へ。見つけた順に）
     std::map<int, std::vector<JValue> > areaLists;
     std::vector<int> areaOrder;
@@ -248,6 +263,15 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
         int id = 0, index = 0;
         std::string key, value;
         if (AnimationKey(line, id, key, index, value)) {
+            // こまと当たり判定は、行ごとに 1 回だけ読んで、見出しの番号ぶん写す
+            bool isPattern = key == "pattern";
+            bool isCollision = key == "collision" || key == "collisionex";
+            JValue parsed;
+            if ((isPattern && !PatternToJson(value, parsed)) ||
+                (isCollision && !CollisionToJson(key == "collisionex", SplitComma(value), parsed))) {
+                r.skipped++;
+                continue;
+            }
             for (int base : targets) {
                 Anim* ap = animOf(base, id);
                 if (!ap) break;
@@ -257,14 +281,11 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
                     std::string iv = Lower(f[0]);
                     if ((iv == "random" || iv == "talk") && f.size() > 1) { a.interval = iv; a.every = atoi(f[1].c_str()); }
                     else a.interval = Lower(value);      // bind+random,5 のような組み合わせは、そのまま持つ
-                } else if (key == "pattern") {
-                    JValue p;
-                    if (PatternToJson(value, p)) a.patterns[index] = p;
-                    else if (base == targets[0]) r.skipped++;
-                } else if (key == "collision" || key == "collisionex") {
-                    JValue c;
-                    if (CollisionToJson(key == "collisionex", SplitComma(value), c)) a.collisions.push_back(c);
-                    else if (base == targets[0]) r.skipped++;
+                } else if (isPattern || isCollision) {
+                    bool fresh = !isPattern || a.patterns.find(index) == a.patterns.end();
+                    if (fresh && !canStore(64 + value.size())) { r.skipped++; break; }   // 上限。この先の番号には写さない
+                    if (isPattern) a.patterns[index] = parsed;
+                    else a.collisions.push_back(parsed);
                 }
                 // option（exclusive など）は持つ場所がないので読まない
             }
@@ -282,6 +303,7 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
             area.set("name", c["name"]);
             area.set("x1", c["x1"]); area.set("y1", c["y1"]); area.set("x2", c["x2"]); area.set("y2", c["y2"]);
             for (int base : targets) {
+                if (!canStore(64 + line.size())) { r.skipped++; break; }
                 std::vector<JValue>& list = areaLists[base];
                 if (list.empty()) areaOrder.push_back(base);
                 list.push_back(area);
@@ -320,10 +342,19 @@ static void ReadSurfacesTxt(const std::string& text, ShellImport& r, std::vector
 
 // シェルの descript.txt の着せ替えの名前（sakura.bindgroupN.name,種類,名前 / .default,1）を、うごきに付ける
 static void ReadBindNames(const std::string& text, ShellImport& r) {
+    // (うにゅう側か, うごきの番号) → 着せ替えのうごき（行ごとに、うごきをぜんぶ見なくてよいように）
+    std::map<std::pair<bool, int>, std::vector<size_t> > byId;
+    for (size_t i = 0; i < r.animations.arr.size(); i++) {
+        const JValue& a = r.animations.arr[i];
+        if (a["interval"].asStr().find("bind") == std::string::npos) continue;
+        byId[std::make_pair(a["base"].asInt(0) >= 10, a["id"].asInt(-1))].push_back(i);
+    }
+    size_t bindLines = 0, applied = 0;
     for (const std::string& line : SplitLines(text)) {
         std::string low = Lower(line);
         bool kero = low.compare(0, 14, "kero.bindgroup") == 0;
         if (!kero && low.compare(0, 16, "sakura.bindgroup") != 0) continue;
+        if (++bindLines > kMaxBindLines) break;
         size_t start = kero ? 14 : 16;
         size_t dot = low.find('.', start);
         size_t comma = low.find(',');
@@ -331,9 +362,14 @@ static void ReadBindNames(const std::string& text, ShellImport& r) {
         int id = atoi(low.substr(start, dot - start).c_str());
         std::string key = low.substr(dot + 1, comma - dot - 1);
         std::vector<std::string> f = SplitComma(line.substr(comma + 1));
-        for (JValue& a : r.animations.arr) {
-            if (a["id"].asInt(-1) != id || (a["base"].asInt(0) >= 10) != kero) continue;
-            if (a["interval"].asStr().find("bind") == std::string::npos) continue;
+        if (f.size() > kMaxBindIds) f.resize(kMaxBindIds);
+        std::map<std::pair<bool, int>, std::vector<size_t> >::iterator hit = byId.find(std::make_pair(kero, id));
+        if (hit == byId.end()) continue;
+        // 同じ番号の着せ替えが立ち絵ごとにあるので、付ける数のぜんぶにも上限を置く
+        if (applied + hit->second.size() > kMaxStoredItems) break;
+        applied += hit->second.size();
+        for (size_t ai : hit->second) {
+            JValue& a = r.animations.arr[ai];
             JValue bind = a["bind"].isObj() ? a["bind"] : JValue::makeObj();
             if (key == "name" && f.size() >= 2) {
                 bind.set("category", JValue::makeStr(f[0]));
@@ -349,10 +385,12 @@ static void ReadBindNames(const std::string& text, ShellImport& r) {
         }
     }
     // 種類ごとのえらびかた（sakura.bindoptionN.group,種類,mustselect+multiple）を、その種類の着せ替えに付ける
+    size_t optionLines = 0;
     for (const std::string& line : SplitLines(text)) {
         std::string low = Lower(line);
         bool kero = low.compare(0, 15, "kero.bindoption") == 0;
         if (!kero && low.compare(0, 17, "sakura.bindoption") != 0) continue;
+        if (++optionLines > kMaxBindLines) break;
         size_t comma = low.find(',');
         if (comma == std::string::npos || low.find(".group") == std::string::npos) continue;
         std::vector<std::string> f = SplitComma(line.substr(comma + 1));
@@ -361,6 +399,7 @@ static void ReadBindNames(const std::string& text, ShellImport& r) {
         for (JValue& a : r.animations.arr) {
             if ((a["base"].asInt(0) >= 10) != kero || !a["bind"].isObj()) continue;
             if (a["bind"]["category"].asStr() != f[0]) continue;
+            if (++applied > kMaxStoredItems) return;
             JValue bind = a["bind"];
             bind.set("option", JValue::makeStr(option));
             a.set("bind", bind);
