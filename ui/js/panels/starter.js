@@ -57,6 +57,7 @@ function open() {
           name: name.input.value, sakuraName: sakura.input.value, keroName: kero.input.value,
           craftman: craftman.input.value, parts,
         }));
+        Session.projectName = '';          // 保存すると、新しいファイルを作る（同じ名前のものは上書きしない）
         Session.vars = {};
         toast(t('新しいゴーストを作りました'));
       },

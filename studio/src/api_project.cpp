@@ -69,15 +69,27 @@ void Api::GetProject(const HttpRequest& req, HttpResponse& res) {
     res.body = ToUtf8(text);
 }
 
-// POST /api/project … projects\<名前>.json に保存する
+// POST /api/project … projects\<ファイル名>.json に保存する
+//   { file, name, project, auto }
+//   file … 開いているプロジェクトのファイル名（そこに上書きする）
+//   name … file が空のとき（新しく作った・お手本・読みこんだもの）の名前。同じ名前のファイルがあれば
+//          「名前 (2)」のようにずらして、ほかのプロジェクトを上書きしない
 void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
     JValue body;
     if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
-    std::string name = body["name"].asStr();
-    if (name.empty()) name = body["project"]["meta"]["name"].asStr();
-    name = SafeFolderName(name, "");
-    if (name.empty()) { JsonError(res, 400, "no_name"); return; }
     EnsureDir(projectsDir_);
+    std::string name = SafeFolderName(body["file"].asStr(), "");
+    if (name.empty()) {
+        std::string base = body["name"].asStr();
+        if (base.empty()) base = body["project"]["meta"]["name"].asStr();
+        base = SafeFolderName(base, "");
+        if (base.empty()) { JsonError(res, 400, "no_name"); return; }
+        name = base;
+        for (int n = 2; PathExists(PathJoin(projectsDir_, Utf8ToWide(name) + L".json")); n++) {
+            if (n > 9999) { JsonError(res, 500, "save_failed"); return; }
+            name = base + " (" + NumToStr(n) + ")";
+        }
+    }
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
     std::string text = body["project"].dump(2);
     // 上書きする前のものを、前の版として残す（自動保存のときは 10 分おき。project_history.h）
