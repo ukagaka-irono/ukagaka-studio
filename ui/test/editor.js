@@ -70,6 +70,23 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
 }
 
 {
+  // 人からもらったファイルの、形のおかしいかたまりとブロックで、チェックタブや題が止まらない
+  const { getDef } = require('../js/model/blocks.js');
+  const project = {
+    scripts: [null, 7, { id: 1, kind: 'event', event: 5, blocks: [
+      { type: 'constructor' }, { type: '__proto__' }, { type: 'toString' }, { type: 'say', who: 0, text: 'a', nl: 0 },
+    ] }],
+  };
+  const p = Model.normalize(project);
+  let error = '';
+  try { Model.project = p; Lint.run(p); } catch (e) { error = e.message; }
+  check('かたまりでないものは落とし、名前やイベント名は文字にし、Object の中身の名前はブロックにしない',
+    [p.scripts.length, p.scripts[0].id, p.scripts[0].event, typeof Model.scriptTitle(p.scripts[0]),
+      p.scripts[0].blocks.map((b) => !!getDef(b)), error],
+    [1, '1', '5', 'string', [false, false, false, true], '']);
+}
+
+{
   const p = Model.normalize({
     variables: [{ name: 'すき', value: 3 }, { name: '', value: 1 }, { value: 9 }],
   });
