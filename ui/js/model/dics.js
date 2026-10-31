@@ -19,8 +19,16 @@ export function dicNameOk(name) {
   const s = String(name || '');
   if (!s || s.length > 64 || s[0] === '.' || s[0] === ' ') return false;
   if (!/\.dic$/i.test(s)) return false;
-  if (/[\\/:*?"<>|\x00-\x1f]/.test(s)) return false;
+  // ~ は 8.3 の短い名前（STUDIO~1.DIC がスタジオのファイルになる）、, は yaya.txt の区切りになる
+  if (/[\\/:*?"<>|~,\x00-\x1f]/.test(s)) return false;
+  if (deviceName(s)) return false;
   return !STUDIO_FILES.includes(s.toLowerCase());
+}
+
+/** NUL.dic・COM1.dic のような、Windows が機械の名前として取っておいている名前か（書いても消えてしまう。studio/src/exporter.cpp と同じ） */
+function deviceName(s) {
+  const stem = s.split('.')[0].replace(/ +$/, '').toUpperCase();
+  return /^(CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|(COM|LPT)[0-9¹²³])$/.test(stem);
 }
 
 /**
@@ -29,9 +37,9 @@ export function dicNameOk(name) {
  * taken（もうある名前）と、大文字小文字だけちがう名前にもならないよう、_2・_3 … を付けます
  */
 export function importDicName(rel, taken) {
-  let base = String(rel || '').replace(/^[\/]+/, '').replace(/[\/]/g, '_').replace(/[:*?"<>|\x00-\x1f]/g, '_');
+  let base = String(rel || '').replace(/^[\/]+/, '').replace(/[\/]/g, '_').replace(/[:*?"<>|~,\x00-\x1f]/g, '_');
   if (!/\.dic$/i.test(base)) base += '.dic';
-  if (base[0] === '.' || base[0] === ' ') base = '_' + base;
+  if (base[0] === '.' || base[0] === ' ' || deviceName(base)) base = '_' + base;
   if (STUDIO_FILES.includes(base.toLowerCase())) base = 'imported_' + base;
   const stem = base.slice(0, -4);
   const used = new Set([...(taken || [])].map((n) => String(n).toLowerCase()));
