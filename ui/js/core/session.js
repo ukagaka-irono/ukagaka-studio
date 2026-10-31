@@ -18,4 +18,5 @@ export const Session = {
   playToken: 0,             // ステージの再生を、新しいものに切りかえるための番号
   ssp: null,                // いちばん最近たしかめた SSP の状態
   yayaGhost: null,          // つないだ手書きの YAYA ゴーストを調べた結果（panels/yayalink.js）
+  keepVersionOf: '',        // 前の版を開いたファイル。次の保存では、自動保存でも上書きする前のものを残す（panels/dialog.js）
 };

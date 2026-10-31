@@ -38,10 +38,12 @@ async function saveOnce(silent, auto) {
   const project = Model.project;
   const sent = JSON.stringify(project);
   const opened = Model.generation;
+  const keep = !!Session.projectName && Session.keepVersionOf === Session.projectName;
   try {
-    const r = await api('/api/project', { method: 'POST', body: { file: Session.projectName, name, project, auto } });
+    const r = await api('/api/project', { method: 'POST', body: { file: Session.projectName, name, project, auto, keep } });
     // 保存しているあいだに、ほかのプロジェクトを開いていたら、そちらの名前や印にはさわらない
     if (Model.generation !== opened) return true;
+    if (keep) Session.keepVersionOf = '';
     Session.projectName = r.saved;
     // 保存しているあいだに変えたものは、まだ保存していない
     Model.dirty = JSON.stringify(Model.project) !== sent;
@@ -176,6 +178,7 @@ async function openHistoryDialog(file, title) {
         Session.projectName = file;
         Session.vars = {};
         Model.dirty = true;     // 保存すると、いまの版のかわりになります（いまの版も前の版として残ります）
+        Session.keepVersionOf = file;   // 見るだけで開いても、自動保存がいまの版を消さないように
         updateTitle();
         closeModal();
         toast(t('{time} の版を開きました。保存すると、これがいまの版になります（いまの版も前の版として残ります）', { time: timeText(v.time) }));

@@ -93,7 +93,8 @@ void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
     std::wstring file = PathJoin(projectsDir_, Utf8ToWide(name) + L".json");
     std::string text = body["project"].dump(2);
     // 上書きする前のものを、前の版として残す（自動保存のときは 10 分おき。project_history.h）
-    KeepProjectVersion(projectsDir_, Utf8ToWide(name), text, !body["auto"].asBool(false));
+    // keep … 前の版を開いたあとの保存。自動保存でも、いまの版を必ず残す（10 分おきを待たない）
+    KeepProjectVersion(projectsDir_, Utf8ToWide(name), text, !body["auto"].asBool(false) || body["keep"].asBool(false));
     if (!WriteBinaryFile(file, text)) {
         JsonError(res, 500, "save_failed");
         return;
