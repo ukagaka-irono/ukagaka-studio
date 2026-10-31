@@ -218,9 +218,13 @@ const Model = {
 
     out.scripts = Array.isArray(out.scripts) ? out.scripts : [];
     let y = 40;
-    out.scripts = out.scripts.map((s) => {
+    out.scripts = out.scripts.filter((s) => s && typeof s === 'object').map((s) => {
       const script = Object.assign({ kind: 'event', blocks: [] }, s);
       script.id = script.id || uid('s');
+      // 名前やイベント名が文字でないと、題を作るところで止まって、画面が描けなくなる（人からもらったファイル）
+      for (const k of ['id', 'kind', 'event', 'name']) {
+        if (script[k] != null && typeof script[k] !== 'string') script[k] = String(script[k]);
+      }
       script.blocks = Array.isArray(script.blocks) ? script.blocks : [];
       if (typeof script.x !== 'number') script.x = 60;
       if (typeof script.y !== 'number') { script.y = y; y += 180; }

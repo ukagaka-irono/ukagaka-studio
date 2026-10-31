@@ -60,6 +60,12 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
         if (id < 0 || id > 127) continue;
 
         std::string interval = a["interval"].asStr("never");
+        // 使う字は英小文字・数字・+ ・, だけ（bind+random,5 など）。改行や { } で surfaces.txt に行を足せないように
+        for (size_t k = 0; k < interval.size(); k++) {
+            char c = interval[k];
+            if (c >= 'A' && c <= 'Z') interval[k] = (char)(c - 'A' + 'a');
+            else if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == ',')) { interval = "never"; break; }
+        }
         if (interval.empty()) interval = "never";
         // "random" と "talk" は回数が要る（random,4 のように書く）
         if (interval == "random" || interval == "talk") {

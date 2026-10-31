@@ -284,6 +284,38 @@ console.log('  ---- ほかのゴーストのフォルダには書かない');
   }
 }
 
+// ------------------------------------------------- うごきの interval
+//
+// interval は画面ではえらぶだけだが、ファイルには何でも書けるので、改行や { } で surfaces.txt に行を足せないこと
+console.log('  ---- うごきの interval の字');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-interval-'));
+  try {
+    const pattern = [{ method: 'overlay', surface: 100, wait: 50, x: 0, y: 0 }];
+    const project = {
+      format: 'ikaga/1', meta: { name: 'iv' }, scripts: [],
+      animations: [
+        { id: 1, base: 0, interval: 'never\r\n}\r\nsurface5\r\n{\r\nelement0,overlay,x.png,0,0', patterns: pattern },
+        { id: 2, base: 0, interval: 'Bind+Random', every: 3, patterns: pattern },
+      ],
+    };
+    const file = path.join(dir, 'iv.json');
+    fs.writeFileSync(file, JSON.stringify(project));
+    checked++;
+    const out = run([file, 'shell/master/surfaces.txt', '--dic', dicFor('ghost.json')]).toString('utf8');
+    if (out.includes('animation1.interval,never\r\n') && out.includes('animation2.interval,bind+random\r\n')
+        && !out.includes('surface5') && !out.includes('element0')) {
+      console.log(`${green}  OK  ${off}使えない字のある interval は never にし、大文字は小文字にする`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ うごきの interval${off}`);
+      console.log(`        出た  : ${out.slice(0, 400)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- 長い当たり判定の名前
 //
 // うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること

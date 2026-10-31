@@ -180,7 +180,11 @@ export const defKey = function (block) {
   if (OP_KEYED[block.type] && block.op != null) return block.type + '#' + block.op;
   return block.type;
 };
-export const getDef = function (block) { return DEFS[defKey(block)] || null; };
+export const getDef = function (block) {
+  const key = defKey(block);
+  // constructor や __proto__ のような名前で、Object の中身を返さないように（人からもらったファイルの type）
+  return typeof key === 'string' && Object.hasOwn(DEFS, key) ? DEFS[key] : null;
+};
 
 export const createBlock = function (key) {
   const d = DEFS[key];
