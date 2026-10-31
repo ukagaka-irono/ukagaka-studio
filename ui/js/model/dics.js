@@ -111,11 +111,39 @@ export const YAYA_BASE_FUNCTIONS = [
   'systemuphour', 'systemupminute', 'systemupsecond', 'systemuptickcount', 'systemuptime', 'unload', 'weekday', 'year',
 ];
 
+// yaya_base が使う大域変数（関数と同じ名前は使えない）。reference0・valueex0 のような番号つきのものは、名前の形で見ます。
+// shiori\test\yaya\ が、本物の yaya_base で値を入れている名前と同じかを見ます
+export const YAYA_BASE_VARIABLES = [
+  'CHAIN.IDName', 'CHAIN.Index', 'CHAIN.Script', 'CHAIN.StartTime', 'C_BYTE1', 'C_CRLF', 'C_CRLF2', 'LIB.PROTOCOL',
+  'LIB.STATUSCODE', 'REQ.COMMAND', 'REQ.PROTOCOL', 'SAORI.DllList', 'SAORI.InternalList', 'SAORI.InternalOk',
+  'SHIORI3FW.AdditionalReturn.String', 'SHIORI3FW.BalloonHWnd', 'SHIORI3FW.BalloonName', 'SHIORI3FW.BalloonNameOld',
+  'SHIORI3FW.BalloonPath', 'SHIORI3FW.BasewareNotifysInstalledKeroName', 'SHIORI3FW.BasewareNotifysInstalledSakuraName',
+  'SHIORI3FW.CanTalkFlag', 'SHIORI3FW.Capability', 'SHIORI3FW.DebugMode', 'SHIORI3FW.DelayEvent',
+  'SHIORI3FW.DelayEventReference', 'SHIORI3FW.DelayEventTime', 'SHIORI3FW.ErrorDescription', 'SHIORI3FW.ErrorLevel',
+  'SHIORI3FW.Eventid', 'SHIORI3FW.EventidOld', 'SHIORI3FW.EventidTranslate', 'SHIORI3FW.EventidTranslateOld',
+  'SHIORI3FW.FMOCache', 'SHIORI3FW.FMOTable', 'SHIORI3FW.GhostName', 'SHIORI3FW.HWnd', 'SHIORI3FW.HWndOld',
+  'SHIORI3FW.IsAITalkComplete', 'SHIORI3FW.IsSurfaceRestoreComplete', 'SHIORI3FW.IsVisible', 'SHIORI3FW.LastAITalk',
+  'SHIORI3FW.LastAITalkTime', 'SHIORI3FW.LastErrorDescription', 'SHIORI3FW.LastSurface', 'SHIORI3FW.LastTalk',
+  'SHIORI3FW.LastTalkTime', 'SHIORI3FW.PassThru_Ins_List', 'SHIORI3FW.Path', 'SHIORI3FW.ReferenceList',
+  'SHIORI3FW.SakuraNameList', 'SHIORI3FW.SaveVarCount', 'SHIORI3FW.SecurityLevel', 'SHIORI3FW.ShellName',
+  'SHIORI3FW.ShellNameOld', 'SHIORI3FW.ShellPath', 'SHIORI3FW.Status', 'SHIORI3FW.TalkEndTime', 'SHIORI3FW.TamaHwnd',
+  'SHIORI3FW.UniqueID', 'SHIORI3FW.UserBirthday', 'SHIORI3FW.UserName', 'SHIORI3FW.UserNameFull', 'SHIORI3FW.UserSex',
+  'SHIORI3FW.tempvarname', 'SSTP.STATUS', 'SSTP.STATUSCODE', 'S_CHARSET', 'StructGhostList.Index', 'aitalkinterval',
+  'array_eventtranslate', 'array_translateinternal', 'ascii', 'basewarename', 'basewarenameex', 'communicateratio',
+  'ghostbootmin', 'ghostupmin_last', 'ghostuptimes', 'installedghostlist', 'installedkerolist', 'installedsakuralist',
+  'keroname', 'reference', 'reference.raw', 'reference0', 'sakuraname', 'selfname', 'sender', 'status', 'valueex',
+  'var.lib.key', 'var.lib.result', 'var.lib.value', 'var.req.key', 'var.req.rawvalue', 'var.req.value',
+];
+
 /** スタジオのしくみと yaya_base がもう使っている名前か（同じ名前の関数を書くと、YAYA が辞書をまるごと読まない） */
 export function reservedFunction(name) {
   return name.startsWith('Studio.') || name === 'OnGhostLoad.Studio' || name === 'OnGhostUnload.Studio'
-    || YAYA_BASE_FUNCTIONS.includes(name);
+    || YAYA_BASE_FUNCTIONS.includes(name) || YAYA_BASE_VARIABLES.includes(name)
+    || /^(reference|valueex)\d+$/.test(name);
 }
+
+/** YAYA にもとからある関数の名前か（同じ名前の関数を書いても、そちらがよばれる） */
+export const yayaSystemFunction = (name) => SYSTEM_FUNCTIONS.has(name);
 
 /**
  * チェックタブに出す、辞書の注意（model/lint.js がよびます）。

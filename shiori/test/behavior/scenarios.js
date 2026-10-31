@@ -66,6 +66,9 @@ const scenarios = [
     steps: [
       ['OnBoot', '\\0おきた\\e'],
       ['OnClose', '\\0ばいばい\\-'],
+      // セリフの字としての \- や \e（\\- ・ \\e になる）は、終わりの印とまちがえない
+      ['OnCloseAll', '\\0またね \\\\-o-/\\-'],
+      ['OnTagText', '\\0a\\\\e\\e'],
     ],
   },
   {
@@ -156,6 +159,9 @@ const scenarios = [
       ['OnShowAnswer', { value: '\\0ミヤガワ\\e' }],
       // 知らない ID のときは、変数をいじらない
       ['OnUserInput:よそのID,べつのこたえ', { status: '204 No Content' }],
+      ['OnShowAnswer', { value: '\\0ミヤガワ\\e' }],
+      // 答えたあとや、たずねていない変数への OnUserInput（ほかのゴーストや SSTP からも送れる）も、変数をいじらない
+      ['OnUserInput:ikaga:こたえ,あとから', { status: '204 No Content' }],
       ['OnShowAnswer', { value: '\\0ミヤガワ\\e' }],
     ],
   },

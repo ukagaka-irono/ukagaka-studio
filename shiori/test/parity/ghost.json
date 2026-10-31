@@ -464,6 +464,21 @@
         { "type": "plugin", "plugin": "", "event": "OnX", "refs": "でない" },
         { "type": "plugin", "plugin": "でない", "event": "", "refs": "" }
       ]
+    },
+    {
+      "id": "p36", "kind": "event", "event": "OnP36",
+      "_": "タグの引数にする文字。選択肢・リンク・音の , や \" は \"…\" でくくり、行き先の script: とブラウザの http(s) でないものは出さない。終わりに 1 つ余った \\ は落とし、名前の \" も落とす",
+      "blocks": [
+        { "type": "choice", "label": "Yes, please", "target": "next" },
+        { "type": "choice", "label": "a\"b", "target": "next" },
+        { "type": "choice", "label": "でない", "target": "script:\\-" },
+        { "type": "link", "label": "でない", "url": " Script:\\-" },
+        { "type": "link", "label": "l", "url": "https://example.com/?a=1,2" },
+        { "type": "open_browser", "url": "file:///C:/でない" },
+        { "type": "open_browser", "url": "\"https://example.com" },
+        { "type": "raise", "event": "OnX", "a": "y\\" },
+        { "type": "raise", "event": "OnY", "a": "z\\\\" }
+      ]
     }
   ]
 }

@@ -91,6 +91,29 @@ async function main() {
     ok('#globaldefine の名前をよけています', `${defined.size} 個`);
   }
 
+  // yaya_base が値を入れる大域変数（関数と同じ名前にすると、YAYA が辞書を読まない。model/dics.js の YAYA_BASE_VARIABLES）
+  {
+    const { pathToFileURL } = require('url');
+    const { YAYA_BASE_VARIABLES } = await import(pathToFileURL(path.join(host.root, 'ui', 'js', 'model', 'dics.js')).href);
+    const vars = new Set();
+    for (const f of fs.readdirSync(baseDir).filter((n) => n.endsWith('.dic'))) {
+      for (const line of fs.readFileSync(path.join(baseDir, f), 'utf8').split(/\r?\n/)) {
+        const m = /^\s*([A-Za-z][A-Za-z0-9_.]*)\s*(=|,=|\+=|-=|\+\+|--)/.exec(line);
+        if (m) vars.add(m[1]);
+      }
+    }
+    const missing = [...vars].filter((n) => !YAYA_BASE_VARIABLES.includes(n));
+    const extra = YAYA_BASE_VARIABLES.filter((n) => !vars.has(n));
+    checks++;
+    if (missing.length || extra.length) {
+      fails.push('ui\\js\\model\\dics.js の YAYA_BASE_VARIABLES が yaya_base の大域変数とそろっていません'
+        + (missing.length ? `\n      足りない: ${missing.join(' ')}` : '')
+        + (extra.length ? `\n      よけいな: ${extra.join(' ')}` : ''));
+    } else {
+      ok('yaya_base の大域変数と同じ名前の関数を書きません', `${vars.size} 個`);
+    }
+  }
+
   // ---- 4. 「ためす」の入り口（studio_preview.dic）の変数とエラー ----------------
   // 一致テストのゴーストの答えと「ためす」の答えの見くらべは、shiori\test\parity\parity.js がします
   const program = readJson(path.join(PARITY, 'ghost.json'));

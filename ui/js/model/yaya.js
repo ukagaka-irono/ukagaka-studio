@@ -12,7 +12,8 @@
  * DOM を触らないので、node のテストからそのまま使えます。
  */
 
-import { reservedFunction } from './dics.js';
+import { reservedFunction, yayaSystemFunction } from './dics.js';
+import { KEYWORDS } from './yayatext.js';
 
 /** yaya_base（third_party/yaya-dic/yaya_base）の #globaldefine の名前。
  *  YAYA は、この名前を文字列の中でも置きかえてしまうので、人の書いた文に出てきたら
@@ -216,6 +217,10 @@ export function yayaNameOk(name) {
 export function eventNameOk(ev) {
   if (!yayaNameOk(ev)) return false;
   if (RESERVED_EVENT.includes(ev) || reservedFunction(ev)) return false;
+  // if などの言葉・_ ではじまる名前（ローカル変数）は、関数の名前にすると YAYA が辞書を読まない。
+  // YAYA にもとからある関数と同じ名前は、よんでもそちらが動く。#globaldefine の名前が入ると、名前が書きかわる
+  if (KEYWORDS.has(ev) || ev === '_in_' || ev.startsWith('_') || yayaSystemFunction(ev)) return false;
+  if (YAYA_DEFINES.some((d) => ev.includes(d))) return false;
   return !RESERVED_PREFIX.some((p) => ev.startsWith(p));
 }
 

@@ -141,6 +141,10 @@
     "OnP35": {
       "value": "\\![raiseplugin,GetWindowTitle,OnGetWindowTitle]\\![raiseplugin,うかてん,OnGetWeatherInfo,forecast,,text]\\![raiseplugin,Wallet of Unyu,OnWalletOfUnyu,set,100,\"\"\"お\"\"こづかい\"]\\![raiseplugin,abc,OnX,x1]\\e",
       "commTo": ""
+    },
+    "OnP36": {
+      "value": "\\q[\"Yes, please\",next]\\q[\"a\"\"b\",next]\\_a[\"https://example.com/?a=1,2\"]l\\_a\\![open,browser,https://example.com]\\![raise,OnX,y]\\![raise,OnY,z\\\\]\\e",
+      "commTo": ""
     }
   }
 }
