@@ -58,10 +58,21 @@ async function saveOnce(silent, auto) {
   }
 }
 
-/** ウィンドウを閉じるとき、アプリ本体から呼ばれる（保存し終わったら合図を返す） */
+/**
+ * ウィンドウを閉じるとき、アプリ本体から呼ばれる。保存し終わったら 'saved'、できなかったら 'save_failed' を返す
+ * （できなかったときは、アプリ本体が、保存しないで閉じてよいかをたずねます。studio/src/main.cpp）
+ */
 async function requestSaveAndClose() {
-  try { await saveProject(true); } catch (e) { /* 保存できなくても閉じる */ }
-  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('saved');
+  let ok = false;
+  try { ok = await saveProject(true); } catch { ok = false; }
+  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage(ok ? 'saved' : 'save_failed');
+}
+
+/** 閉じる前に、保存していない変更があるか（打っている最中の欄は、離れたことにして、プロジェクトに入れてから見る） */
+function isDirty() {
+  const el = document.activeElement;
+  if (el && el !== document.body && typeof el.blur === 'function') el.blur();
+  return Model.dirty;
 }
 
 // opts.wide … 図のような広いものを出すときに、窓を広くする（panels/graph.js）
@@ -368,4 +379,4 @@ function init() {
   });
 }
 
-export const Dialog = { init, saveProject, requestSaveAndClose, openProjectDialog, openHistoryDialog, openSampleDialog, doExport, modal, closeModal };
+export const Dialog = { init, saveProject, requestSaveAndClose, isDirty, openProjectDialog, openHistoryDialog, openSampleDialog, doExport, modal, closeModal };

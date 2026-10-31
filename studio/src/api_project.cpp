@@ -95,7 +95,7 @@ void Api::SaveProject(const HttpRequest& req, HttpResponse& res) {
     // 上書きする前のものを、前の版として残す（自動保存のときは 10 分おき。project_history.h）
     // keep … 前の版を開いたあとの保存。自動保存でも、いまの版を必ず残す（10 分おきを待たない）
     KeepProjectVersion(projectsDir_, Utf8ToWide(name), text, !body["auto"].asBool(false) || body["keep"].asBool(false));
-    if (!WriteBinaryFile(file, text)) {
+    if (!WriteFileReplacing(file, text)) {
         JsonError(res, 500, "save_failed");
         return;
     }
@@ -211,7 +211,7 @@ void Api::SaveParts(const HttpRequest& req, HttpResponse& res) {
     if (!ParseBody(req, body) || !body["parts"].isArr()) { JsonError(res, 400, "bad_json"); return; }
     JValue o = JValue::makeObj();
     o.set("parts", body["parts"]);
-    if (!WriteBinaryFile(partsPath_, o.dump(2))) { JsonError(res, 500, "save_failed"); return; }
+    if (!WriteFileReplacing(partsPath_, o.dump(2))) { JsonError(res, 500, "save_failed"); return; }
     Json(res, 200, o);
 }
 

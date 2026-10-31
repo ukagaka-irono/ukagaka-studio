@@ -25,6 +25,8 @@ bool EnsureDir(const std::wstring& path);          // mkdir -p 相当
 
 bool ReadBinaryFile(const std::wstring& path, std::string& out);
 bool WriteBinaryFile(const std::wstring& path, const std::string& data);
+// となりの一時ファイルに書いてから置きかえる（書くのに失敗しても、前のファイルはそのまま残る）。プロジェクトと設定の保存に使う
+bool WriteFileReplacing(const std::wstring& path, const std::string& data);
 bool DeleteFileIfExists(const std::wstring& path);
 
 struct FileInfo {
