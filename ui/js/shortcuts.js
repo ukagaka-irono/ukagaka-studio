@@ -22,9 +22,17 @@ function onKeyDown(e) {
     Search.focus();
     return;
   }
-  if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); Model.undo(); return; }
+  // 文字の欄で打っているときは、欄の中の文字だけを戻す（プロジェクトの「元にもどす」にはしない）
+  const active = document.activeElement;
+  const textEntry = active.tagName === 'TEXTAREA' ||
+    (active.tagName === 'INPUT' && !/^(checkbox|radio|button|range|color|file)$/.test(active.type));
   if (e.ctrlKey && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+    if (textEntry) return;
     e.preventDefault(); Model.redo(); return;
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+    if (textEntry) return;
+    e.preventDefault(); Model.undo(); return;
   }
   if (e.key === 'F1') { e.preventDefault(); Pages.show('help'); return; }
   if (typing) return;

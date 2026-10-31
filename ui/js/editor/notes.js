@@ -40,6 +40,7 @@ function build(owner) {
   area.addEventListener('input', () => {
     owner.note = area.value;
     fit(area);
+    Model.dirty = true;   // 打っている間も、保存していない印を付けておく
     updateTitle();
   });
   area.addEventListener('blur', () => {
