@@ -280,6 +280,22 @@ async function main() {
       }
     }
     if (stopped === cases.length) ok('スタジオが動けない手書きのゴーストには、書き出す前に止めます', `${cases.length} 通り`);
+
+    // 終わりの印の無い始まりの印が yaya.txt に残っていても、2 回書き出して、そのあとの手書きの行が消えない
+    {
+      checks++;
+      const c = make('hand-stray');
+      const txt = path.join(c.master, 'yaya.txt');
+      fs.appendFileSync(txt, '// ukagaka-studio: begin\r\n// 手書きの行\r\n');
+      const r1 = run(['--linked', c.dir, '--dic', dicFile]);
+      const r2 = run(['--linked', c.dir, '--dic', dicFile]);
+      const out = fs.readFileSync(txt, 'utf8');
+      if (r1.code !== 0 || r2.code !== 0 || !out.includes('// 手書きの行\r\n') || (out.match(/ukagaka-studio: end/g) || []).length !== 1) {
+        fails.push(`終わりの無い始まりの印があると、手書きの行が消えました\n      ${out.replace(/\r?\n/g, '\n      ')}`);
+      } else {
+        ok('終わりの印の無い始まりの印が残っていても、手書きの行は消しません');
+      }
+    }
   }
 
   // ---- 5. メモは動きを変えないか -----------------------------------------------
