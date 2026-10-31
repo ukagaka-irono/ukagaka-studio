@@ -280,6 +280,7 @@ const Model = {
   /** プロジェクトを開く。読めない形なら Error を投げ、いま開いているものはそのまま残します */
   init(project) {
     Model.project = Model.normalize(project);   // 投げるならここ（まだ何も書きかえていない）
+    Model.generation = (Model.generation || 0) + 1;   // 開きなおすたびに変わる（保存の最中に開きなおしたか。panels/dialog.js）
     Model.undoStack = [];
     Model.redoStack = [];
     Model.dirty = false;

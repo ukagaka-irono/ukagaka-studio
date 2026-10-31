@@ -157,6 +157,7 @@ async function boot() {
   }
   try {
     Model.init(loaded || sampleProject());
+    if (loaded && !carried) Session.projectName = state.lastProject;   // 保存すると、このファイルに書く
   } catch (e) {
     // 前に開いていたものが読めない形（新しい版で保存した、など）。ファイルはそのまま残し、ひな形で始める
     Model.init(sampleProject());
