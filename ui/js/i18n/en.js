@@ -1291,7 +1291,7 @@ export const en = {
   'を押します。': ' again.',
   'はじめてガイドをもう一度': 'Show the first-steps guide again',
   'キーボードとマウス': 'Keyboard and mouse',
-  '元にもどす / やりなおす': 'Undo / Redo',
+  '元にもどす / やりなおす（文字の欄で打っているときは、その欄の文字だけ）': 'Undo / Redo (while typing in a text field, only that field’s text)',
   'ブロックを名前で探して置く': 'Find a block by name and place it',
   'ブロックのコピー / 切り取り / はりつけ': 'Copy / cut / paste blocks',
   'えらんだブロックを複製': 'Duplicate the selected block',

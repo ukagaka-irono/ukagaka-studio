@@ -88,13 +88,16 @@ function buildSlot(owner, argName, argDef, project) {
     owner[argName] = argDef.mode === 'number' && input.value !== '' && !isNaN(Number(input.value))
       ? Number(input.value)
       : input.value;
-    updateTitle();   // 打っている間も、タイトルの ● だけは付けておく
+    // 打っている間も、保存していない印を付けておく（自動保存と、閉じるときの確かめのため。元にもどす記録は change で）
+    Model.dirty = true;
+    updateTitle();
   });
   input.addEventListener('change', () => endEdit(true));
   input.addEventListener('blur', () => endEdit(false));
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !multi) input.blur();
     if (e.key === 'Escape' && multi) input.blur();
+    if (e.ctrlKey && e.key.toLowerCase() === 's') return;   // 保存は、打っている最中でもできるように（shortcuts.js）
     e.stopPropagation();
   });
   if (multi) input.addEventListener('pointerdown', (e) => e.stopPropagation());
