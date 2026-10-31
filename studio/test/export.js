@@ -182,6 +182,46 @@ console.log('  ---- 大きな surfaces.txt の読みこみ');
   }
 }
 
+// 1 つの見出し（2000 こ）の中に、こまや当たり判定の行をたくさん並べても、番号ごとに写すぶんで
+// メモリがあふれず、すぐ読み終わること（読むこま・当たり判定は、ぜんぶで kMaxStoredItems まで）。
+// シェルの descript.txt の着せ替えの行がたくさんあっても止まらないこと。負の番号の見出しは読まないこと
+console.log('  ---- こまや当たり判定の多い surfaces.txt の読みこみ');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-many-'));
+  try {
+    const body = ['animation0.interval,bind'];
+    for (let k = 0; k < 3000; k++) body.push(`animation0.pattern${k},overlay,1,50,0,0`);
+    for (let k = 0; k < 3000; k++) body.push(`collision${k},0,0,10,10,A${k}`);
+    fs.writeFileSync(path.join(dir, 'surfaces.txt'),
+      ['surface0-1999', '{', ...body, '}', 'surface-5', '{', 'animation1.interval,always', 'animation1.pattern0,overlay,1,50,0,0', '}'].join('\r\n'));
+    const desc = [];
+    for (let k = 0; k < 200000; k++) desc.push(`sakura.bindgroup0.addid,${'1,'.repeat(50)}1`);
+    fs.writeFileSync(path.join(dir, 'descript.txt'), desc.join('\r\n'));
+    checked++;
+    const started = Date.now();
+    let out = '';
+    try {
+      out = execFileSync(host, ['--shell', dir], { encoding: 'utf8', maxBuffer: 1 << 30, timeout: 60000 });
+    } catch (e) {
+      out = '';
+    }
+    const ms = Date.now() - started;
+    const lines = out.split(/\r?\n/);
+    const anims = lines.filter((l) => l.startsWith('animation: ')).map((l) => JSON.parse(l.slice(11)));
+    const stored = anims.reduce((n, a) => n + a.patterns.length, 0) +
+      Object.values(JSON.parse((lines.find((l) => l.startsWith('areas: ')) || 'areas: {}').slice(7))).reduce((n, l) => n + l.length, 0);
+    const negative = anims.some((a) => a.base < 0) || lines.some((l) => /^composite: -/.test(l));
+    if (out && ms < 20000 && stored > 0 && stored <= 200000 && !negative) {
+      console.log(`${green}  OK  ${off}こまと当たり判定は ${stored} こで止めて、すぐ読み終わる（${ms} ミリ秒）。負の番号は読まない`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ こまや当たり判定の多い surfaces.txt（${ms} ミリ秒、${stored} こ、負の番号 ${negative}）${off}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- Windows の機械の名前
 //
 // ゴーストの名前が CON・NUL・COM1 などだと、そのままではフォルダもファイルも作れないので、前に _ を付ける
