@@ -69,6 +69,7 @@ const scenarios = [
       // セリフの字としての \- や \e（\\- ・ \\e になる）は、終わりの印とまちがえない
       ['OnCloseAll', '\\0またね \\\\-o-/\\-'],
       ['OnTagText', '\\0a\\\\e\\e'],
+      ['OnNulText', '\\0ab\\e'],
     ],
   },
   {

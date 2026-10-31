@@ -176,6 +176,7 @@ export function yayaStr(s) {
   for (const ch of s) {
     const c = ch.codePointAt(0);
     if (ch === "'") { flush(); parts.push('"\'"'); }
+    else if (c === 0) continue;   // NUL の字があると、YAYA の文字列も SSP への答えもそこで切れるので落とす
     else if (c < 0x20 || c === 0x7f) { flush(); parts.push(`CHR(${c})`); }
     else run += ch;
   }

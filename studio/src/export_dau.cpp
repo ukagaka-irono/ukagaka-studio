@@ -29,6 +29,8 @@ static bool SkipInDau(const std::wstring& rel) {
     if (low == L"delete.txt") return true;              // サーバ側だけの指示書
     if (low == L"thumbs.db" || low == L"desktop.ini") return true;
     if (low.compare(0, 5, L".git\\") == 0 || low == L".git") return true;
+    // SSP が使う人ごとに書く profile フォルダ（ghost\master\profile・shell\master\profile など）
+    if (low.compare(0, 8, L"profile\\") == 0 || low.find(L"\\profile\\") != std::wstring::npos) return true;
     return false;
 }
 
