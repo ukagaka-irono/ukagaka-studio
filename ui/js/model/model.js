@@ -136,14 +136,16 @@ const Model = {
    */
   normalize(src) {
     const p = upgrade(src);
-    const base = Model.newProject();
-    const out = Object.assign(base, p);
-    out.meta = Object.assign(base.meta, p.meta || {});
+    // 既定値は別に取っておく（out に p をかさねると、out.meta が p.meta そのものになり、欠けたところが埋まらない）
+    const defaults = Model.newProject();
+    const out = Object.assign(Model.newProject(), p);
+    const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    out.meta = Object.assign(defaults.meta, obj(p.meta));
     // ゴーストの言語。無いもの（前からあるプロジェクト）は日本語のゴーストです。
     // 画面の言語で埋めないこと（日本語で作ったゴーストが、英語の画面で開いただけで英語にならないように）
     if (out.meta.lang !== 'ja' && out.meta.lang !== 'en') delete out.meta.lang;
-    out.settings = Object.assign(base.settings, p.settings || {});
-    out.shell = Object.assign(base.shell, p.shell || {});
+    out.settings = Object.assign(defaults.settings, obj(p.settings));
+    out.shell = Object.assign(defaults.shell, obj(p.shell));
     out.shell.images = (Array.isArray(out.shell.images) ? out.shell.images : [])
       .filter((x) => x && x.path && Number.isFinite(Number(x.id)))
       .map((x) => ({
@@ -447,9 +449,11 @@ const Model = {
     const v = Model.project.variables.find((x) => x.name === oldName);
     if (!v) return false;
     v.name = newName;
+    // 変数の名前をえらぶ欄（var・set・change の name、ask・saori_call の into など）をぜんぶ
     Model.walkBlocks((b) => {
-      if ((b.type === 'var' || b.type === 'set' || b.type === 'change') && b.name === oldName) {
-        b.name = newName;
+      const def = getDef(b);
+      for (const [arg, a] of Object.entries((def && def.args) || {})) {
+        if (a.kind === 'varname' && b[arg] === oldName) b[arg] = newName;
       }
     });
     return true;

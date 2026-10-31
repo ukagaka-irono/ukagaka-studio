@@ -753,7 +753,9 @@ export function printExpr(e, parentPrec = 0) {
     case 'index': return printExpr(e.target, 99) + '[' + e.args.map((a) => printExpr(a, BIN[','] + 1)).join(', ') + ']';
     case 'paren': return '(' + printExpr(e.expr, 0) + ')';
     case 'unary': {
-      const s = e.op + printExpr(e.expr, UNARY_PREC);
+      // - -x を --x（へらす）に、+ +x を ++x にしないように、同じ字が続くときはあける
+      const inner = printExpr(e.expr, UNARY_PREC);
+      const s = e.op + ((e.op === '-' || e.op === '+') && inner[0] === e.op ? ' ' : '') + inner;
       return parentPrec > UNARY_PREC ? '(' + s + ')' : s;
     }
     case 'incdec': {
