@@ -284,6 +284,12 @@ Lint.run = function (project, ctx = {}) {
               t('OnBoot のようなイベント名を入れてください。'), s, b);
           }
           break;
+        case 'plugin':
+          if (isEmptyText(b.plugin) || isEmptyText(b.event)) {
+            issue(out, 'warn', t('{title}に、プラグインかイベント名が空の「プラグインに伝える」ブロックがあります', { title }),
+              t('プラグイン名（か id）と、そのプラグインが受けつけるイベント名を入れてください。'), s, b);
+          }
+          break;
         case 'open_browser':
           if (isEmptyText(b.url)) {
             issue(out, 'warn', t('{title}に、ひらく先が空のブロックがあります', { title }), '', s, b);

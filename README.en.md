@@ -496,6 +496,7 @@ ukagaka-studio/
     ├── blocks.md           the block reference
     ├── ghost-json.md       the ghost.json specification
     ├── maintenance.md      a guide for working on the code (adding blocks, pitfalls)
+    ├── plugins.md          a quick reference for working with SSP plugins
     ├── roadmap.md          the rework plan
     └── en/                 English translations of the above (the Japanese ones are authoritative)
 ```
@@ -591,6 +592,9 @@ What you can do:
 * Switching to a third or later character (`\p[n]`)
 * Calling external modules (**SAORI**) — 32-bit DLLs placed in the ghost folder
   (there is a “call without waiting for the answer” block, but YAYA waits for the answer, so the ghost stops meanwhile)
+* **Working with SSP plugins** — a “send event to plugin” block (`\![raiseplugin,…]`) and hat blocks
+  for the events plugins send back (weather forecast, diary, stamp book, balloon picker, messages, Nostr and more).
+  How to use each plugin is in [docs/en/plugins.md](docs/en/plugins.md)
 * **Adding blocks to a hand-written YAYA ghost**, and **using hand-written YAYA functions and expressions** from blocks
 * **Animations** (SERIKO) — flipping through surfaces, made on the Characters page
   (each frame can be shifted and given a drawing method such as `interpolate` or `blend-*`;

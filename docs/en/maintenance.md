@@ -522,6 +522,7 @@ pre-releases.
 
 * What a block means → `docs/en/blocks.md`
 * The shape of `ghost.json` → `docs/en/ghost-json.md`
+* SSP plugin events and their info → `docs/en/plugins.md` (when you add a plugin event, write it in both EVENTS / EVENT_REFS in `ui/js/model/blocks.js` and there)
 * How to use it, the folder layout, how the SHIORI works → `README.en.md`
 * The rework plan and what has been decided → `docs/en/roadmap.md`
 * The Japanese originals (authoritative) → `README.md`, `docs/`

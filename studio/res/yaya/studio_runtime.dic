@@ -1272,6 +1272,27 @@ Studio.Raise : void
 	Studio.Emit(_line + ']')
 }
 
+// SSP のプラグインにイベントを伝える  (プラグイン名か id, イベント名, 情報)
+// 情報は , で区切ると、いくつでも付けられます（空のものも、その順番のまま渡します）。
+// " をふくむものだけ "…" でくくり、" は "" にします
+Studio.Plugin : void
+{
+	_name = Studio.TagWord(_argv[0])
+	_ev = Studio.TagWord(_argv[1])
+	if _name == '' || _ev == '' { return }
+	_line = '\![raiseplugin,' + _name + ',' + _ev
+	_refs = Studio.S(_argv[2])
+	if _refs != '' {
+		_list = SPLIT(_refs, ',')
+		foreach _list; _r {
+			_r = Studio.Trim(Studio.TagArg(_r, 0))
+			if STRSTR(_r, '"', 0) >= 0 { _r = '"' + REPLACE(_r, '"', '""') + '"' }
+			_line += ',' + _r
+		}
+	}
+	Studio.Emit(_line + ']')
+}
+
 // N 秒後に、名前を付けたトークをよぶ（ここでは覚えるだけ）
 Studio.Later : void
 {

@@ -360,6 +360,7 @@ function stmtOf(b, ind, ctx) {
     case 'change_ghost': return [L(`if Studio.ChangeGhost(${expr(b.name)}) { return }`)];
     case 'open_browser': return [L(`Studio.OpenBrowser(${expr(b.url)})`)];
     case 'raise': return [L(`Studio.Raise(${expr(b.event)}, ${expr(b.a)})`)];
+    case 'plugin': return [L(`Studio.Plugin(${expr(b.plugin)}, ${expr(b.event)}, ${expr(b.refs)})`)];
     case 'later': return [L(`Studio.Later(${expr(b.name)}, ${intArg(b.sec, 10)})`)];
     case 'saori_call': {
       const args = [yayaStr(asStr(b.into)), yayaInt(asInt(b.value, -1)), expr(b.file), ...saoriArgs(b)];

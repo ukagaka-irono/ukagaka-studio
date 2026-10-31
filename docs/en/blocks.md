@@ -200,6 +200,7 @@ so you can write things like “the wings can be touched only while they flap”
 | ask, and put the answer in V | `{"type":"ask","into":"V","initial":""}` → `\![open,inputbox,ikaga:V,-1,…]` |
 | call ◯ in N seconds | `{"type":"later","sec":30,"name":"talk name"}` |
 | raise event E | `{"type":"raise","event":"E","a":""}` → `\![raise,E,…]` |
+| send event E to plugin P | `{"type":"plugin","plugin":"P","event":"E","refs":"a,b"}` → `\![raiseplugin,P,E,a,b]` |
 | switch to ghost ◯ | `{"type":"change_ghost","name":"…"}` → `\![change,ghost,…]` |
 | open URL in the browser | `{"type":"open_browser","url":"…"}` → `\![open,browser,…]` |
 | run a network update | `{"type":"update"}` → `\![updatebymyself]` |
@@ -230,6 +231,12 @@ With the name `random`, it switches to a random installed ghost.
 
 **Raise event** (`raise`) is for handing over to another hat block.
 What you put in “info” arrives as `Reference0`.
+
+**Send to plugin** (`plugin`) calls a plugin installed in SSP (weather forecast, diary, stamp book and so on).
+Name the plugin by its name or its id. Separate “info” with `,` to pass as many values as you like
+(spaces around each are trimmed, empty ones are passed in their place, and only values containing `"` are wrapped in `"…"`).
+The plugin answers with an event: look under “From plugins” in the event list of the hat block.
+Which plugin takes what, and what comes back, is in [plugins.md](plugins.md).
 
 **Network update** (`update`) asks SSP to “go and check for something new”.
 If the ghost's **Update URL** (`homeurl` in `descript.txt`) is empty, nothing happens,

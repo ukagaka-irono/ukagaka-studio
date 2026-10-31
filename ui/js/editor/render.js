@@ -152,11 +152,17 @@ function buildPickGroups(groups, onPick) {
 function buildSelect(options, current, onPick) {
   const sel = el('select', 'field-drop');
   let matched = false;
-  options.forEach(([label, value]) => {
+  const groups = {};   // 3 つ目にまとまりの名前があるものは、<optgroup> にまとめる（イベントの「プラグインから」）
+  options.forEach(([label, value, group]) => {
     const o = el('option', null, label);
     o.value = String(value);
     if (String(value) === String(current)) { o.selected = true; matched = true; }
-    sel.appendChild(o);
+    if (group) {
+      if (!groups[group]) { groups[group] = el('optgroup'); groups[group].label = group; sel.appendChild(groups[group]); }
+      groups[group].appendChild(o);
+    } else {
+      sel.appendChild(o);
+    }
   });
   if (!matched && current != null && current !== '') {
     const o = el('option', null, String(current));

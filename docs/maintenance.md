@@ -510,6 +510,7 @@ Defender のほうを疑うなら `Get-MpThreatDetection`（何も出なけれ�
 
 * ブロックの意味 → `docs/blocks.md`
 * `ghost.json` の形 → `docs/ghost-json.md`
+* SSP のプラグインのイベントと情報 → `docs/plugins.md`（プラグインのイベントを足したら、`ui/js/model/blocks.js` の EVENTS・EVENT_REFS と、ここの両方に書きます）
 * つかいかた・フォルダ構成・栞のしくみ → `README.md`
 * 改修の計画と、これまでに決めたこと → `docs/roadmap.md`
 * 英語版 → `README.en.md`・`docs/en/`（日本語版が正）
