@@ -211,6 +211,39 @@ console.log('  ---- Windows の機械の名前（CON・NUL など）');
   }
 }
 
+// ------------------------------------------------- ほかのゴーストのフォルダ
+//
+// 書き出すフォルダの名前は人からもらったプロジェクトでも決められるので、同じ名前のフォルダに
+// 伺かスタジオで作っていないゴーストがいたら、上書きしない（IsForeignGhostFolder）
+console.log('  ---- ほかのゴーストのフォルダには書かない');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-foreign-'));
+  try {
+    const make = (rel, file) => {
+      fs.mkdirSync(path.join(dir, rel), { recursive: true });
+      if (file) fs.writeFileSync(path.join(dir, rel, file), 'x');
+    };
+    make('empty');
+    make(path.join('other', 'ghost', 'master'), 'yaya.txt');
+    make(path.join('studio', 'ghost', 'master'), 'ghost.json');
+    make('loose', 'note.txt');
+    const got = run(['--foreign', ...['none', 'empty', 'other', 'studio', 'loose'].map((n) => path.join(dir, n))])
+      .toString('utf8').trim().split(/\r?\n/);
+    checked++;
+    const want = ['0', '0', '1', '0', '1'];
+    if (JSON.stringify(got) === JSON.stringify(want)) {
+      console.log(`${green}  OK  ${off}無い・空・伺かスタジオのゴーストには書け、ほかのゴーストやファイルのあるフォルダには書かない`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ ほかのゴーストのフォルダ${off}`);
+      console.log(`        ほしい: ${JSON.stringify(want)}`);
+      console.log(`        出た  : ${JSON.stringify(got)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ------------------------------------------------- 長い当たり判定の名前
 //
 // うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること

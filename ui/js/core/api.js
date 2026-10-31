@@ -27,6 +27,7 @@ const ERRORS = {
   not_found: () => t('見つかりません'),
   export_failed: () => t('書き出しに失敗しました'),
   mkdir_failed: () => t('フォルダを作れませんでした'),
+  foreign_ghost_folder: (d) => t('「{detail}」のフォルダには、伺かスタジオで作っていないゴーストがいるので、上書きしません。ゴースト情報の「書き出すフォルダの名前」を変えてください', { detail: d }),
   write_failed: (d) => t('書き込みに失敗しました: {detail}', { detail: d }),
   nar_write_failed: () => t('.nar を書き込めませんでした'),
   image_unreadable: () => t('画像が読めません'),

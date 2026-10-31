@@ -87,6 +87,13 @@ int wmain(int argc, wchar_t** argv) {
         return 0;
     }
 
+    // export_host --foreign <フォルダ>…
+    //   それぞれが、ほかの人のゴーストのフォルダか（1 / 0。IsForeignGhostFolder）
+    if (std::wstring(argv[1]) == L"--foreign") {
+        for (int i = 2; i < argc; i++) printf("%d\n", IsForeignGhostFolder(argv[i]) ? 1 : 0);
+        return 0;
+    }
+
     // export_host --shell <フォルダ>
     //   いまあるシェルのフォルダを読みこんだ結果を出す（番号・ファイル・大きさ、組み合わせだけの番号）
     if (std::wstring(argv[1]) == L"--shell") {

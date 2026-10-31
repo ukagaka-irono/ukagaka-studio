@@ -77,6 +77,8 @@ void Api::ResetGhostSave(const HttpRequest& req, HttpResponse& res) {
 
     JValue deleted = JValue::makeArr();
     for (size_t i = 0; i < roots.size(); i++) {
+        // 同じ名前のフォルダにいる、ほかのゴーストの記憶は消さない
+        if (IsForeignGhostFolder(PathJoin(roots[i], wfolder))) continue;
         std::wstring master = PathJoin(PathJoin(PathJoin(roots[i], wfolder), L"ghost"), L"master");
         DeleteFileIfExists(PathJoin(master, L"ikaga_save.json"));
         std::wstring p = PathJoin(master, L"yaya_variable.cfg");
@@ -124,6 +126,7 @@ void Api::GhostLog(const HttpRequest& req, HttpResponse& res) {
     for (size_t i = 0; i < roots.size(); i++) {
         std::wstring dir = PathJoin(PathJoin(PathJoin(roots[i], wfolder), L"ghost"), L"master");
         if (!PathExists(PathJoin(dir, L"yaya.dll"))) continue;   // 書き出していない場所
+        if (IsForeignGhostFolder(PathJoin(roots[i], wfolder))) continue;   // 同じ名前の、ほかのゴースト
         std::wstring p = PathJoin(dir, L"studio_debug.txt");
         places.arr.push_back(JValue::makeStr(WideToUtf8(p)));
 
