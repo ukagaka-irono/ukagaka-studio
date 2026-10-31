@@ -70,6 +70,24 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
 }
 
 {
+  // 欠けたところは既定値で埋める（meta や settings があっても）。言語は埋めない
+  const p = Model.normalize({ meta: { name: 'x' }, settings: {} });
+  check('meta・settings があっても、欠けた項目は既定値', [p.meta.name, p.meta.version, p.meta.lang, p.settings.randomTalkInterval],
+    ['x', '1.0.0', undefined, 180]);
+}
+
+{
+  // 変数の名前を変えると、変数をえらぶ欄はみな変わる（たずねる・SAORI の答えを入れる先も）
+  Model.init({ format: 'ikaga/1', meta: { name: 'V' }, variables: [{ name: 'ans', value: '' }], scripts: [{
+    id: 's', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'ask', into: 'ans', initial: '' }, { type: 'set', name: 'ans', value: 1 },
+      { type: 'saori_call', file: 'a.dll', a: '', b: '', into: 'ans', value: -1 },
+    ] }] });
+  Model.renameVariable('ans', 'こたえ');
+  check('変数の名前を変える', Model.project.scripts[0].blocks.map((b) => b.into || b.name), ['こたえ', 'こたえ', 'こたえ']);
+}
+
+{
   // 人からもらったファイルの、形のおかしいかたまりとブロックで、チェックタブや題が止まらない
   const { getDef } = require('../js/model/blocks.js');
   const project = {
@@ -855,6 +873,13 @@ section('使えないイベント名 (eventNameOk。しくみ・yaya_base の関
   const defined = (name) => dic.split(/\r?\n/).includes(name);
   check('しくみ・yaya_base の関数と同じ名前の入り口は書かない（OnBoot は書く）',
     [defined('ChainTalk'), defined('Studio.Event'), defined('OnBoot')], [false, false, true]);
+  {
+    // とても大きな数を 1e+21 と書くと、YAYA は 21 と読むので、そう書かない
+    const big = Model.normalize({ format: 'ikaga/1', meta: { name: 'N' }, variables: [], scripts: [{ id: 'n', kind: 'event', event: 'OnBoot',
+      blocks: [{ type: 'say', who: 0, text: '{待つ:1000000000000000000000}', nl: 0 }] }] });
+    const out = toYaya(programOf(big));
+    check('とても大きな数は、e の書きかたにしない', [/e\+/.test(out), out.includes('Studio.Wait(9007199254740991)')], [false, true]);
+  }
   const { eventNameOk } = require('../js/model/yaya.js');
   check('YAYA の言葉・ローカル変数の形・元からある関数・yaya_base の大域変数・#globaldefine の名前をふくむものも使えない',
     ['if', 'others', '_x', 'STRLEN', 'reference', 'reference3', 'OnTALK_INTERVALx', 'OnBoot', 'OnMyEvent'].map(eventNameOk),

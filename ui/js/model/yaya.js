@@ -72,7 +72,7 @@ function sayWithMarks(b, L) {
   for (const m of b.text.matchAll(SAY_MARKS)) {
     const part = b.text.slice(last, m.index);
     if (part) out.push(L(`Studio.Say(${who}, ${yayaStr(part)}, 0)`));
-    const n = Number(m[2]);
+    const n = roundInt(Number(m[2]));
     out.push(m[1] === '表情' || m[1] === 'face' ? L(`Studio.Surface(${who}, ${n})`) : L(`Studio.Wait(${n})`)); // i18n-ignore（印の名前）
     last = m.index + m[0].length;
   }
@@ -130,8 +130,10 @@ function asNum(v, def = 0) {
   return def;
 }
 
+// 整数にする。とても大きな数は 1e+21 のような書きかたになり、YAYA が 21 と読むので、そうならない大きさまでにする
 function roundInt(v) {
-  return Math.trunc(v < 0 ? v - 0.5 : v + 0.5);
+  const n = Math.trunc(v < 0 ? v - 0.5 : v + 0.5);
+  return Number.isFinite(n) ? Math.max(-Number.MAX_SAFE_INTEGER, Math.min(Number.MAX_SAFE_INTEGER, n)) : 0;
 }
 
 function asInt(v, def = 0) {

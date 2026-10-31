@@ -125,6 +125,8 @@ section('演算（強さ・左結合・代入・配列・ハッシュ・&）');
   check('ブロックから作った木には、要るかっこを足して書く',
     printExpr({ type: 'bin', op: '*', left: { type: 'bin', op: '+', left: { type: 'num', raw: '1' }, right: { type: 'num', raw: '2' } }, right: { type: 'num', raw: '3' } }),
     '(1 + 2) * 3');
+  check('- -x と + +x は、--x・++x にしない', ['_z = - -_y', '_z = + +_y', '_z = -(-1)'].map((s) => printExpr(parseExpr(s))),
+    ['_z = - -_y', '_z = + +_y', '_z = -(-1)']);
 }
 
 section('フロー制御');
