@@ -128,6 +128,11 @@ async function onSaved(detail) {
 async function installToSsp(opts) {
   const quiet = !!(opts && opts.quiet);
   const box = $('#ssp-result');
+  // 「ためす」と同じく、プログラムやファイルにさわる YAYA が入っていたら、入れる前に確かめる（panels/run.js）
+  if (!Run.codeAllowed(true)) {
+    box.textContent = t('SSP に入れるのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。');
+    return;
+  }
   box.textContent = t('SSP に入れています…');
   try {
     const link = await YayaLink.exportOptions();   // 手書きの YAYA ゴーストにつないでいれば、そこに書く

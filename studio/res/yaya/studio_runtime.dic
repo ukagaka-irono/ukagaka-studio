@@ -652,7 +652,7 @@ Studio.Max0
 	_argv[0]
 }
 
-// 名前（トーク・関数）か id で、かたまりの番号を探す。無ければ -1
+// 名前（トーク・関数）か id で、かたまりの番号を探す。無ければ -1。無効にしたかたまりは、よばない
 Studio.FindCallable
 {
 	_name = _argv[0]
@@ -662,13 +662,13 @@ Studio.FindCallable
 	}
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
-		if (Studio.s.kind[_i] == 'function' || Studio.s.kind[_i] == 'talk') && Studio.s.name[_i] == _name {
+		if (Studio.s.kind[_i] == 'function' || Studio.s.kind[_i] == 'talk') && Studio.s.name[_i] == _name && !Studio.s.off[_i] {
 			_i
 			return
 		}
 	}
 	for _i = 0; _i < _n; _i++ {
-		if Studio.s.id[_i] == _name {
+		if Studio.s.id[_i] == _name && !Studio.s.off[_i] {
 			_i
 			return
 		}

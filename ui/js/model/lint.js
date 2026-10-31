@@ -7,7 +7,7 @@
 import { getDef } from './blocks.js';
 import { Model } from './model.js';
 import { parseExpr } from './yayatext.js';
-import { dicIssues, riskyCalls, RISKY_FUNCTIONS } from './dics.js';
+import { dicIssues, riskyCalls, dicDefines } from './dics.js';
 import { eventNameOk } from './yaya.js';
 import { t } from '../i18n/i18n.js';
 
@@ -528,20 +528,30 @@ Lint.missingEvents = function (project, handwritten = []) {
  */
 Lint.riskyCode = function (project) {
   const out = [];
-  for (const d of (project && project.dics) || []) {
-    for (const r of riskyCalls(d.text)) out.push({ name: r.name, dic: d.name, line: r.line });
+  const dics = (project && Array.isArray(project.dics)) ? project.dics : [];
+  const defines = dicDefines(dics.map((d) => d && d.text));
+  for (const d of dics) {
+    if (!d) continue;
+    for (const r of riskyCalls(d.text, defines)) out.push({ name: r.name, dic: d.name, line: r.line });
   }
-  for (const s of (project && project.scripts) || []) {
-    if (s.disabled) continue;
-    walk(s, (b) => {
-      if (b.disabled) return;
-      if (b.type === 'yaya_expr' && typeof b.code === 'string') {
-        // 行の頭の名前は関数の定義として色分けされるので、字下げしてから調べる
-        for (const r of riskyCalls('\t' + b.code)) out.push({ name: r.name, script: s, block: b });
-      } else if (b.type === 'yaya_call' && typeof b.name === 'string' && RISKY_FUNCTIONS.has(b.name.trim())) {
-        out.push({ name: b.name.trim(), script: s, block: b });
+  // ブロックは、ブロックの形（args）にない欄や、無効にしたものもふくめて、ぜんぶ見る
+  // （人からもらったファイルには何でも書けて、無効にしたトークも「よぶ」ブロックからは動くため）
+  const scripts = (project && Array.isArray(project.scripts)) ? project.scripts : [];
+  for (const s of scripts) {
+    if (!s || typeof s !== 'object') continue;
+    const seen = new Set();
+    const visit = (v) => {
+      if (!v || typeof v !== 'object' || seen.has(v)) return;
+      seen.add(v);
+      if (Array.isArray(v)) { v.forEach(visit); return; }
+      if (v.type === 'yaya_expr' && typeof v.code === 'string') {
+        for (const r of riskyCalls(v.code, defines)) out.push({ name: r.name, script: s, block: v });
+      } else if (v.type === 'yaya_call' && typeof v.name === 'string') {
+        for (const r of riskyCalls(v.name, defines)) out.push({ name: r.name, script: s, block: v });
       }
-    });
+      for (const k of Object.keys(v)) visit(v[k]);
+    };
+    visit(s);
   }
   return out;
 };

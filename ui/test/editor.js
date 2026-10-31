@@ -852,10 +852,82 @@ section('プログラムやファイルにさわる YAYA (Lint.riskyCode。「�
     ] }],
   });
   const risky = Lint.riskyCode(Model.project).map((r) => [r.name, r.dic || r.block.type, r.line || 0]);
-  check('辞書（文字列とコメントはのぞく。名前ごとに 1 か所）と、YAYA の式・関数をよぶブロック（無効にしたものはのぞく）',
-    risky, [['FDEL', 'a.dic', 4], ['MKDIR', 'yaya_expr', 0], ['LOADLIB', 'yaya_call', 0]]);
+  check('辞書（文字列とコメントの中も見る。名前ごとに 1 か所）と、YAYA の式・関数をよぶブロック（無効にしたものも）',
+    risky, [['FDEL', 'a.dic', 3], ['EXECUTE', 'a.dic', 3], ['MKDIR', 'yaya_expr', 0], ['LOADLIB', 'yaya_call', 0], ['EVAL', 'yaya_expr', 0]]);
   const warns = Lint.run(Model.project).filter((i) => /プログラムやファイルにさわる/.test(i.message)).map((i) => i.message);
-  check('チェックタブに、どこで何をよんでいるかが出る', warns.length, 3);
+  check('チェックタブに、どこで何をよんでいるかが出る', warns.length, 5);
+
+  // 人からもらったファイルで、確かめをすりぬけようとする書きかた
+  const { riskyCalls, dicDefines } = require('../js/model/dics.js');
+  const names = (text, defines) => riskyCalls(text, defines).map((r) => r.name + '@' + r.line);
+  check('行の頭に書いた文・( が次の行・/ でつないだ名前',
+    [names('OnBoot\n{\nEXECUTE("calc.exe")\n}'), names('A\n{\n\tEXECUTE /\n\t("x")\n}'), names('A\n{\n\t_x = EXEC/\nUTE("x")\n}')],
+    [['EXECUTE@3'], ['EXECUTE@3'], ['EXECUTE@3']]);
+  check('#define で名前を書きかえたもの（ほかの辞書の #globaldefine も）',
+    [names('#define RUN EXECUTE\nA\n{\n\tRUN("x")\n}', dicDefines(['#define RUN EXECUTE'])),
+      names('A\n{\n\tGO("x")\n}', dicDefines(['#globaldefine GO EXE', '#globaldefine EXE EXECUTE']))],
+    [['EXECUTE@1'], ['EXECUTE@3']]);
+  check('yaya_base やしくみの、上のものをよぶ関数と、SAORI を止める印',
+    names('A\n{\n\tCALLBYNAME("x")\n\tFUNCTIONLOAD("x")\n\tStudio.noSaori = 0\n\tAyaTest.Eval("x")\n}'),
+    ['CALLBYNAME@3', 'FUNCTIONLOAD@4', 'Studio.noSaori@5', 'AyaTest.Eval@6']);
+  check('ふつうの文は知らせない', names('A\n{\n\t_x = STRLEN("EXECUTED") + EXECUTE_COUNT\n\tStudio.Say(0, "x")\n}'), []);
+
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'R2' }, variables: [], dics: [],
+    scripts: [
+      { id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+        { type: 'say', who: 0, text: 'hi', nl: 0, surface: { type: 'yaya_expr', code: 'EXECUTE("a")' } },
+        { type: 'call', target: { type: 'yaya_call', name: 'FUNCTIONLOAD', a: '', b: '' } },
+      ] },
+      { id: 's2', kind: 'talk', name: 'hidden', disabled: true, blocks: [{ type: 'yaya_call', name: 'Studio.YayaExpr', a: '', b: '' }] },
+    ],
+  });
+  check('ブロックの形にない欄にはめたものと、無効にしたトークの中も見る',
+    Lint.riskyCode(Model.project).map((r) => r.name), ['EXECUTE', 'FUNCTIONLOAD', 'Studio.YayaExpr']);
+}
+
+section('yaya_base としくみの関数で、RISKY_FUNCTIONS をよぶものは、それ自体も RISKY_FUNCTIONS にあるか、決まったものだけをよぶ');
+{
+  const fs = require('fs');
+  const path = require('path');
+  const { RISKY_FUNCTIONS } = require('../js/model/dics.js');
+  // 渡された文字ではなく、決まった名前・決まったファイルだけに使っているもの（中を読んで確かめたもの）
+  const FIXED = new Set([
+    // studio_runtime.dic
+    'Studio.Log', 'Studio.TalkOk', 'Studio.RunOne', 'Studio.CallIndex', 'Studio.Saori',
+    // studio_preview.dic（「ためす」の入り口。どのかたまりを動かすかは ISFUNC で確かめた名前だけ）
+    'OnStudioPreview',
+    // yaya_base
+    'SHIORI3FW.AssembleReferenceHeader', 'ChainTalk', 'SHIORI3FW.Lint.Run', 'SHIORI3FW.Lint.ReadTexts', 'request',
+    'SHIORI3FW.TranslateEvent', 'SHIORI3FW.MakeReferenceAndPassThruInsVariable', 'SHIORI3FW.MakeValueexVariable',
+    'SHIORI3FW.GetGhostNameFromDescriptTxt', 'SHIORI3FW.GetCharsetFromDescriptTxt', 'SHIORI3FW.InternalSaoriAvailable',
+    'GET_PROPERTY', 'SHIORI3FW.SaoriUnloadAll', 'SHIORI3EV.On_hwnd', 'SHIORI3EV.OnNotifySelfInfo', 'SHIORI3EV.OnShellChanged',
+    'SHIORI3EV.OnBalloonChange', 'SHIORI3EV.OnAITalkNewEvent', 'SHIORI3EV.On_enable_log', 'DUMP', 'load', 'unload',
+    'SHIORI3FW.Dl2ToDll', 'SHIORI3FW.SendGETVersion',
+  ]);
+  const root = path.join(__dirname, '..', '..');
+  const files = [
+    ...fs.readdirSync(path.join(root, 'third_party', 'yaya-dic', 'yaya_base')).filter((f) => f.endsWith('.dic'))
+      .map((f) => path.join(root, 'third_party', 'yaya-dic', 'yaya_base', f)),
+    path.join(root, 'studio', 'res', 'yaya', 'studio_runtime.dic'),
+    path.join(root, 'studio', 'res', 'yaya', 'studio_preview.dic'),
+  ];
+  const missing = [];
+  for (const file of files) {
+    let fn = '';
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+      const head = /^([A-Za-z_][A-Za-z0-9_.]*)\s*(?::.*)?$/.exec(line);
+      if (head && !/^(if|else|elseif|while|for|foreach|switch|case|when|others)$/.test(head[1])) { fn = head[1]; continue; }
+      const code = line.replace(/\/\/.*$/, '');
+      if (!fn || RISKY_FUNCTIONS.has(fn) || FIXED.has(fn)) continue;
+      for (const name of RISKY_FUNCTIONS) {
+        if (new RegExp('(^|[^A-Za-z0-9_.])' + name.replace(/\./g, '\\.') + '\\s*\\(').test(code)) {
+          missing.push(`${path.basename(file)}: ${fn} → ${name}`);
+        }
+      }
+    }
+  }
+  check('漏れ', [...new Set(missing)], []);
 }
 
 section('辞書でよんでいる、どこにも無い関数 (dicIssues。段階 9-1)');
