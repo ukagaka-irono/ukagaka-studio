@@ -19,6 +19,21 @@
       "_": "\\- を書いていないので、栞が足すはず",
       "blocks": [{ "type": "say", "who": 0, "text": "ばいばい", "nl": 0 }]
     },
+    {
+      "id": "b_closeall", "kind": "event", "event": "OnCloseAll",
+      "_": "セリフの字の \\- は命令ではないので、栞が \\- を足すはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "またね \\-o-/", "nl": 0 }]
+    },
+    {
+      "id": "b_tagtext", "kind": "event", "event": "OnTagText",
+      "_": "セリフの字の \\e も命令ではないので、栞が \\e を足すはず",
+      "blocks": [{ "type": "say", "who": 0, "text": "a\\e", "nl": 0 }]
+    },
+    {
+      "id": "b_nul", "kind": "event", "event": "OnNulText",
+      "_": "セリフの NUL の字は、YAYA に訳すときに落とすはず（答えがそこで切れないように）",
+      "blocks": [{ "type": "say", "who": 0, "text": "a\u0000b", "nl": 0 }]
+    },
 
     {
       "id": "b_nade_any", "kind": "event", "event": "OnNadeNade",

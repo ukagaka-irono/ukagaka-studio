@@ -128,6 +128,11 @@ async function onSaved(detail) {
 async function installToSsp(opts) {
   const quiet = !!(opts && opts.quiet);
   const box = $('#ssp-result');
+  // 「ためす」と同じく、プログラムやファイルにさわる YAYA が入っていたら、入れる前に確かめる（panels/run.js）
+  if (!Run.codeAllowed(true)) {
+    box.textContent = t('SSP に入れるのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。');
+    return;
+  }
   box.textContent = t('SSP に入れています…');
   try {
     const link = await YayaLink.exportOptions();   // 手書きの YAYA ゴーストにつないでいれば、そこに書く
@@ -147,6 +152,7 @@ async function installToSsp(opts) {
       change: t('SSP のゴーストを切り替えました。切り替わらないときは、新しいゴーストなので SSP を再起動してください。'),
       none: t('書き出しました。SSP を起動（または再起動）すると反映されます。'),
       failed: t('書き出しましたが、SSP への指示は届きませんでした。'),
+      manual: t('書き出しました。ゴーストの名前に [ ] \\ " , のどれかがあるので、SSP のメニューから切り替えてください。'),
     };
     box.innerHTML =
       t('<b>{folder}</b> を入れました（{files} ファイル）<br>', { folder: escapeHtml(r.folder), files: r.files }) +

@@ -14,12 +14,19 @@ std::wstring PathJoin(const std::wstring& a, const std::wstring& b);
 std::wstring ParentDir(const std::wstring& path);
 std::wstring FileNameOf(const std::wstring& path);
 
+// C:\… のように、ドライブ文字ではじまるこのパソコンの場所か。
+// プロジェクトに書いてあるパス（立ち絵の絵・サムネイル・つないだゴースト）は、これだけを読みます
+// （\\… のネットワークの場所や \\?\ などは読まない。人からもらったプロジェクトで、開いただけでよそにつながらないように）
+bool IsLocalPath(const std::wstring& path);
+
 bool PathExists(const std::wstring& path);
 bool IsDirectory(const std::wstring& path);
 bool EnsureDir(const std::wstring& path);          // mkdir -p 相当
 
 bool ReadBinaryFile(const std::wstring& path, std::string& out);
 bool WriteBinaryFile(const std::wstring& path, const std::string& data);
+// となりの一時ファイルに書いてから置きかえる（書くのに失敗しても、前のファイルはそのまま残る）。プロジェクトと設定の保存に使う
+bool WriteFileReplacing(const std::wstring& path, const std::string& data);
 bool DeleteFileIfExists(const std::wstring& path);
 
 struct FileInfo {

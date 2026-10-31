@@ -43,6 +43,9 @@ Stage 2  UI redesign         rework the look and the layout of pages
 Stage 3  On to YAYA          replace ikaga SHIORI with YAYA; become a helper tool for YAYA ghosts
 Stage 4  New features        new blocks, shell features, the rest of SERIKO
 Stage 5  More features       trying, editing in bulk, ghost contents, getting started
+Stage 6-7                    richer ghost behaviour; easier to write and check
+Stage 8  YAYA dictionaries   dictionaries in the project, written as text and blocks
+Stage 9  Dictionary help     checks, copy, search and the reference for dictionaries too
 ```
 
 Stage 3 (the move to YAYA) was decided after stage 2 was done and placed before the new features,
@@ -930,7 +933,7 @@ On 2026-10-23, the three items that save authors the most work were picked from 
 
 ---
 
-## Stage 7 — Easier to write, easier to check
+## Stage 7 — Easier to write, easier to check (done)
 
 On 2026-10-23, the seven candidates not picked for stage 6, to be done from the top.
 
@@ -999,6 +1002,155 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 >
 > **Stage 7 is now complete.**
 
+
+---
+
+## Stage 8 — Building a YAYA ghost entirely inside the studio (done)
+
+Decided on 2026-10-25. Today's blocks write what ghost-making needs on top of the studio's own machinery (`Studio.…`), and cannot express all
+of YAYA's syntax (functions with arguments and return values, local variables, arrays and hashes, `for` / `foreach` / `case` / `switch`,
+`break` / `continue` / `return`, output modes and `--`, `%(expr)`, `#define`, YAYA's built-in functions, and so on).
+So **the project will hold YAYA dictionaries (.dic)**, editable as text or as blocks that map 1:1 to YAYA. Blocks and text are linked
+**both ways**, live (editing with blocks rewrites the text in a fixed format; comments are kept). Today's simple blocks stay as they are.
+The goal is to finish a YAYA ghost inside the studio without linking a hand-written ghost.
+
+| | What | |
+|---|---|---|
+| 8-1 | Read (parse) and write (pretty-print) YAYA text, covering all of YAYA's syntax, checked against yaya_base and others | done |
+| 8-2 | Keep YAYA dictionaries in the project (export, `yaya.txt`, the Check tab, clashes with block events) | done |
+| 8-3 | A text editor for dictionaries (line numbers, colouring, where the mistakes are) | done |
+| 8-4 | Blocks for every YAYA construct and for the built-in functions | done |
+| 8-5 | Two-way live sync between blocks and text | done |
+| 8-6 | Import an existing YAYA ghost's dictionaries into the project | done |
+| 8-7 | Run dictionary functions in “Try”, and show the simple blocks' YAYA live alongside | done |
+
+
+> **8-1 is done.** `ui/js/model/yayatext.js` gained `parseYaya`, which turns YAYA dictionary text into a tree, and `printYaya`, which turns the
+> tree back into dictionary text (`parseExpr` / `printExpr` for a single expression). It follows YAYA's grammar manual (the grammar pages at
+> yaya-shiori.github.io/yaya-docs) and covers functions and selection modes (including `_pool` and `melt_`), nested blocks and their modes, the
+> `--` output separator, `parallel` / `void`, numbers (binary, hex, real), strings (doubled `""` / `''`, `%(…)`), heredocs, joining lines with a
+> trailing `/` (even in the middle of a name; not at the end of a `//` comment), every operator (by precedence, assignment also binding left to
+> right, `_in_` / `!_in_`, the `:=` forms, `,=`, prefix and postfix `++` / `--`, `&` arguments, `[ ]` delimiters and ranges), if / elseif / else
+> (also without braces), case / when / others (lists, ranges, one-liners), switch, while, for, foreach (two variables, header parentheses),
+> break / continue / return, comments and preprocessor lines such as `#define`. Printing settles indentation (tabs) and the braces of if and
+> the like, and keeps strings, numbers, parentheses, comments and blank lines as written. A function that cannot be read does not stop the
+> rest: it is kept verbatim and reported with its line number. The new test `ui/test/yayatext.js` (the 10th; 65 checks) covers the manual's
+> examples and checks that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive printing. Part 11 of the
+> YAYA test pretty-prints all 5 yaya_base files, the runtime and the translated dictionary, and the real yaya.dll gives the same answers for
+> all 34 parity cases. Right away, the Check tab now reads the expression of “value of YAYA expression C” and flags one that is not valid YAYA
+> (one unreadable expression stops YAYA from reading the whole dictionary). 2 editor checks.
+
+
+> **8-2 is done.** The project gained `dics` (`[{ name, text }]`, `ui/js/model/dics.js`). On export the exe (`studio/src/exporter.cpp`) writes each
+> one to `ghost/master/<name>` with CRLF and adds `dic, <name>` after the studio dictionaries in `yaya.txt`. Only names ending in `.dic`, without
+> folder separators or characters Windows forbids, and not a studio file (`studio_runtime.dic` and so on) are written (`DicNameOk` in the exe and
+> `dicNameOk` in the UI follow the same rule; a second name differing only in case is skipped too). Functions in the dictionaries are passed to the
+> export as “hand-written”, as with a linked hand-written ghost, so the block entry for an event the dictionaries define is not written and the
+> dictionary's one runs (YAYA refuses all dictionaries when a function name appears twice). The Check tab reports unreadable lines (with the
+> dictionary and line), unusable names, duplicate dictionary names, functions defined in two dictionaries, function names the studio or yaya_base
+> already uses (the yaya_base list lives in `dics.js` and `ui/test/yayatext.js` checks it against the real thing), and events also used by blocks.
+> While linked to a hand-written ghost, the project's dictionaries are not exported (the Check tab says so). 3 export checks (42); part 12 of the
+> YAYA test exports with the exe and runs the ghost in the real yaya.dll: the dictionary's OnBoot wins, blocks can call dictionary functions, and
+> unusable names are not written (35). 9 editor checks (198). The page to create and edit dictionaries comes next, in 8-3.
+
+
+> **8-3 is done.** A “Dictionaries” page sits next to “Speech” in the top bar (`ui/js/panels/dictionary.js`). Like the Talk page, it fills the
+> height with a left column (the list of dictionaries and “+ New dictionary”) and a text editor in the middle. The editor is a `textarea` over the
+> coloured text (`highlightYaya` in `ui/js/model/yayatext.js`) with line numbers; each keystroke goes into the dictionary, and shortly after it is
+> parsed again so lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). Only existing colour
+> tokens are used (no new ones). Tab indents; Ctrl+Z inside the text is the text's own undo, and one project undo step is recorded when the editor
+> loses focus. Names are checked with `dicNameOk`, and a name taken already (even differing only in case) is refused. The page was designed from
+> how the existing pages are built and checked afterwards by a separate agent (the differences it found were fixed). 7 colouring checks in the
+> YAYA text test (73).
+
+
+> **8-4 is done.** `ui/js/model/yblocks.js` adds “dictionary blocks”, one per YAYA construct (30, all starting with `y_`), and `astToView` /
+> `viewToAst`, which convert between the dictionary tree (`parseYaya`) and a list of blocks: functions (a hat, with the choice mode), output
+> (`parallel`, `void`), `--`, assignment (`=`, `:=`, `+=` and the rest, 13 kinds), `++` `--`, if/elseif/else, case/when/others, switch, while,
+> for, foreach, break, continue, return, nested blocks with a choice mode, comments, `#` lines and unreadable functions; for expressions, binary
+> operators (all but `,`), unary operators, `++` `--` (before and after), function calls, `[ ]`, `( , )` arrays, parentheses and `&`. Numbers,
+> strings, here-documents and names are written into slots as YAYA text (slot text is read as a YAYA expression, so writing `"a" + _b` and
+> building the blocks give the same thing). Blank lines, comments at the end of a line and comments between a function's name and its `{` are
+> kept; a comment after a `}` becomes a comment on the next line, as it does when the text is parsed. The ▾ beside the name in “call a
+> function” picks from the project's dictionary functions and YAYA's built-in functions (197: the manual's index lists 189; DIRECTSSTP and 7
+> LINT.* functions have pages but are missing from it). They are drawn like the other blocks (`editor/render.js`), which gained a row of
+> argument slots (+ −) and multi-line slots (for `/* */` comments). The YAYA text test checks that the manual's examples and the real dictionaries
+> (yaya_base, the runtime dictionaries, the hand-written test ghost) all come back the same after a trip through blocks, that every block is used
+> somewhere, and that the list knows every function the real dictionaries call (83). The page that lays the blocks out comes next, in 8-5. The
+> pretty-printer also no longer keeps a blank line before a `}`.
+
+
+> **8-5 is done.** On the Dictionaries page, a palette and a canvas of the same dictionary's blocks (the dictionary blocks from 8-4) sit beside the
+> text. The palette, canvas and trash follow the Talk page's rules (the same `style.css` rules also apply to the Dictionaries page's ids) and
+> the same rendering (`Render.renderPaletteEntries`). The blocks live outside the project (in `panels/dictionary.js`) and follow the dictionary
+> text: typing rebuilds them when the text is parsed again shortly after (an unreadable function becomes an “unreadable YAYA” block), and changing
+> a block rewrites the text, pretty-printed (while no block changes, the text keeps its own layout). The text also updates while you type in a
+> block's slot. So that undo covers block changes, `Model.act` and `pushUndo` call what was registered with `Model.onCommit` (the Dictionaries
+> page writing blocks into the text) before recording. Blocks can now be placed in two places, Talk and Dictionaries (the “roots” in
+> `editor/drag.js`). Scripts on the canvas are laid out in one column in text order; moving a hat up or down reorders the functions in the text.
+> Blocks that cannot become YAYA (an empty slot, an unreadable expression, an “else” without an “if”, …) leave the text alone, are reported in the
+> list below and marked on the canvas; blocks outside any function are reported too. Ctrl+D and Delete work on the Dictionaries page's blocks. The
+> page was designed from how the Talk page is built and checked afterwards by a separate agent. 3 editor checks (201), 1 YAYA text check (84).
+
+
+> **8-6 is done.** The Dictionaries page's left column gained “Import from an existing YAYA ghost”. It asks for a ghost folder (the linked ghost, if any, is
+> filled in), and the exe's `/api/yaya/dics` (`ReadYayaGhostDics` in `studio/src/yaya_ghost.cpp`) returns the same dictionaries the hand-written
+> ghost inspection finds (yaya.txt's dic, dicif and dicdir contents, except yaya_base and Studio's files) as UTF-8 with LF line ends (Shift_JIS is
+> converted). `importDicName` (`ui/js/model/dics.js`) turns folder separators and unusable characters into _ and adds _2 on a clash. A list
+> (renamed ones shown as “from → to”) is confirmed first, and the ghost's files are not changed. Clashing functions and events show in the Check
+> tab as before. Other yaya.txt settings (SAORI and so on) are not imported. The field is built like the shell import field and was checked by a separate agent. Part 13 of the YAYA test (36), 2 editor checks (203).
+
+
+> **8-7 is done.** “Try” now passes the project's dictionaries too (`dics` in `/api/preview`; the exe puts them in its work folder and rewrites
+> yaya.txt each time, leaving out unusable and duplicate names as export does). Functions in the dictionaries get no block entry (treated as
+> hand-written, as on export), and events defined there run the dictionary function directly through “call:name” (`studio_preview.dic`; the
+> event's references go into reference, reference.raw and reference0…). The Try tab's picker gained “Dictionary functions”, and function hats on
+> the Dictionaries page have their ▶ back. A **YAYA** tab in the Talk page's right column shows the YAYA of the script you last pressed on the canvas,
+> translated as “Show YAYA” does (`scriptYaya`) and coloured like the Dictionaries editor, re-rendered on every change (also while typing in a
+> slot). It is built like the other right-column tabs and was checked by a separate agent. Part 14 of the YAYA test (40).
+> **This completes stage 8.** YAYA dictionaries live in the project, can be written as text or as blocks, imported from an existing ghost, run
+> in Try and exported.
+
+
+---
+
+## Stage 9 — Making dictionaries as easy to write as blocks (done)
+
+Decided on 2026-10-25. Stage 8 made it possible to write, run and export YAYA dictionaries inside the studio. Some help that blocks have is
+still missing for dictionaries (Check tab warnings, copy and paste, search and replace, the block reference). This stage fills in those gaps,
+found while building stage 8.
+
+| | What | |
+|---|---|---|
+| 9-1 | The Check tab warns about likely mistakes inside dictionaries (calls to functions that exist nowhere) | done |
+| 9-2 | Copy, cut, paste and the right-click menu for blocks on the Dictionaries page | done |
+| 9-3 | The Search tab also searches dictionaries, and replacing also replaces inside dictionary strings (speech) | done |
+| 9-4 | A table of the dictionary blocks in the block reference (`docs/blocks.md`) | done |
+
+> **9-1 is done.** The Check tab (`dicIssues` in `ui/js/model/dics.js`) warns (⚠, with dictionary and line; click to go there) about calls to
+> functions found nowhere: not in the project's dictionaries, YAYA's built-in functions (`YAYA_SYSTEM_FUNCTIONS`), yaya_base, the studio's
+> machinery, or the blocks' events. YAYA silently skips a call to a missing function, so a misspelt name is otherwise easy to miss. Calls are
+> the names the colouring (`highlightYaya`) marks as followed by “(”, so comments and strings are left out. Each name is reported once per
+> dictionary. Unreadable dictionaries, and projects linked to a hand-written ghost, are not checked. Calling a function by its bare name (no
+> “(”) cannot be told apart from a variable and is not checked. 3 editor checks (206).
+
+> **9-2 is done.** The Dictionaries page's canvas takes Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D and Delete, and has a right-click menu (`dicMenu` in
+> `editor/contextmenu.js`: on a block copy, cut, paste below, duplicate, delete; on a function hat run, duplicate, fold, delete; on empty space
+> paste here, fold all, unfold all). There is one clipboard: dictionary blocks (types starting with y_) paste only on the Dictionaries page and Talk blocks only on
+> the Talk page; on the wrong page nothing is pasted and a message says why (`editor/clipboard.js`). Dictionary blocks are rebuilt from the
+> text, so “disable”, notes, “save as part” and “show YAYA”, which the text has no place for, are not offered. The menu reuses the Talk
+> canvas's menu parts and was checked by a separate agent. 1 editor check (207).
+
+> **9-3 is done.** The Search tab (`panels/search.js`) also searches the project's dictionaries and lists matching lines as 📖 rows (the
+> line's text and “Line N of dictionary “…””; click to go to that line). “Replace all” (`model/replace.js`) replaces only inside dictionary strings
+> ("…", '…' and here-documents), never function or variable names, comments or code: the speech lives there, and a bulk replace must not break
+> YAYA. Strings are found with the colouring (`highlightYaya`), and the quotes are kept. The replace count includes dictionaries, and undo
+> reverts it. The rows follow the existing Search rows and were checked by a separate agent. 2 editor checks (209).
+
+> **9-4 is done.** The block reference (`docs/blocks.md` and its English version) ends with a “Dictionary blocks” section: a table of the 30
+> dictionary blocks with their UI names, types and the YAYA each becomes (plus how slots take YAYA text and where a comment after `}` goes). The
+> YAYA text test checks that every dictionary block has a row in both tables (85).
+
 ---
 
 ## Decisions
@@ -1027,6 +1179,8 @@ On 2026-10-23, the seven candidates not picked for stage 6, to be done from the 
 | 2026-10-22 | Versions **count on from 2.0.0-alpha with ordinary semver** (major for big changes, minor for new features, patch for fixes; `-alpha` / `-beta` mark trial versions). Counting does not restart (0-2) |
 | 2026-10-22 | Variables of ghosts exported earlier with ikaga SHIORI (`ikaga_save.json`) **are not carried over to YAYA**. After exporting again, variables start from the project's initial values (“Clear the ghost's memory” also deletes a leftover `ikaga_save.json`) (stage 3) |
 | 2026-10-22 | From an existing shell, **animations (SERIKO/2.0), rectangular hit areas and dress-up names are imported too**; non-rectangular surface hit areas and SERIKO/1 are not (changes the 3-5d decision now that there is a place for them; stage 4) |
+| 2026-10-25 | To cover all of YAYA's syntax, **the project holds YAYA dictionaries**, edited **both ways** as text and as blocks that map 1:1 to YAYA; today's simple blocks stay (stage 8) |
+| 2026-10-24 | Branches are split into **`main` (what is distributed), `develop` (everyday work) and `fix/…` (fixes)**; see “How branches are split” in the maintenance guide |
 | 2026-10-22 | The name “如何栞 (ikaga SHIORI)” and the `ikaga` names in the code (the project format `ikaga/1`, the input box ID `ikaga:<variable>`, the `ikaga.lang` setting and so on) **stay as they are**, for compatibility with earlier projects and exported ghosts; the docs call them “a leftover from the 1.x SHIORI's name” (stage 3) |
 
 ## Not decided yet

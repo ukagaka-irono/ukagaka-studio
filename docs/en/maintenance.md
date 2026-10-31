@@ -15,7 +15,7 @@ What goes here are **the rules written in places far apart, which break silently
 
 ```powershell
 node tools\check-blocks.js     # 1 second. No build. Are all blocks present everywhere?
-.\build.ps1 -Test              # about 3 minutes. Build, then the 9 tests
+.\build.ps1 -Test              # about 3 minutes. Build, then the 10 tests
 ```
 
 `check-blocks.js` needs no build, so **run it first whenever you change something**.
@@ -96,15 +96,16 @@ Some types and operators are not shown in the palette and exist for hand-written
 
 ---
 
-## The 9 tests and what each protects
+## The 10 tests and what each protects
 
 | How to run | What it protects |
 |---|---|
 | `node tools\check-blocks.js` | that blocks are present in all 5 places (catches forgotten files) |
 | `node shiori\test\parity\parity.js` | that the scripts, one per block (`shiori\test\parity\ghost.json`), give the answers in `expected.json` on YAYA; and that running them the way “Try” does (`yaya_host.exe`) gives the same answers as running them the way SSP does |
 | `node shiori\test\behavior\behavior.js` | the decisions the runtime dictionary makes (what it picks, default reactions, thinning, random talk, talking between ghosts, SAORI), including English ghosts' default reactions and values such as “time of day”. The scenarios are in `scenarios.js` |
-| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that `YAYA_DEFINES` matches yaya_base, variables survive a restart, the exe's export runs as it is, and exports into a linked hand-written ghost |
+| `node shiori\test\yaya\yaya.js` | that YAYA (`third_party\yaya\yaya.dll`) is still the official build (same SHA-256 as in `third_party\README.md`) and runs; that `YAYA_DEFINES` matches yaya_base, variables survive a restart, the exe's export runs as it is, exports into a linked hand-written ghost, importing an existing ghost's dictionaries (13), and running dictionary functions in “Try” (14) |
 | `node studio\test\export.js` | the contents of exported files (compared byte by byte), including English ghosts' readme.txt, fallback names and `meta.lang` |
+| `node ui\test\yayatext.js` | that reading YAYA dictionaries (`yayatext.js`) covers all of YAYA's syntax (the examples in the grammar manual), that real dictionaries all parse and survive being pretty-printed again, and that an unreadable function is kept verbatim; that turning a dictionary into dictionary blocks (`yblocks.js`) and back gives the same dictionary, that every block is used, and that the list of YAYA's built-in functions knows every function the real dictionaries call. Whether printed dictionaries behave the same is checked with the real yaya.dll by part 11 of `yaya.js` |
 | `node ui\test\editor.js` | normalizing loaded projects and format versions (`model.js`), the Check tab (`lint.js`), searching blocks by text (`blockindex.js`), and that the examples (Japanese and English) pass the Check tab |
 | `node ui\test\modules.js` | that `ui\js\` is reachable from `main.js`, imports follow the layer rules with no cycles, any file loads first without failing, and every `Xxx.yyy()` has a target. That colors in `style.css` go through tokens |
 | `node tools\check-imports.js` | that `third_party\yaya\yaya.dll` loads from Windows 2000 (reads the import table directly; for when you upgrade it) |
@@ -120,7 +121,7 @@ regenerate the expected files with `node studio\test\export.js --update` / `node
 ### They run by themselves on push
 
 `.github/workflows/build.yml` runs **the same `.\build.ps1 -Release` as on your machine** on windows-latest
-for every push to `main`, every tag (`v*`) and every pull request.
+for every push to `main`, `develop` or `fix/…`, every tag (`v*`) and every pull request.
 It is there to stop you even if you forget, so **if it turns red, fix it before moving on**.
 
 * There are two jobs. `そろい点検` (block coverage; no build, about 1 minute) reports first,
@@ -165,7 +166,7 @@ ui/js/
 ├── panels/        pages   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        canvas and palette   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          UI foundation   dom / api / toast / session / title / commands / events / theme
-└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff / graph
+└── model/         data and rules (no DOM)   blocks / model / lint / blockindex / player / sample / yaya / yayatext / dics / lines / replace / partsfile / diff / graph
 ```
 
 **Imports point downward only.** Files in the same layer may import each other, but **never in a cycle**
@@ -478,8 +479,22 @@ the UI, but saving, exporting and “Try” do not work (they all call into the 
 
 ---
 
+## How branches are split
+
+| Branch | What goes there | Made from, merged back into |
+|---|---|---|
+| `main` | **What is distributed** (the latest release) | Never committed to directly; `develop` or a `fix/…` branch is merged in |
+| `develop` | **Everyday work** (roadmap features and so on) | Work and commit here; merged into `main` when releasing |
+| `fix/…` | **Fixes** (name it after what it fixes, like `fix/readme-mojibake`) | Usually made from `develop` and merged back into `develop`. Only to fix what is already distributed, make it from `main` and merge it into both `main` and `develop` |
+
+* New features and roadmap edits go on `develop`. A finished `fix/…` branch can be deleted.
+* Merge into `main` with `git switch main` → `git merge --no-ff develop` so the merge stays visible (step 0 of the release steps below).
+* Every branch runs the Actions tests on push (`build.yml`). Make sure `develop` is green before merging it into `main`.
+
 ## Releasing a version
 
+0. After checking that `develop` is green, gather what you distribute on `main` with `git switch main` → `git merge --no-ff develop`
+   (for a fix to what is already distributed, merge the `fix/…` branch into `main` and the same into `develop`).
 1. Edit `VERSION` (one line at the root). The zip name, the exe properties and the version the exe reports to the UI (`version_gen.h`)
    read only this. Versions follow **ordinary semver** (from 2.0.0-alpha): raise the major number for big changes that break compatibility,
    the minor number for new features, and the patch number for fixes only. Add `-alpha` / `-beta` while it is a trial version
@@ -507,6 +522,7 @@ pre-releases.
 
 * What a block means → `docs/en/blocks.md`
 * The shape of `ghost.json` → `docs/en/ghost-json.md`
+* SSP plugin events and their info → `docs/en/plugins.md` (when you add a plugin event, write it in both EVENTS / EVENT_REFS in `ui/js/model/blocks.js` and there)
 * How to use it, the folder layout, how the SHIORI works → `README.en.md`
 * The rework plan and what has been decided → `docs/en/roadmap.md`
 * The Japanese originals (authoritative) → `README.md`, `docs/`

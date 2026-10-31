@@ -9,6 +9,7 @@
  */
 
 import { Model } from '../model/model.js';
+import { dicFunctionNames } from '../model/dics.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -25,9 +26,27 @@ const PROBLEMS = {
   not_studio_file: (d) => t('{file} は人が書いたファイルのようなので、上書きしません', { file: d }),
 };
 
-const linkedPath = () => String((Model.project.meta || {}).ghostDir || '');
+/** つないだゴーストのフォルダ（つないでいなければ ''）。辞書の画面の「読みこむ」の最初の値にも使います（panels/dictionary.js） */
+export const linkedPath = () => String((Model.project.meta || {}).ghostDir || '');
 
 let pending = null;   // 調べている最中のパス（同じものを何度もたずねない）
+
+// このパソコンで、つなぐのを決めたゴーストのフォルダ（この PC の WebView2 の保存場所に覚えます）。
+// meta.ghostDir は人からもらったプロジェクトにも入れられるので、ここに無いところへは、書く前にたずねます
+const LINKED_OK_KEY = 'ikaga.linkedOk';
+const pathKey = (p) => String(p).trim().replace(/[\\/]+$/, '').toLowerCase();
+function approvedPaths() {
+  try {
+    const v = JSON.parse(localStorage.getItem(LINKED_OK_KEY) || '[]');
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
+  } catch { return []; }
+}
+function approve(path) {
+  const list = approvedPaths().filter((p) => p !== pathKey(path));
+  list.push(pathKey(path));
+  try { localStorage.setItem(LINKED_OK_KEY, JSON.stringify(list.slice(-64))); } catch { /* 覚えられなくても、次にまたたずねるだけ */ }
+}
+const approved = (path) => approvedPaths().includes(pathKey(path));
 
 async function inspect(path) {
   return api('/api/yaya/inspect', { method: 'POST', body: { path } });
@@ -99,6 +118,7 @@ async function link() {
     if (info.sakuraName) meta.sakuraName = info.sakuraName;
     if (info.keroName) meta.keroName = info.keroName;
   });
+  approve(path);
   Session.yayaGhost = info;
   renderStatus();
   toast(t('「{name}」につなぎました。書き出すと、このゴーストに書きこみます', { name: info.name || path }));
@@ -114,13 +134,24 @@ function unlink() {
 
 /**
  * 書き出すときの材料。つないでいれば { linked: パス, handwritten: [手書きの関数] }、
- * つないでいなければ {}。
+ * つないでいなければ { handwritten: [プロジェクトの辞書の関数] }（段階 8-2。辞書にあるイベントの入り口は、ブロックからは書かない）。
+ * このパソコンでつないだことのないゴーストなら、書く前にたずね、やめたら投げます。
  */
 async function exportOptions() {
   const path = linkedPath();
-  if (!path) return {};
+  if (!path) return { handwritten: dicFunctionNames(Model.project) };
+  if (!approved(path)) {
+    const ok = confirm(t('このプロジェクトは「{path}」のゴーストにつながっています。書き出すと、このゴーストにスタジオのファイルを書き、yaya.txt に行を足します。\n\n自分でつないだゴーストですか？ このゴーストに書きこみますか？', { path }));
+    if (!ok) throw new Error(t('つないだゴーストに書きこむのをやめました。書き出しの画面の「手書きの YAYA ゴーストにつなぐ」で確かめてください。'));
+    approve(path);
+  }
   const info = await ensureInspected() || Session.yayaGhost;
   return { linked: path, handwritten: info && Array.isArray(info.functions) ? info.functions : [] };
+}
+
+/** いまわかっている「手書き」の関数（調べ終わるのを待たない。YAYA を見るところが使う。panels/yayaview.js） */
+function handwrittenNow() {
+  return linkedPath() ? ((Session.yayaGhost || {}).functions || []) : dicFunctionNames(Model.project);
 }
 
 function render() {
@@ -133,4 +164,4 @@ function init() {
   $('#btn-yaya-unlink').addEventListener('click', unlink);
 }
 
-export const YayaLink = { init, render, exportOptions };
+export const YayaLink = { init, render, exportOptions, handwrittenNow };

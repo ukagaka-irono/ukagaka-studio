@@ -17,6 +17,11 @@
  *   8. ランダムトークの時間帯・季節のしぼり込みが、いまの時刻で効くか
  *   9. 続きものが、起動するたびに 1 話ずつ進み、おわったら はじめから／もう話さない になるか
  *  10. 「100 回引く」（draw:回数）が、えらばれやすさ・しぼり込み・続けて出さない決まりのとおりに数えるか
+ *  11. 辞書を読んで整えて書いたもの（ui/js/model/yayatext.js）が、もとの辞書と同じに動くか（yaya_base・しくみの辞書・訳した辞書）
+ *  12. プロジェクトの YAYA の辞書を exe で書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべるか
+ *  13. いまある YAYA ゴーストの辞書を読みこむとき、yaya.txt の辞書（dicdir の中も）を UTF-8 にして読み、yaya_base とスタジオのファイルは読まないか
+ *  14. 「ためす」でプロジェクトの辞書の関数を動かせるか（call:。イベントの情報は reference に入る）。ブロックのかたまりも、いっしょに動くか
+ *  15. セリフに「:chain=」という文字があっても、答えがそのまま届くか（yaya_base の印として読まれず、= は全角の ＝ になる）
  *
  * Windows 2000 で動くかは、check-imports.js が同じ yaya.dll を見ます。
  * 訳した辞書は shiori\test\yaya\work\ に残るので、ちがったときは開いて見られます。
@@ -84,6 +89,29 @@ async function main() {
       + (extraDefs.length ? `\n      よけいな: ${extraDefs.join(' ')}` : ''));
   } else {
     ok('#globaldefine の名前をよけています', `${defined.size} 個`);
+  }
+
+  // yaya_base が値を入れる大域変数（関数と同じ名前にすると、YAYA が辞書を読まない。model/dics.js の YAYA_BASE_VARIABLES）
+  {
+    const { pathToFileURL } = require('url');
+    const { YAYA_BASE_VARIABLES } = await import(pathToFileURL(path.join(host.root, 'ui', 'js', 'model', 'dics.js')).href);
+    const vars = new Set();
+    for (const f of fs.readdirSync(baseDir).filter((n) => n.endsWith('.dic'))) {
+      for (const line of fs.readFileSync(path.join(baseDir, f), 'utf8').split(/\r?\n/)) {
+        const m = /^\s*([A-Za-z][A-Za-z0-9_.]*)\s*(=|,=|\+=|-=|\+\+|--)/.exec(line);
+        if (m) vars.add(m[1]);
+      }
+    }
+    const missing = [...vars].filter((n) => !YAYA_BASE_VARIABLES.includes(n));
+    const extra = YAYA_BASE_VARIABLES.filter((n) => !vars.has(n));
+    checks++;
+    if (missing.length || extra.length) {
+      fails.push('ui\\js\\model\\dics.js の YAYA_BASE_VARIABLES が yaya_base の大域変数とそろっていません'
+        + (missing.length ? `\n      足りない: ${missing.join(' ')}` : '')
+        + (extra.length ? `\n      よけいな: ${extra.join(' ')}` : ''));
+    } else {
+      ok('yaya_base の大域変数と同じ名前の関数を書きません', `${vars.size} 個`);
+    }
   }
 
   // ---- 4. 「ためす」の入り口（studio_preview.dic）の変数とエラー ----------------
@@ -275,6 +303,22 @@ async function main() {
       }
     }
     if (stopped === cases.length) ok('スタジオが動けない手書きのゴーストには、書き出す前に止めます', `${cases.length} 通り`);
+
+    // 終わりの印の無い始まりの印が yaya.txt に残っていても、2 回書き出して、そのあとの手書きの行が消えない
+    {
+      checks++;
+      const c = make('hand-stray');
+      const txt = path.join(c.master, 'yaya.txt');
+      fs.appendFileSync(txt, '// ukagaka-studio: begin\r\n// 手書きの行\r\n');
+      const r1 = run(['--linked', c.dir, '--dic', dicFile]);
+      const r2 = run(['--linked', c.dir, '--dic', dicFile]);
+      const out = fs.readFileSync(txt, 'utf8');
+      if (r1.code !== 0 || r2.code !== 0 || !out.includes('// 手書きの行\r\n') || (out.match(/ukagaka-studio: end/g) || []).length !== 1) {
+        fails.push(`終わりの無い始まりの印があると、手書きの行が消えました\n      ${out.replace(/\r?\n/g, '\n      ')}`);
+      } else {
+        ok('終わりの印の無い始まりの印が残っていても、手書きの行は消しません');
+      }
+    }
   }
 
   // ---- 5. メモは動きを変えないか -----------------------------------------------
@@ -462,6 +506,129 @@ async function main() {
     expect('いまの変数で条件を見る', (r2.draws && r2.draws.cond) > 0, true);
     if (got === JSON.stringify([200, 200, undefined, undefined, 0]) && r2.draws && r2.draws.cond > 0) {
       ok('「100 回引く」が、SSP と同じえらびかたで数えます');
+    }
+  }
+
+  // ---- 11. 整えて書いた辞書が、もとの辞書と同じに動くか（段階 8-1） ------------------
+  // 一致テストのゴーストを、もとの辞書と、読んで整えて書きなおした辞書（yaya_base もしくみの辞書も訳した辞書も）の両方で動かし、
+  // 答えが 1 つ残らず同じかを見ます。書きなおすと字下げや空白は変わりますが、動きは変わらないはずです
+  {
+    const { parseYaya, printYaya } = require(path.join(host.root, 'ui', 'js', 'model', 'yayatext.js'));
+    const { toYaya, yayaTxt } = await host.yayaTranslator();
+    const printed = (text) => printYaya(parseYaya(text).dic).replace(/\n/g, '\r\n');
+    const program = readJson(path.join(PARITY, 'ghost.json'));
+    const cases = program.scripts.filter((s) => s.kind === 'event' && /^OnP\d+$/.test(s.event || ''));
+    const specs = cases.map((s) => (s.refs && s.refs.length ? `${s.event}:${s.refs.join(',')}` : s.event));
+    const orig = await host.runYayaProgram('printed-orig', program, specs);
+
+    const dir = path.join(__dirname, 'work', 'printed');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    const base = path.join(host.root, 'third_party', 'yaya-dic', 'yaya_base');
+    const pbase = path.join(dir, 'yaya_base_printed');
+    fs.cpSync(base, pbase, { recursive: true });
+    let dics = 0;
+    for (const f of fs.readdirSync(pbase).filter((x) => x.endsWith('.dic'))) {
+      fs.writeFileSync(path.join(pbase, f), printed(fs.readFileSync(path.join(base, f), 'utf8')));
+      dics++;
+    }
+    fs.writeFileSync(path.join(dir, 'yaya.txt'), yayaTxt().replace('dicdir, yaya_base', 'dicdir, yaya_base_printed'));
+    fs.writeFileSync(path.join(dir, 'studio_runtime.dic'),
+      printed(fs.readFileSync(path.join(host.root, 'studio', 'res', 'yaya', 'studio_runtime.dic'), 'utf8')));
+    fs.writeFileSync(path.join(dir, 'studio_program.dic'), printed(toYaya(program)));
+    const saori = path.join(host.root, 'shiori', 'dist', 'slow_saori.dll');
+    if (fs.existsSync(saori)) fs.copyFileSync(saori, path.join(dir, 'slow_saori.dll'));
+    const got = host.runYaya(dir, specs);
+
+    const same = cases.filter((s, i) => got[i] && orig[i] && got[i].value === orig[i].value && got[i].commTo === orig[i].commTo).length;
+    const diff = cases.map((s, i) => (got[i] && orig[i] && got[i].value === orig[i].value ? null : s.event)).filter(Boolean);
+    expect(`整えて書いた辞書（yaya_base ${dics} こ・しくみ・訳した辞書）で、一致テストの答えが同じ（ちがったもの: ${diff.join(', ') || 'なし'}）`,
+      same, cases.length);
+    if (same === cases.length) ok('整えて書きなおした辞書も、もとの辞書と同じに動きます', `${cases.length} 件`);
+  }
+
+  // ---- 12. プロジェクトの YAYA の辞書（段階 8-2） -----------------------------------
+  // exe と同じ書き出し（export_host.exe）で書き出して、そのまま YAYA で動かす。辞書の関数は「手書き」として訳す（書き出しの画面と同じ）
+  {
+    const { dicFunctionNames } = require(path.join(host.root, 'ui', 'js', 'model', 'dics.js'));
+    const { toYaya, programOf } = await host.yayaTranslator();
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const fixture = path.join(host.root, 'studio', 'test', 'fixture', 'dics.json');
+    const project = readJson(fixture);
+    const dir = path.join(__dirname, 'work', 'dics');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    const dicFile = path.join(dir, 'studio_program.dic.in');
+    fs.writeFileSync(dicFile, toYaya(programOf(project), { handwritten: dicFunctionNames(project) }));
+    require('child_process').execFileSync(exportHost, [fixture, '--write', dir, '--dic', dicFile]);
+    const master = path.join(dir, 'ghost', 'master');
+    const got = host.runYaya(master, ['OnBoot', 'OnCallDic']);
+    expect('辞書の OnBoot が、ブロックの OnBoot より先に動く', (got[0] || {}).value, '\\0辞書の起動\\e');
+    // 「YAYA の関数をよぶ」は、関数の答えをそのまま出す（\0 は付けない）
+    expect('ブロックから、辞書の関数をよべる', (got[1] || {}).value, 'やあ\\e');
+    // Windows はファイル名の大文字小文字を区別しないので、Talk.DIC は中身で見る（talk.dic のほうが入っていること）
+    expect('使えない名前の辞書は書き出さない（フォルダの外・スタジオのファイル・大文字小文字だけちがう 2 つめ）',
+      [fs.existsSync(path.join(dir, 'ghost', 'evil.dic')), fs.existsSync(path.join(master, 'evil.dic')),
+        fs.readFileSync(path.join(master, 'studio_runtime.dic'), 'utf8').includes('Evil2'),
+        fs.readFileSync(path.join(master, 'talk.dic'), 'utf8').includes('Evil3')].join(','), 'false,false,false,false');
+    if ((got[0] || {}).value === '\\0辞書の起動\\e' && (got[1] || {}).value === 'やあ\\e') {
+      ok('プロジェクトの辞書を書き出したゴーストが動き、辞書のイベントが先・ブロックから辞書の関数をよべます');
+    }
+  }
+
+  // ---- 13. いまある YAYA ゴーストの辞書を読みこむ（段階 8-6） ---------------------------
+  {
+    const exportHost = path.join(host.root, 'studio', 'test', 'export_host.exe');
+    const dir = path.join(__dirname, 'work', 'import');
+    const master = path.join(dir, 'ghost', 'master');
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(path.join(master, 'dic'), { recursive: true });
+    fs.writeFileSync(path.join(master, 'descript.txt'), 'charset,UTF-8\r\ntype,ghost\r\nname,よみこみ\r\n');
+    // ゴーストの外を指す行（.. のファイルとフォルダ）と、同じ辞書をもう一度書いた行は読まない
+    fs.writeFileSync(path.join(dir, '..', 'outside.txt'), 'Outside\n{\n\t"外"\n}\n');
+    fs.mkdirSync(path.join(dir, '..', 'outside-dir'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '..', 'outside-dir', 'out.dic'), 'OutDir\n{\n\t"外"\n}\n');
+    fs.writeFileSync(path.join(master, 'yaya.txt'),
+      'dic, yaya_base/shiori3.dic\r\ndic, aya_talk.dic\r\ndicdir, dic\r\ndic, studio_runtime.dic\r\n' +
+      'dic, ..\\..\\..\\outside.txt\r\ndicdir, ..\\..\\..\\outside-dir\r\ndic, AYA_TALK.dic\r\ndic, dic/../aya_talk.dic\r\n');
+    // Shift_JIS・CRLF の辞書（「こんにちは」）と、BOM つき UTF-8 の辞書
+    const sjis = Buffer.from([0x82, 0xB1, 0x82, 0xF1, 0x82, 0xC9, 0x82, 0xBF, 0x82, 0xCD]);
+    fs.writeFileSync(path.join(master, 'aya_talk.dic'),
+      Buffer.concat([Buffer.from('OnBoot\r\n{\r\n\t"'), sjis, Buffer.from('"\r\n}\r\n')]));
+    fs.writeFileSync(path.join(master, 'dic', 'sub.dic'), '﻿Sub\n{\n\t"さぶ"\n}\n');
+    fs.writeFileSync(path.join(master, 'studio_runtime.dic'), '// ukagaka-studio: generated\n');
+    const out = require('child_process').execFileSync(exportHost, ['--dics', dir], { encoding: 'utf8' });
+    expect('ゴーストの辞書を読みこむ（Shift_JIS も UTF-8 に・改行は LF・dicdir の中も・yaya_base とスタジオのファイル、ゴーストの外、同じ辞書の 2 回めは読まない）', out,
+      '== aya_talk.dic\nOnBoot\n{\n\t"こんにちは"\n}\n== dic/sub.dic\nSub\n{\n\t"さぶ"\n}\n');
+    if (out.startsWith('== aya_talk.dic')) ok('いまある YAYA ゴーストの辞書を、UTF-8 にして読みこめます');
+  }
+
+  // ---- 14. 「ためす」で辞書の関数を動かす（段階 8-7） ------------------------------------
+  {
+    const dics = [{ name: 'try.dic', text: 'OnBoot\n{\n\t"\\0辞書の起動\\e"\n}\nGreet\n{\n\t"\\0" + reference[0] + "/" + reference0 + "\\e"\n}\n' }];
+    const boot = await host.runYayaPreview('preview-dic', program, 'call:OnBoot', {}, dics);
+    const greet = await host.runYayaPreview('preview-dic', program, 'call:Greet', { refs: ['abc'] }, dics);
+    const none = await host.runYayaPreview('preview-dic', program, 'call:Nope', {}, dics);
+    const block = await host.runYayaPreview('preview-dic', program, 'p06', { vars: { 'あたい': 100 } }, dics);
+    expect('「ためす」で辞書の OnBoot を動かす', boot.script, '\\0辞書の起動\\e');
+    expect('辞書の関数は、イベントの情報を reference[0] と reference0 で読める', greet.script, '\\0abc/abc\\e');
+    expect('無い関数はエラー', none.error, 'function_not_found');
+    expect('辞書があっても、ブロックのかたまりは動く', block.vars && block.vars['初期値つき'], 7);
+    if (boot.script === '\\0辞書の起動\\e' && greet.script === '\\0abc/abc\\e') ok('「ためす」で、プロジェクトの辞書の関数を動かせます');
+  }
+
+  // ---- 15. セリフの中の「:chain=」 -----------------------------------------------
+  {
+    const mark = {
+      format: 'ikaga/1', meta: { name: '印のテスト' }, settings: { randomTalkEnabled: false }, variables: [],
+      scripts: [{ id: 'm1', kind: 'event', event: 'OnTalk', blocks: [{ type: 'say', who: 0, nl: 0, text: 'a:chain=b' }] }],
+    };
+    const ran = await host.runYayaProgram('chain-mark', mark, ['OnBoot', 'OnTalk']);
+    const tried = await host.runYayaPreview('chain-mark-try', mark, 'm1', {});
+    expect('SSP に返す答えでは、= が全角になって、そのまま届く', (ran[1] || {}).value, '\\0a:chain\uff1db\\e');
+    expect('「ためす」の答えも、そのまま届く', tried.script, '\\0a:chain\uff1db\\e');
+    if ((ran[1] || {}).value === '\\0a:chain\uff1db\\e' && tried.script === '\\0a:chain\uff1db\\e') {
+      ok('セリフに「:chain=」があっても、答えがそのまま届きます');
     }
   }
 

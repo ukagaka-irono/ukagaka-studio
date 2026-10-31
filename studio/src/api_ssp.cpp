@@ -109,6 +109,7 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
     std::string name = project["meta"]["name"].asStr();
     ExportResult r;
     if (!linked.empty()) {
+        if (!IsLocalPath(Utf8ToWide(linked))) { JsonError(res, 400, "network_path", linked); return; }
         std::vector<OutFile> kit = YayaKitFiles();
         r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
         if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
@@ -126,11 +127,18 @@ void Api::InstallToSsp(const HttpRequest& req, HttpResponse& res) {
         bool already = !ssp.ghostName.empty() &&
                        (ssp.ghostName == name ||
                         ssp.ghostName == project["meta"]["sakuraName"].asStr());
-        SstpResult sent = already
-            ? SstpSend("\\![reload,shiori]", AppName())
-            : SstpSend("\\![change,ghost," + name + "]", AppName());
-        if (sent.ok) action = already ? "reload" : "change";
-        else action = "failed";
+        // 名前は \![change,ghost,…] の中にそのまま入るので、[ ] \ " , や改行があると、さくらスクリプトとして
+        // 読まれてしまう。そういう名前のときは切りかえを頼まず、SSP で切りかえてもらう
+        bool plainName = name.find_first_of("[]\\\",\r\n") == std::string::npos;
+        if (!already && !plainName) {
+            action = "manual";
+        } else {
+            SstpResult sent = already
+                ? SstpSend("\\![reload,shiori]", AppName())
+                : SstpSend("\\![change,ghost," + name + "]", AppName());
+            if (sent.ok) action = already ? "reload" : "change";
+            else action = "failed";
+        }
     }
 
     JValue o = JValue::makeObj();

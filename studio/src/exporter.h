@@ -60,7 +60,8 @@ std::vector<HitArea> DefaultHitAreas(int w, int h);
 std::string ShellImagePath(const JValue& project, int surfaceId);
 
 // YAYA で動かすときの yaya.txt（書き出すゴーストのもの。画面の yayaTxt() と同じ中身）
-std::string YayaTxt();
+std::string YayaTxt(const JValue& project);
+bool DicNameOk(const std::string& name);
 
 // ゴースト一式のファイル。
 //   kit … ghost/master/ に置く YAYA 一式（yaya.dll・yaya_base/…・studio_runtime.dic）。名前は master からの相対
@@ -70,6 +71,12 @@ std::vector<OutFile> BuildGhostFiles(const JValue& project, const std::vector<Ou
 
 // ネットワーク更新の照合表（updates2.dau）を、そのフォルダの中身から作る
 std::string BuildUpdatesDau(const std::wstring& root);
+
+// 書き出し先のフォルダ（<outDir>\<フォルダ名>）が、ほかの人のゴーストのフォルダか。
+// 無い・空・伺かスタジオが書き出したもの（ghost\master\ghost.json がある）なら false。
+// プロジェクトのフォルダ名は人からもらったファイルでも決められるので、そこにあるほかのゴーストを上書きしたり、
+// 記憶を消したりしないように見ます（ExportToDir と、ゴーストの記憶・記録のところ）
+bool IsForeignGhostFolder(const std::wstring& root);
 
 ExportResult ExportToDir(const JValue& project, const std::wstring& outDir, const std::vector<OutFile>& kit,
                          const std::string& dic, bool includeShell, bool overwriteShell);

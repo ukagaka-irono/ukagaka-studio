@@ -66,6 +66,10 @@ const scenarios = [
     steps: [
       ['OnBoot', '\\0おきた\\e'],
       ['OnClose', '\\0ばいばい\\-'],
+      // セリフの字としての \- や \e（\\- ・ \\e になる）は、終わりの印とまちがえない
+      ['OnCloseAll', '\\0またね \\\\-o-/\\-'],
+      ['OnTagText', '\\0a\\\\e\\e'],
+      ['OnNulText', '\\0ab\\e'],
     ],
   },
   {
@@ -157,6 +161,9 @@ const scenarios = [
       // 知らない ID のときは、変数をいじらない
       ['OnUserInput:よそのID,べつのこたえ', { status: '204 No Content' }],
       ['OnShowAnswer', { value: '\\0ミヤガワ\\e' }],
+      // 答えたあとや、たずねていない変数への OnUserInput（ほかのゴーストや SSTP からも送れる）も、変数をいじらない
+      ['OnUserInput:ikaga:こたえ,あとから', { status: '204 No Content' }],
+      ['OnShowAnswer', { value: '\\0ミヤガワ\\e' }],
     ],
   },
   {
@@ -241,6 +248,8 @@ const scenarios = [
       ['OnSecondChange:0,0,7', { status: '204 No Content' }],
       ['OnSecondChange:0,0,8', { status: '204 No Content' }],
       ['OnSecondChange:0,1,9', '\\0い\\e'],
+      // 無効にしたトーク（う）は、ランダムでも、名前や id で「よぶ」ブロックからも動かない
+      ['OnCallOff', '\\0え\\e'],
     ],
   },
   {

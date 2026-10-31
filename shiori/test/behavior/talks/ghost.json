@@ -12,6 +12,10 @@
     { "id": "t_a", "kind": "talk", "name": "あ", "weight": 1,
       "blocks": [{ "type": "say", "who": 0, "text": "あ", "nl": 0 }] },
     { "id": "t_i", "kind": "talk", "name": "い", "weight": 0,
-      "blocks": [{ "type": "say", "who": 0, "text": "い", "nl": 0 }] }
+      "blocks": [{ "type": "say", "who": 0, "text": "い", "nl": 0 }] },
+    { "id": "t_u", "kind": "talk", "name": "う", "weight": 1, "disabled": true,
+      "blocks": [{ "type": "say", "who": 0, "text": "う", "nl": 0 }] },
+    { "id": "e_off", "kind": "event", "event": "OnCallOff",
+      "blocks": [{ "type": "call", "name": "う" }, { "type": "call", "name": "t_u" }, { "type": "say", "who": 0, "text": "え", "nl": 0 }] }
   ]
 }

@@ -73,6 +73,7 @@ private:
     void Export(const HttpRequest& req, HttpResponse& res);
     void ImportShell(const HttpRequest& req, HttpResponse& res);
     void InspectYaya(const HttpRequest& req, HttpResponse& res);
+    void ReadYayaDics(const HttpRequest& req, HttpResponse& res);
     void Reveal(const HttpRequest& req, HttpResponse& res);
 
     // api_ssp.cpp

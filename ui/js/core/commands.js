@@ -15,6 +15,8 @@ function notYet(name) {
 export const Commands = {
   /** かたまりを「ためす」で動かす（panels/run.js） */
   runScript: notYet('runScript'),
+  /** プロジェクトの辞書の関数を「ためす」で動かす（panels/run.js。段階 8-7） */
+  runDicFunction: notYet('runDicFunction'),
   /** 名前を聞いて変数を作る。作った名前か null を返す（panels/vars.js） */
   promptNewVariable: notYet('promptNewVariable'),
   /** かたまりの YAYA を見せる（panels/yayaview.js） */

@@ -5,6 +5,8 @@
  *   ・ブロックの上         … コピー・切り取り・複製・部品にする・無効にする・メモ・削除
  *   ・パレットの部品の上   … 名前を変える・消す
  *   ・何もないところ       … ブロックを探して置く・はりつけ・整列
+ * 辞書の画面のキャンバスにも、同じ形のメニューを出します（段階 9-2。dicMenu）。辞書のブロックは辞書のテキストから作りなおすので、
+ * テキストに置き場の無い「無効にする」「メモ」「部品にする」「YAYA を見る」は出しません。
  */
 
 import { Model } from '../model/model.js';
@@ -19,6 +21,7 @@ import { Clipboard } from './clipboard.js';
 import { Picker } from './picker.js';
 import { Notes } from './notes.js';
 import { Parts } from './parts.js';
+import { Drag } from './drag.js';
 
 function close() {
   $('#ctx-menu').classList.remove('open');
@@ -60,8 +63,71 @@ function toCanvas(clientX, clientY) {
   };
 }
 
+/** ブロックの上のメニューの、コピー・はりつけ・複製と削除（dic … 辞書の画面のブロック） */
+function blockItems(block, stack, index, dic) {
+  const inStack = Array.isArray(stack);
+  const items = [{ label: t('コピー'), key: 'Ctrl+C', run: () => Clipboard.copy(block) }];
+  if (inStack) {
+    items.push(
+      { label: t('切り取り'), key: 'Ctrl+X', run: () => Clipboard.cut(stack, index) },
+      { label: t('すぐ下にはりつけ'), key: 'Ctrl+V', run: () => Clipboard.paste(stack, index + 1, { dic }) },
+      { label: t('複製する'), key: 'Ctrl+D', run: () => Clipboard.duplicate(stack, index) },
+    );
+  }
+  return items;
+}
+function deleteItems(stack, index) {
+  if (!Array.isArray(stack)) return [];
+  return [
+    '-',
+    { label: t('このブロックを削除'), key: 'Delete', danger: true, run: () => Clipboard.remove(stack, index) },
+    { label: t('ここから下をすべて削除'), danger: true, run: () => Clipboard.removeFrom(stack, index) },
+  ];
+}
+
+/** 辞書の画面のキャンバスの右クリック（段階 9-2） */
+function dicMenu(e) {
+  const root = Drag.rootFor(e.target);
+  const scriptEl = e.target.closest('.script');
+  if (!scriptEl || !scriptEl._script) {
+    const ws = root.ws;
+    const r = ws.getBoundingClientRect();
+    const at = { x: e.clientX - r.left + ws.scrollLeft, y: e.clientY - r.top + ws.scrollTop };
+    open(e.clientX, e.clientY, [
+      { label: t('ここにはりつけ'), key: 'Ctrl+V', run: () => Clipboard.pasteAt(at.x, at.y, { scripts: root.scripts(), dic: true }) },
+      '-',
+      { label: t('すべてたたむ'), run: () => root.foldAll(true) },
+      { label: t('すべてひろげる'), run: () => root.foldAll(false) },
+    ]);
+    return;
+  }
+  const script = scriptEl._script;
+  const host = scriptEl._host;
+  const hat = e.target.closest('.blk.hat');
+  const blk = e.target.closest('.blk');
+  if (hat || !blk) {
+    const items = [];
+    if (script.kind === 'yfunc') items.push({ label: t('▶ 実行してみる'), run: () => host.runScript(script) });
+    items.push(
+      { label: t('複製する'), run: () => host.duplicateScript(script) },
+      { label: script.folded ? t('ひろげる') : t('たたむ'), run: () => host.toggleFold(script) },
+      '-',
+      { label: t('削除する'), danger: true, run: () => host.deleteScript(script) },
+    );
+    open(e.clientX, e.clientY, items);
+    return;
+  }
+  open(e.clientX, e.clientY, [...blockItems(blk._blk, blk._stack, blk._index, true), ...deleteItems(blk._stack, blk._index)]);
+}
+
 function init() {
   document.addEventListener('contextmenu', (e) => {
+    // 辞書の画面のキャンバス
+    if (e.target.closest('#dic-workspace')) {
+      e.preventDefault();
+      dicMenu(e);
+      return;
+    }
     // パレットの部品の上 … 名前を変える・消す
     const partEl = e.target.closest('#palette .palette-part');
     if (partEl && partEl._palettePart) {
@@ -115,25 +181,11 @@ function init() {
     const block = blk._blk;
     const stack = blk._stack;
     const index = blk._index;
-    const inStack = Array.isArray(stack);
-    const items = [{ label: t('コピー'), key: 'Ctrl+C', run: () => Clipboard.copy(block) }];
-    if (inStack) {
-      items.push(
-        { label: t('切り取り'), key: 'Ctrl+X', run: () => Clipboard.cut(stack, index) },
-        { label: t('すぐ下にはりつけ'), key: 'Ctrl+V', run: () => Clipboard.paste(stack, index + 1) },
-        { label: t('複製する'), key: 'Ctrl+D', run: () => Clipboard.duplicate(stack, index) },
-        { label: t('ここから下を部品にする'), run: () => Parts.save(stack.slice(index)) },
-      );
-    }
+    const items = blockItems(block, stack, index, false);
+    if (Array.isArray(stack)) items.push({ label: t('ここから下を部品にする'), run: () => Parts.save(stack.slice(index)) });
     items.push({ label: block.disabled ? t('有効にする') : t('一時的に無効にする'), run: () => Clipboard.toggleDisabled(block) });
     items.push(...noteItems(block));
-    if (inStack) {
-      items.push(
-        '-',
-        { label: t('このブロックを削除'), key: 'Delete', danger: true, run: () => Clipboard.remove(stack, index) },
-        { label: t('ここから下をすべて削除'), danger: true, run: () => Clipboard.removeFrom(stack, index) },
-      );
-    }
+    items.push(...deleteItems(stack, index));
     open(e.clientX, e.clientY, items);
   });
   // メニューの外を押したら閉じる（ドラッグをはじめたときも）

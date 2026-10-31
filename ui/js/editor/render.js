@@ -3,6 +3,8 @@
 import { AREAS, BLOCKS, EVENTS, MOUSE_EVENTS, PALETTE, createBlock, getDef } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { yayaCallChoices } from '../model/yaya.js';
+import { YAYA_SYSTEM_FUNCTIONS } from '../model/yblocks.js';
+import { dicFunctionNames } from '../model/dics.js';
 import { Commands } from '../core/commands.js';
 import { Session } from '../core/session.js';
 import { updateTitle } from '../core/title.js';
@@ -65,37 +67,105 @@ function buildSlot(owner, argName, argDef, project) {
   }
   if (argDef.mode === 'bool') return slot;   // 空の六角スロット
 
-  const input = el('input');
-  input.type = 'text';
+  // 何行にもなる欄（辞書のブロックのコメント・読めない YAYA）は、textarea で。Enter は改行です
+  const multi = !!argDef.multiline;
+  const input = el(multi ? 'textarea' : 'input');
+  if (multi) input.spellcheck = false; else input.type = 'text';
   if (argDef.long) input.classList.add('long');
   input.value = value == null ? '' : String(value);
-  fitInput(input);
+  const fit = () => {
+    if (!multi) { fitInput(input); return; }
+    const lines = input.value.split('\n');
+    input.rows = lines.length;
+    // 等幅の字なので、いちばん長い行の字の数（日本語の字は 2 つ分・タブは 4 つ分）を cols に
+    const cols = (l) => [...l].reduce((n, c) => n + (c === '\t' ? 4 : c.charCodeAt(0) > 0xff ? 2 : 1), 0);
+    input.cols = Math.max(4, ...lines.map(cols)) + 1;
+  };
+  fit();
   input.addEventListener('focus', () => { beginEdit(); input.select(); });
   input.addEventListener('input', () => {
-    fitInput(input);
+    fit();
     owner[argName] = argDef.mode === 'number' && input.value !== '' && !isNaN(Number(input.value))
       ? Number(input.value)
       : input.value;
-    updateTitle();   // 打っている間も、タイトルの ● だけは付けておく
+    // 打っている間も、保存していない印を付けておく（自動保存と、閉じるときの確かめのため。元にもどす記録は change で）
+    Model.dirty = true;
+    updateTitle();
   });
   input.addEventListener('change', () => endEdit(true));
   input.addEventListener('blur', () => endEdit(false));
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Enter' && !multi) input.blur();
+    if (e.key === 'Escape' && multi) input.blur();
+    if (e.ctrlKey && e.key.toLowerCase() === 's') return;   // 保存は、打っている最中でもできるように（shortcuts.js）
     e.stopPropagation();
   });
+  if (multi) input.addEventListener('pointerdown', (e) => e.stopPropagation());
   slot.appendChild(input);
   return slot;
+}
+
+/** 欄のならび（辞書のブロックの「関数をよぶ」の引数など）。欄は , でつなぎ、− ＋ で数を変える */
+function buildSlots(owner, name, argDef, project) {
+  if (!Array.isArray(owner[name])) owner[name] = argDef.def();
+  const list = owner[name];
+  const wrap = el('span', 'field-wrap field-slots');
+  list.forEach((v, i) => {
+    if (i) wrap.appendChild(el('span', 'lbl', ','));
+    wrap.appendChild(buildSlot(list, i, argDef.item, project));
+  });
+  const btn = (label, title, fn) => {
+    const b = el('button', 'blk-btn', label);
+    b.title = title;
+    b.addEventListener('pointerdown', (e) => e.stopPropagation());
+    b.addEventListener('click', () => Model.act(fn));
+    wrap.appendChild(b);
+  };
+  if (list.length) btn('−', t('欄をへらす'), () => { list.pop(); });
+  btn('＋', t('欄をふやす'), () => { list.push(''); });
+  return wrap;
+}
+
+/** 見出しつきの ▾（YAYA の関数をよぶブロックの名前の横。えらぶと欄に入る） */
+function buildPickGroups(groups, onPick) {
+  const sel = el('select', 'field-drop field-pick');
+  const first = el('option', null, '▾');
+  first.value = '';
+  sel.appendChild(first);
+  for (const [label, names] of groups) {
+    if (!names.length) continue;
+    const g = el('optgroup');
+    g.label = label;
+    for (const n of names) {
+      const o = el('option', null, n);
+      o.value = n;
+      g.appendChild(o);
+    }
+    sel.appendChild(g);
+  }
+  sel.addEventListener('change', () => {
+    const v = sel.value;
+    sel.value = '';
+    if (v) onPick(v);
+  });
+  sel.addEventListener('pointerdown', (e) => e.stopPropagation());
+  return sel;
 }
 
 function buildSelect(options, current, onPick) {
   const sel = el('select', 'field-drop');
   let matched = false;
-  options.forEach(([label, value]) => {
+  const groups = {};   // 3 つ目にまとまりの名前があるものは、<optgroup> にまとめる（イベントの「プラグインから」）
+  options.forEach(([label, value, group]) => {
     const o = el('option', null, label);
     o.value = String(value);
     if (String(value) === String(current)) { o.selected = true; matched = true; }
-    sel.appendChild(o);
+    if (group) {
+      if (!groups[group]) { groups[group] = el('optgroup'); groups[group].label = group; sel.appendChild(groups[group]); }
+      groups[group].appendChild(o);
+    } else {
+      sel.appendChild(o);
+    }
   });
   if (!matched && current != null && current !== '') {
     const o = el('option', null, String(current));
@@ -205,9 +275,23 @@ function buildField(owner, name, argDef, project, blockEl) {
       });
     }
 
+    case 'slots':
+      return buildSlots(owner, name, argDef, project);
+
     default: {
       const slot = buildSlot(owner, name, argDef, project, blockEl);
       if (argDef.marks && !(owner[name] && typeof owner[name] === 'object')) return withMarks(slot, owner, name);
+      // 辞書のブロックの「関数をよぶ」: プロジェクトの辞書の関数と、YAYA に元からある関数からえらぶ
+      if (argDef.pick === 'yayaSystem') {
+        const wrap = el('span', 'field-wrap');
+        wrap.appendChild(slot);
+        const groups = [[t('プロジェクトの辞書'), dicFunctionNames(Model.project).sort()]];
+        for (const [range, names] of Object.entries(YAYA_SYSTEM_FUNCTIONS)) groups.push([t('YAYA の関数 {range}', { range }), names]);
+        const pick = buildPickGroups(groups, (v) => Model.act(() => { owner[name] = v; }));
+        pick.title = t('よぶ関数をえらぶ');
+        wrap.appendChild(pick);
+        return wrap;
+      }
       // つないだ手書きのゴーストの関数から、えらべるようにする（書くこともできます）
       const choices = argDef.pick === 'yayaFunctions' && !(owner[name] && typeof owner[name] === 'object')
         ? yayaCallChoices((Session.yayaGhost || {}).functions) : [];
@@ -279,6 +363,19 @@ function fillRow(row, owner, def, project, blockEl) {
   }
 }
 
+// 辞書のブロックの、同じ行のうしろのコメント（trail）と、関数の名前と { のあいだのコメント
+const TRAIL_ARG = { kind: 'input', mode: 'text', literal: true, long: true };
+const COMMENT_ARG = { kind: 'input', mode: 'text', literal: true, long: true, multiline: true };
+function appendComments(row, owner, project) {
+  if (Array.isArray(owner.comments)) owner.comments.forEach((c, i) => row.appendChild(buildSlot(owner.comments, i, COMMENT_ARG, project)));
+  if (typeof owner.trail === 'string') {
+    const slot = buildSlot(owner, 'trail', TRAIL_ARG, project);
+    slot.classList.add('is-trail');
+    slot.title = t('同じ行のうしろのコメント');
+    row.appendChild(slot);
+  }
+}
+
 // ------------------------------------------------------------------ block
 function buildBlockEl(block, project) {
   const def = getDef(block);
@@ -304,6 +401,7 @@ function buildBlockEl(block, project) {
 
   const row = div('row ' + shapeClass);
   fillRow(row, block, def, project, wrap);
+  appendComments(row, block, project);
   wrap.appendChild(row);
 
   if (def.shape === 'c') {
@@ -370,7 +468,7 @@ function buildStackEl(arr, project, owner) {
   return st;
 }
 
-const HAT_DEF = { event: '@event', talk: '@talk', function: '@function' };
+const HAT_DEF = { event: '@event', talk: '@talk', function: '@function', yfunc: 'y_func' };
 
 // マウス系イベントのときだけ、しぼり込みつきの帽子ブロックに変わる
 function hatKeyFor(script) {
@@ -387,10 +485,16 @@ function hatKeyFor(script) {
   return HAT_DEF[script.kind];
 }
 
+/**
+ * かたまりを描く。options: noPosition・noTools と、
+ * host（たたむ・複製・削除をするもの。無ければトークの画面のかたまりとして editor/scripts.js で。辞書の画面は panels/dictionary.js）
+ */
 function buildScriptEl(script, project, options) {
   const opts = options || {};
+  const host = opts.host || Scripts;
   const wrap = div('script');
   wrap._script = script;
+  wrap._host = opts.host || null;   // 辞書の画面のかたまり（右クリックのメニューも、これで動かす。editor/contextmenu.js）
   if (!opts.noPosition) {
     wrap.style.left = (script.x || 0) + 'px';
     wrap.style.top = (script.y || 0) + 'px';
@@ -406,11 +510,13 @@ function buildScriptEl(script, project, options) {
       return b;
     };
     if (script.blocks.length || script.folded) {
-      tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => Scripts.toggleFold(script)));
+      tools.appendChild(mk(script.folded ? '▸' : '▾', script.folded ? t('ひろげる') : t('たたむ'), () => host.toggleFold(script)));
     }
-    tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
-    tools.appendChild(mk('⧉', t('複製する'), () => Scripts.duplicateScript(script)));
-    tools.appendChild(mk('✕', t('削除する'), () => Scripts.deleteScript(script)));
+    // 辞書の画面のかたまり（opts.host のあるもの）は、host が動かす（関数のかたまりだけ）
+    if (!opts.host) tools.appendChild(mk('▶', t('このかたまりを実行してみる'), () => Commands.runScript(script)));
+    else if (host.runScript && script.kind === 'yfunc') tools.appendChild(mk('▶', t('この関数を実行してみる'), () => host.runScript(script)));
+    tools.appendChild(mk('⧉', t('複製する'), () => host.duplicateScript(script)));
+    tools.appendChild(mk('✕', t('削除する'), () => host.deleteScript(script)));
     wrap.appendChild(tools);
   }
 
@@ -422,6 +528,7 @@ function buildScriptEl(script, project, options) {
     hat._isHat = true;
     const row = div('row sh-hat');
     fillRow(row, script, def, project, hat);
+    if (script.kind === 'yfunc') appendComments(row, script, project);
     hat.appendChild(row);
     const note = opts.noTools ? null : Notes.build(script);   // かたまりのメモ
     if (note) hat.appendChild(note);
@@ -433,7 +540,7 @@ function buildScriptEl(script, project, options) {
     wrap.classList.add('is-folded');
     const bar = el('button', 'fold-summary', t('… {n} 個のブロック（たたんでいます）', { n: Scripts.countBlocks(script) }));
     bar.title = t('押すと、ひろげます');
-    bar.addEventListener('click', (e) => { e.stopPropagation(); Scripts.toggleFold(script); });
+    bar.addEventListener('click', (e) => { e.stopPropagation(); host.toggleFold(script); });
     wrap.appendChild(bar);
     return wrap;
   }
@@ -452,8 +559,12 @@ function renderWorkspace(canvas, project) {
 
 // ---------------------------------------------------------------- palette
 function renderPalette(container, catId, project) {
+  renderPaletteEntries(container, PALETTE[catId] || [], project);
+}
+
+/** パレットの中身を描く（entries の書きかたは model/blocks.js の PALETTE と同じ。辞書の画面のパレットも、これで描きます） */
+function renderPaletteEntries(container, entries, project) {
   container.textContent = '';
-  const entries = PALETTE[catId] || [];
 
   for (const entry of entries) {
     if (typeof entry === 'object' && entry.note) {
@@ -537,6 +648,6 @@ function renderPalette(container, catId, project) {
 }
 
 export const Render = {
-  buildBlockEl, buildStackEl, buildScriptEl, renderWorkspace, renderPalette,
+  buildBlockEl, buildStackEl, buildScriptEl, renderWorkspace, renderPalette, renderPaletteEntries,
   measureText, div, el, hatKeyFor,
 };

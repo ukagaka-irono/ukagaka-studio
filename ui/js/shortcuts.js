@@ -22,9 +22,17 @@ function onKeyDown(e) {
     Search.focus();
     return;
   }
-  if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); Model.undo(); return; }
+  // 文字の欄で打っているときは、欄の中の文字だけを戻す（プロジェクトの「元にもどす」にはしない）
+  const active = document.activeElement;
+  const textEntry = active.tagName === 'TEXTAREA' ||
+    (active.tagName === 'INPUT' && !/^(checkbox|radio|button|range|color|file)$/.test(active.type));
   if (e.ctrlKey && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+    if (textEntry) return;
     e.preventDefault(); Model.redo(); return;
+  }
+  if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+    if (textEntry) return;
+    e.preventDefault(); Model.undo(); return;
   }
   if (e.key === 'F1') { e.preventDefault(); Pages.show('help'); return; }
   if (typing) return;
@@ -32,12 +40,34 @@ function onKeyDown(e) {
   if (e.key === 'Escape') { ContextMenu.close(); Picker.close(); return; }
 
   // ここから下はキャンバスのブロックの操作。キャンバスが見えていないときは何もしない
-  // （ほかの画面で Delete を押して、見えないブロックが消えないように）
+  // （ほかの画面で Delete を押して、見えないブロックが消えないように）。えらんでいるのが、その画面のキャンバスのブロックのときだけ
+  const inCanvas = (id) => { const s = Drag.getSelected(); return s && s.el && document.getElementById(id).contains(s.el) ? s : null; };
+  if (Pages.current === 'dics') {
+    // 辞書の画面のブロック（コピーしたものは、辞書の画面にだけはりつけられます。editor/clipboard.js）
+    const sel = inCanvas('dic-canvas');
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey && k === 'v') {
+      const target = sel ? Drag.insertTarget() : null;
+      e.preventDefault();
+      Clipboard.paste(target ? target.stack : null, target ? target.index : 0, { dic: true });
+      return;
+    }
+    if (!sel) return;
+    if (e.ctrlKey && k === 'c') { if (sel.block) { e.preventDefault(); Clipboard.copy(sel.block); } return; }
+    if (!Array.isArray(sel.stack)) return;
+    if (e.ctrlKey && k === 'x') { e.preventDefault(); if (Clipboard.cut(sel.stack, sel.index)) Drag.select(null); return; }
+    if (e.ctrlKey && k === 'd') { e.preventDefault(); Clipboard.duplicate(sel.stack, sel.index); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      if (Clipboard.remove(sel.stack, sel.index)) Drag.select(null);
+    }
+    return;
+  }
   if (Pages.current !== 'talk') return;
 
   if (e.key === '/' && !e.ctrlKey && !e.altKey) { e.preventDefault(); Picker.open(); return; }
 
-  const sel = Drag.getSelected();
+  const sel = inCanvas('canvas');
   const key = e.key.toLowerCase();
   if (e.ctrlKey && key === 'c') {
     if (sel && sel.block) { e.preventDefault(); Clipboard.copy(sel.block); }

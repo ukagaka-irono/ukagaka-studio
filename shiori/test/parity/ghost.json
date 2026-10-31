@@ -452,6 +452,33 @@
         { "type": "say", "who": 1, "text": "{表情:11}\\s[9]{ないしるし:1}", "nl": 0, "surface": 10 },
         { "type": "say", "who": 0, "text": "ふつう", "nl": 0 }
       ]
+    },
+    {
+      "id": "p35", "kind": "event", "event": "OnP35",
+      "_": "プラグインに伝える。情報は , で区切って順に渡す（まわりの空白は取り、空のものも残す）。角かっこと改行は落とし、\" をふくむものだけ \"…\" でくくる。プラグインかイベント名が空なら何もしない",
+      "blocks": [
+        { "type": "plugin", "plugin": "GetWindowTitle", "event": "OnGetWindowTitle", "refs": "" },
+        { "type": "plugin", "plugin": "うかてん", "event": "OnGetWeatherInfo", "refs": "forecast, ,text" },
+        { "type": "plugin", "plugin": "Wallet of Unyu", "event": "OnWalletOfUnyu", "refs": "set,100,\"お\"[こ]づかい" },
+        { "type": "plugin", "plugin": "a,b[c]", "event": "OnX", "refs": { "type": "join", "a": "x", "b": 1 } },
+        { "type": "plugin", "plugin": "", "event": "OnX", "refs": "でない" },
+        { "type": "plugin", "plugin": "でない", "event": "", "refs": "" }
+      ]
+    },
+    {
+      "id": "p36", "kind": "event", "event": "OnP36",
+      "_": "タグの引数にする文字。選択肢・リンク・音の , や \" は \"…\" でくくり、行き先の script: とブラウザの http(s) でないものは出さない。終わりに 1 つ余った \\ は落とし、名前の \" も落とす",
+      "blocks": [
+        { "type": "choice", "label": "Yes, please", "target": "next" },
+        { "type": "choice", "label": "a\"b", "target": "next" },
+        { "type": "choice", "label": "でない", "target": "script:\\-" },
+        { "type": "link", "label": "でない", "url": " Script:\\-" },
+        { "type": "link", "label": "l", "url": "https://example.com/?a=1,2" },
+        { "type": "open_browser", "url": "file:///C:/でない" },
+        { "type": "open_browser", "url": "\"https://example.com" },
+        { "type": "raise", "event": "OnX", "a": "y\\" },
+        { "type": "raise", "event": "OnY", "a": "z\\\\" }
+      ]
     }
   ]
 }

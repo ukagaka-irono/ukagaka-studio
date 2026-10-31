@@ -107,11 +107,26 @@ static void FinishClose(HWND hwnd) {
     DestroyWindow(hwnd);
 }
 
+// 保存が終わらない・できなかったとき。「はい」なら保存しないで閉じ、「いいえ」なら閉じずにもどる
+static void AskCloseWithoutSave(HWND hwnd, bool failed) {
+    g_waitingSave = false;
+    KillTimer(hwnd, kSaveTimeoutTimer);
+    int answer = MessageBoxW(hwnd,
+                             failed ? Tr(L"保存できませんでした。\n保存しないで終了しますか？",
+                                         L"The project could not be saved.\nClose without saving?")
+                                    : Tr(L"保存が終わりません。\n保存しないで終了しますか？",
+                                         L"Saving is taking too long.\nClose without saving?"),
+                             AppNameW(),
+                             MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2);
+    if (answer == IDYES) FinishClose(hwnd);
+}
+
 static void AskThenClose(HWND hwnd) {
     if (g_closing || !g_web.ready()) { FinishClose(hwnd); return; }
 
+    // 打っている最中の欄も、離れたことにしてから見る（欄を離れるまで、プロジェクトに入らないものがあるので）
     g_web.ExecuteScript(
-        L"(function(){try{return IKAGA.Model.dirty?1:0}catch(e){return 0}})()",
+        L"(function(){try{return IKAGA.Dialog.isDirty()?1:0}catch(e){try{return IKAGA.Model.dirty?1:0}catch(e2){return 0}}})()",
         [hwnd](const std::wstring& result) {
             bool dirty = result.find(L'1') != std::wstring::npos;
             if (!dirty) { FinishClose(hwnd); return; }
@@ -125,7 +140,7 @@ static void AskThenClose(HWND hwnd) {
             if (answer == IDNO) { FinishClose(hwnd); return; }
 
             g_waitingSave = true;
-            SetTimer(hwnd, kSaveTimeoutTimer, 5000, NULL);   // 保存が終わらなくても閉じる
+            SetTimer(hwnd, kSaveTimeoutTimer, 5000, NULL);   // 保存が終わらないときは、閉じてよいかたずねる
             g_web.ExecuteScript(L"IKAGA.Dialog.requestSaveAndClose()", NULL);
         });
 }
@@ -150,7 +165,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
 
         case WM_TIMER:
-            if (wp == kSaveTimeoutTimer && g_waitingSave) FinishClose(hwnd);
+            if (wp == kSaveTimeoutTimer && g_waitingSave) AskCloseWithoutSave(hwnd, false);
             return 0;
 
         case WM_CLOSE:
@@ -219,6 +234,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int) {
 
     g_web.onMessage = [](const std::wstring& message) {
         if (message == L"saved" && g_waitingSave) FinishClose(g_hwnd);
+        if (message == L"save_failed" && g_waitingSave) AskCloseWithoutSave(g_hwnd, true);
         // 画面が明るい／暗いを切りかえたら、タイトルバーもそろえる（core/theme.js）
         if (message == L"theme:dark" || message == L"theme:light") SetDarkTitleBar(g_hwnd, message == L"theme:dark");
         // 画面の言語（main.js が起動のたびに知らせる）。次に起動したとき、画面が出る前のメッセージにも使うので覚えておく

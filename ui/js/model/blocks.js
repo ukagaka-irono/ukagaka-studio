@@ -57,6 +57,29 @@ export const EVENTS = [
   [t('SAORI の答えがとどいたとき'), 'OnSaoriDone'],
   [t('答えが返ってきたとき'), 'OnUserInput'],
   [t('答えをやめたとき'), 'OnUserInputCancel'],
+  // SSP のプラグインから届くイベント（3 つ目はまとまりの名前。一覧では 1 つにまとめて出します）。
+  // どのプラグインに何を伝えると届くのかは docs/plugins.md にあります
+  ...[
+    [t('いちばん前のウィンドウの名前がとどいたとき（GetWindowTitle）'), 'OnRecieveGetWindowTitle'],
+    [t('財布から答えがとどいたとき（Wallet of Unyu）'), 'OnWalletOfUnyu'],
+    [t('今日の日記がとどいたとき（DBdiary）'), 'OnRecieveCheckWrittenDiary'],
+    [t('天気の情報がとどいたとき（うかてん）'), 'OnGetWeatherInfo'],
+    [t('えらんである地域がとどいたとき（うかてん）'), 'OnGetSavedArea'],
+    [t('プラグインの版がとどいたとき（うかてん）'), 'OnGetPluginVersion'],
+    [t('プラグインが話そうとしたとき（うかてん・うかどんゅう・すどはいくゅう）'), 'OnPluginExec'],
+    [t('お知らせがとどいたとき（うかどんゅう）'), 'OnukadonyuSSTP'],
+    [t('お知らせがとどいたとき（すどはいくゅう）'), 'OnsudohaikuyuSSTP'],
+    [t('Nostr の投稿がとどいたとき（Nostrゅう）'), 'OnNostr'],
+    [t('バルーンをえらぶ画面を出したとき（BalloonSelector）'), 'OnBalloonSelectMenu'],
+    [t('バルーンがえらばれたとき（BalloonSelector）'), 'OnBalloonSelectExec'],
+    [t('バルーンをえらばずに閉じたとき（BalloonSelector）'), 'OnBalloonSelectCancel'],
+    [t('タイムラインを開いたとき（CharameLNetwork）'), 'OnCharameLNetwork'],
+    [t('スタンプ帳の中身がとどいたとき（スタンプ帳）'), 'OnStampInfo'],
+    [t('メッセージが送られたとき（UkagakaGhostMessenger）'), 'OnUkagakaGhostMessenger_Ringing'],
+    [t('メッセージのようすがとどいたとき（UkagakaGhostMessenger）'), 'OnUkagakaGhostMessenger_Response'],
+    [t('メッセージの予約ができたとき（UkagakaGhostMessenger）'), 'OnUkagakaGhostMessenger_SendComplete'],
+    [t('メッセージの予約に失敗したとき（UkagakaGhostMessenger）'), 'OnUkagakaGhostMessenger_SendFailure'],
+  ].map(([label, event]) => [label, event, t('プラグインから')]),
   [t('その他（自分で書く）'), '__custom__'],
 ];
 
@@ -96,6 +119,22 @@ export const EVENT_REFS = {
   OnSaoriDone: [t('よんだファイル名'), t('届いた答え')],
   OnUserInput: [t('たずねたときのID'), t('入力された内容')],
   OnUserInputCancel: [t('たずねたときのID'), t('close＝閉じた / timeout＝時間切れ')],
+  // プラグインから（docs/plugins.md）
+  OnRecieveGetWindowTitle: [t('ウィンドウの名前')],
+  OnWalletOfUnyu: [t('したこと(set/get/menu)'), t('残高')],
+  OnRecieveCheckWrittenDiary: [t('今日の日記(notExist=無い / notWrite=書いていない)')],
+  OnGetWeatherInfo: [t('たずねた情報')],
+  OnGetSavedArea: [t('地域の番号'), t('地域の名前')],
+  OnGetPluginVersion: [t('版')],
+  OnPluginExec: ['Version=…', 'From=' + t('プラグイン名'), 'Script=…', 'Event=…'],
+  OnNostr: ['Nostr/0.3', t('種類(note)'), t('投稿の中身'), t('名前'), t('表示名'), t('アイコンの URL')],
+  OnBalloonSelectMenu: [t('ページ(0から)')],
+  OnBalloonSelectExec: [t('バルーンの名前')],
+  OnStampInfo: [t('スタンプの数'), t('自分のスタンプがあるか(1=ある)'), t('プラグインの場所'), t('すべてのスタンプ'), t('動いているか(1=動いている)')],
+  OnUkagakaGhostMessenger_Ringing: [t('送られたメッセージ(ゴースト・送り手・メッセージID…)')],
+  OnUkagakaGhostMessenger_Response: [t('ゴースト'), t('送り手のID'), t('メッセージID'), t('送られた回数'), t('送られた時刻'), t('読まれた時刻(0=まだ)')],
+  OnUkagakaGhostMessenger_SendComplete: [t('send＝予約した / cancel＝取り消した'), t('送り手のID'), t('メッセージID')],
+  OnUkagakaGhostMessenger_SendFailure: [t('失敗したわけ'), t('送り手のID'), t('メッセージID')],
 };
 
 const WHO = [[t('さくら'), 0], [t('うにゅう'), 1]];
@@ -112,6 +151,8 @@ function def(o) {
   o.parts = parseSpec(o.spec || '');
   return o;
 }
+// 辞書のブロック（YAYA と 1 対 1。model/yblocks.js）も、同じ表に入れて同じように描きます
+export const registerBlock = (o) => def(o);
 
 // "%who が %text と話す" -> [{lbl}, {arg:'who'}, ...]
 function parseSpec(spec) {
@@ -139,7 +180,11 @@ export const defKey = function (block) {
   if (OP_KEYED[block.type] && block.op != null) return block.type + '#' + block.op;
   return block.type;
 };
-export const getDef = function (block) { return DEFS[defKey(block)] || null; };
+export const getDef = function (block) {
+  const key = defKey(block);
+  // constructor や __proto__ のような名前で、Object の中身を返さないように（人からもらったファイルの type）
+  return typeof key === 'string' && Object.hasOwn(DEFS, key) ? DEFS[key] : null;
+};
 
 export const createBlock = function (key) {
   const d = DEFS[key];
@@ -455,6 +500,17 @@ def({
     a: { kind: 'input', mode: 'text', def: '', long: true },
   },
 });
+// SSP のプラグインにイベントを伝える（\![raiseplugin,…]）。プラグインは名前か id で指します。
+// 情報は , で区切ると、いくつでも付けられます。答えはプラグインから、イベントとして返ってきます（EVENTS の「プラグインから」）
+def({
+  type: 'plugin', cat: 'control', shape: 'stack',
+  spec: t('プラグイン %plugin にイベント %event を伝える（情報 %refs を付ける）'),
+  args: {
+    plugin: { kind: 'input', mode: 'text', def: 'GetWindowTitle', long: true },
+    event: { kind: 'input', mode: 'text', def: 'OnGetWindowTitle', long: true },
+    refs: { kind: 'input', mode: 'text', def: '', long: true },
+  },
+});
 def({
   type: 'change_ghost', cat: 'control', shape: 'cap',
   spec: t('%name に交代する'),
@@ -670,7 +726,7 @@ export const PALETTE = {
   talk: ['say', 'newline', 'click_wait', 'clear', 'choice', 'link', 'communicate', 'raw'],
   looks: ['surface', 'chara', 'anim', 'dress', 'balloon', 'sound'],
   control: ['wait', 'if', 'if_else', 'repeat', 'while', 'random_one', 'serial', 'call',
-    'call_group', 'talk_interval', 'ask', 'later', 'raise', 'update', 'saori_call', 'yaya_call',
+    'call_group', 'talk_interval', 'ask', 'later', 'raise', 'plugin', 'update', 'saori_call', 'yaya_call',
     'open_browser', 'end', 'close', 'change_ghost'],
   variables: [{ button: 'add-var', label: t('＋ 変数をつくる') }, '@vars', 'set', 'change'],
   operators: ['arith#+', 'arith#-', 'arith#*', 'arith#/', 'arith#%',

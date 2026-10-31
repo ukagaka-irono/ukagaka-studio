@@ -36,6 +36,13 @@ std::wstring FileNameOf(const std::wstring& path) {
     return p == std::wstring::npos ? path : path.substr(p + 1);
 }
 
+bool IsLocalPath(const std::wstring& path) {
+    if (path.size() < 3) return false;
+    wchar_t d = path[0];
+    bool letter = (d >= L'A' && d <= L'Z') || (d >= L'a' && d <= L'z');
+    return letter && path[1] == L':' && (path[2] == L'\\' || path[2] == L'/');
+}
+
 bool PathExists(const std::wstring& path) {
     return GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
 }
@@ -79,7 +86,23 @@ bool WriteBinaryFile(const std::wstring& path, const std::string& data) {
     DWORD written = 0;
     BOOL ok = data.empty() ? TRUE : WriteFile(h, data.c_str(), (DWORD)data.size(), &written, NULL);
     CloseHandle(h);
-    return ok != FALSE;
+    return ok != FALSE && written == (DWORD)data.size();
+}
+
+bool WriteFileReplacing(const std::wstring& path, const std::string& data) {
+    EnsureDir(ParentDir(path));
+    std::wstring tmp = path + L".saving";
+    HANDLE h = CreateFileW(tmp.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    DWORD written = 0;
+    BOOL ok = data.empty() ? TRUE : WriteFile(h, data.c_str(), (DWORD)data.size(), &written, NULL);
+    ok = ok && written == (DWORD)data.size() && FlushFileBuffers(h);
+    CloseHandle(h);
+    if (!ok || !MoveFileExW(tmp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+        DeleteFileW(tmp.c_str());
+        return false;
+    }
+    return true;
 }
 
 bool DeleteFileIfExists(const std::wstring& path) {

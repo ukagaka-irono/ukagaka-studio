@@ -60,6 +60,12 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
         if (id < 0 || id > 127) continue;
 
         std::string interval = a["interval"].asStr("never");
+        // 使う字は英小文字・数字・+ ・, だけ（bind+random,5 など）。改行や { } で surfaces.txt に行を足せないように
+        for (size_t k = 0; k < interval.size(); k++) {
+            char c = interval[k];
+            if (c >= 'A' && c <= 'Z') interval[k] = (char)(c - 'A' + 'a');
+            else if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == ',')) { interval = "never"; break; }
+        }
         if (interval.empty()) interval = "never";
         // "random" と "talk" は回数が要る（random,4 のように書く）
         if (interval == "random" || interval == "talk") {
@@ -151,17 +157,17 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
             std::string shape = one["shape"].asStr("rect");
             int x1 = one["x1"].asInt(0), y1 = one["y1"].asInt(0);
             int x2 = one["x2"].asInt(0), y2 = one["y2"].asInt(0);
-            char cbuf[320];
+            // 名前の長さは決まっていないので、決まった大きさの入れものには書かず、std::string でつなぐ
+            // （長い名前で書き出しが止まらないように）
+            const std::string head = "animation" + NumToStr(id);
+            const std::string at = "," + NumToStr(x1) + "," + NumToStr(y1);
 
             if (shape == "ellipse") {
-                sprintf_s(cbuf, "animation%d.collisionex%d,%s,ellipse,%d,%d,%d,%d\r\n",
-                          id, cx++, name.c_str(), x1, y1, x2, y2);
-                body += cbuf;
+                body += head + ".collisionex" + NumToStr(cx++) + "," + name + ",ellipse" + at + "," +
+                        NumToStr(x2) + "," + NumToStr(y2) + "\r\n";
             } else if (shape == "circle") {
                 if (x2 <= 0) continue;                         // 半径 0 は触れない
-                sprintf_s(cbuf, "animation%d.collisionex%d,%s,circle,%d,%d,%d\r\n",
-                          id, cx++, name.c_str(), x1, y1, x2);
-                body += cbuf;
+                body += head + ".collisionex" + NumToStr(cx++) + "," + name + ",circle" + at + "," + NumToStr(x2) + "\r\n";
             } else if (shape == "polygon") {
                 // "100,100 200,300 50,200" のように書いてもらったものを数だけ取り出す
                 std::vector<int> nums;
@@ -183,9 +189,7 @@ std::string AnimationLines(const JValue& project, int surfaceId) {
                 for (size_t n = 0; n < nums.size(); n++) line += "," + NumToStr(nums[n]);
                 body += line + "\r\n";
             } else {
-                sprintf_s(cbuf, "animation%d.collision%d,%d,%d,%d,%d,%s\r\n",
-                          id, c++, x1, y1, x2, y2, name.c_str());
-                body += cbuf;
+                body += head + ".collision" + NumToStr(c++) + at + "," + NumToStr(x2) + "," + NumToStr(y2) + "," + name + "\r\n";
             }
         }
 

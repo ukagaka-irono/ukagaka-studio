@@ -6,6 +6,9 @@
 
 import { getDef } from './blocks.js';
 import { Model } from './model.js';
+import { parseExpr } from './yayatext.js';
+import { dicIssues, riskyCalls, dicDefines } from './dics.js';
+import { eventNameOk } from './yaya.js';
 import { t } from '../i18n/i18n.js';
 
 const Lint = {};
@@ -121,6 +124,10 @@ Lint.run = function (project, ctx = {}) {
     if (s.kind === 'event' && !String(s.event || '').trim()) {
       issue(out, 'error', t('イベント名が空のかたまりがあります'),
         t('イベントをえらぶか、名前を直接入力してください。'), s);
+    } else if (s.kind === 'event' && !eventNameOk(String(s.event))) {
+      // YAYA の関数名にできない名前・しくみや yaya_base の関数と同じ名前は、書き出さない（model/yaya.js）
+      issue(out, 'warn', t('イベント名「{event}」は使えないので、このかたまりは書き出しません', { event: s.event }),
+        t('On ではじまる、記号の無い名前にしてください。Studio.〜 や yaya_base の関数と同じ名前は使えません。'), s);
     }
     if (s.kind === 'event' && s.event === 'OnStudioAlarm') {
       const h = Number(s.hour), m = Number(s.minute);
@@ -277,6 +284,12 @@ Lint.run = function (project, ctx = {}) {
               t('OnBoot のようなイベント名を入れてください。'), s, b);
           }
           break;
+        case 'plugin':
+          if (isEmptyText(b.plugin) || isEmptyText(b.event)) {
+            issue(out, 'warn', t('{title}に、プラグインかイベント名が空の「プラグインに伝える」ブロックがあります', { title }),
+              t('プラグイン名（か id）と、そのプラグインが受けつけるイベント名を入れてください。'), s, b);
+          }
+          break;
         case 'open_browser':
           if (isEmptyText(b.url)) {
             issue(out, 'warn', t('{title}に、ひらく先が空のブロックがあります', { title }), '', s, b);
@@ -327,6 +340,15 @@ Lint.run = function (project, ctx = {}) {
           } else if (isEmptyText(b.code)) {
             issue(out, 'warn', t('{title}に、中身が空の YAYA の式があります', { title }),
               t('空の式は、いつも空の値になります。'), s, b);
+          } else {
+            // YAYA の式として読めるか（段階 8-1。model/yayatext.js）。読めないと、YAYA が辞書をまるごと読めなくなる
+            try {
+              parseExpr(String(b.code));
+            } catch (e) {
+              issue(out, 'warn', t('{title}の YAYA の式「{code}」が、YAYA として読めません', { title, code: String(b.code) }),
+                e.detail ? t('「{at}」のあたりを直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。', { at: e.detail })
+                  : t('式を直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。'), s, b);
+            }
           }
           break;
         case 'update':
@@ -379,6 +401,27 @@ Lint.run = function (project, ctx = {}) {
           break;
       }
     });
+  }
+
+  // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
+  dicIssues(project, (level, message, hint, where) => {
+    issue(out, level, message, hint);
+    if (where) Object.assign(out[out.length - 1], where);   // { dic, line }
+  }, {
+    blockEvents: (project.scripts || []).filter((s) => s.kind === 'event' && !s.disabled).map((s) => s.event),
+    linked: !!String((project.meta || {}).ghostDir || ''),
+  });
+
+  // ---- このパソコンでプログラムやファイルにさわる YAYA（人からもらったプロジェクトに入っていたら、気づけるように）
+  for (const r of Lint.riskyCode(project)) {
+    const hint = t('「ためす」でも、書き出したゴーストでも本当に動きます。人からもらったプロジェクトなら、中身を確かめてから「ためす」や書き出しをしてください。');
+    if (r.dic) {
+      issue(out, 'warn', t('辞書「{dic}」の {line} 行目で、プログラムやファイルにさわる関数「{name}」をよんでいます', r), hint);
+      Object.assign(out[out.length - 1], { dic: r.dic, line: r.line });
+    } else {
+      issue(out, 'warn', t('{title}の YAYA で、プログラムやファイルにさわる関数「{name}」をよんでいます',
+        { title: Model.scriptTitle(r.script), name: r.name }), hint, r.script, r.block);
+    }
   }
 
   // ---- 設定まわり
@@ -475,6 +518,41 @@ Lint.missingEvents = function (project, handwritten = []) {
   const out = COMMON_EVENTS.filter((e) => !have.has(e.event) && !hand.has(e.event))
     .map((e) => ({ kind: 'event', event: e.event, builtin: e.builtin }));
   if (!scripts.some((s) => s.kind === 'talk')) out.push({ kind: 'talk' });
+  return out;
+};
+
+/**
+ * プロジェクトの中で、このパソコンでプログラムを動かす・ファイルを書きかえるなどの関数（RISKY_FUNCTIONS）をよんでいるところ。
+ * 辞書は { name, dic, line }、ブロック（YAYA の式・YAYA の関数をよぶ）は { name, script, block }。
+ * チェックタブと、「ためす」の前の確かめ（panels/run.js）が使います
+ */
+Lint.riskyCode = function (project) {
+  const out = [];
+  const dics = (project && Array.isArray(project.dics)) ? project.dics : [];
+  const defines = dicDefines(dics.map((d) => d && d.text));
+  for (const d of dics) {
+    if (!d) continue;
+    for (const r of riskyCalls(d.text, defines)) out.push({ name: r.name, dic: d.name, line: r.line });
+  }
+  // ブロックは、ブロックの形（args）にない欄や、無効にしたものもふくめて、ぜんぶ見る
+  // （人からもらったファイルには何でも書けて、無効にしたトークも「よぶ」ブロックからは動くため）
+  const scripts = (project && Array.isArray(project.scripts)) ? project.scripts : [];
+  for (const s of scripts) {
+    if (!s || typeof s !== 'object') continue;
+    const seen = new Set();
+    const visit = (v) => {
+      if (!v || typeof v !== 'object' || seen.has(v)) return;
+      seen.add(v);
+      if (Array.isArray(v)) { v.forEach(visit); return; }
+      if (v.type === 'yaya_expr' && typeof v.code === 'string') {
+        for (const r of riskyCalls(v.code, defines)) out.push({ name: r.name, script: s, block: v });
+      } else if (v.type === 'yaya_call' && typeof v.name === 'string') {
+        for (const r of riskyCalls(v.name, defines)) out.push({ name: r.name, script: s, block: v });
+      }
+      for (const k of Object.keys(v)) visit(v[k]);
+    };
+    visit(s);
+  }
   return out;
 };
 

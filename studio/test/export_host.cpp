@@ -87,6 +87,13 @@ int wmain(int argc, wchar_t** argv) {
         return 0;
     }
 
+    // export_host --foreign <フォルダ>…
+    //   それぞれが、ほかの人のゴーストのフォルダか（1 / 0。IsForeignGhostFolder）
+    if (std::wstring(argv[1]) == L"--foreign") {
+        for (int i = 2; i < argc; i++) printf("%d\n", IsForeignGhostFolder(argv[i]) ? 1 : 0);
+        return 0;
+    }
+
     // export_host --shell <フォルダ>
     //   いまあるシェルのフォルダを読みこんだ結果を出す（番号・ファイル・大きさ、組み合わせだけの番号）
     if (std::wstring(argv[1]) == L"--shell") {
@@ -136,6 +143,22 @@ int wmain(int argc, wchar_t** argv) {
         for (size_t i = 0; i < info.dics.size(); i++) printf("dic: %s\n", info.dics[i].c_str());
         for (size_t i = 0; i < info.functions.size(); i++) printf("function: %s\n", info.functions[i].c_str());
         for (size_t i = 0; i < info.problems.size(); i++) printf("problem: %s %s\n", info.problems[i].c_str(), info.problemDetail.c_str());
+        return 0;
+    }
+
+    // export_host --dics <ゴーストのフォルダ>
+    //   手書きの辞書の中身を、プロジェクトに読みこむのと同じに出す（段階 8-6）。"== 名前" の行のあとに中身
+    if (std::wstring(argv[1]) == L"--dics") {
+        if (argc < 3) { printf("usage: export_host --dics <folder>\n"); return 1; }
+        std::vector<YayaDicFile> files;
+        std::string error;
+        if (!ReadYayaGhostDics(argv[2], files, error)) { printf("error: %s\n", error.c_str()); return 5; }
+        for (size_t i = 0; i < files.size(); i++) {
+            fwrite("== ", 1, 3, stdout);
+            fwrite(files[i].name.data(), 1, files[i].name.size(), stdout);
+            fwrite("\n", 1, 1, stdout);
+            fwrite(files[i].text.data(), 1, files[i].text.size(), stdout);
+        }
         return 0;
     }
 

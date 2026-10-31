@@ -4,6 +4,8 @@ import { MOUSE_EVENTS } from '../model/blocks.js';
 import { Model } from '../model/model.js';
 import { Player } from '../model/player.js';
 import { programOf, toYaya } from '../model/yaya.js';
+import { dicFunctionNames, dicIssues } from '../model/dics.js';
+import { Lint } from '../model/lint.js';
 import { $ } from '../core/dom.js';
 import { api } from '../core/api.js';
 import { toast } from '../core/toast.js';
@@ -26,13 +28,25 @@ function renderTargets() {
     o.value = s.id;
     sel.appendChild(o);
   }
-  if (!sel.childElementCount) {
+  // プロジェクトの辞書の関数（段階 8-7。「call:関数の名前」で動かす）
+  const names = dicFunctionNames(Model.project);
+  if (names.length) {
+    const group = Render.el('optgroup');
+    group.label = t('辞書の関数');
+    for (const n of names) {
+      const o = Render.el('option', null, n);
+      o.value = 'call:' + n;
+      group.appendChild(o);
+    }
+    sel.appendChild(group);
+  }
+  if (!sel.querySelector('option')) {
     const o = Render.el('option', null, t('（まだブロックがありません）'));
     o.value = '';
     sel.appendChild(o);
   }
   // 前に選んでいたものが残っていればそれを、なければ先頭を選ぶ
-  if (prev && Model.project.scripts.some((s) => s.id === prev)) sel.value = prev;
+  if (prev && Array.from(sel.querySelectorAll('option')).some((o) => o.value === prev)) sel.value = prev;
   else sel.selectedIndex = 0;
 }
 
@@ -71,19 +85,72 @@ async function runPreview(script) {
   return previewRequest(script.id, refsFor(script));
 }
 
-/** scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす） */
+/**
+ * プログラムを動かす・ファイルを書きかえるなどの関数（Lint.riskyCode）をよぶ YAYA が入っていたら、「ためす」の前に一度だけ確かめる。
+ * 「ためす」も本物の yaya.dll で動かすので、人からもらったプロジェクトのコードが、このパソコンでそのまま動くため。
+ * よんでいる関数が変わったら、もう一度たずねます
+ */
+let allowedCode = '';
+function codeAllowed(install = false) {
+  const risky = Lint.riskyCode(Model.project);
+  if (!risky.length) return true;
+  const names = [...new Set(risky.map((r) => r.name))].sort().join(', ');
+  const key = (Model.project.meta || {}).name + '\n' + names;
+  if (allowedCode === key) return true;
+  const ok = confirm(install
+    ? t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。SSP に入れると本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、入れてください。SSP に入れますか？', { names })
+    : t('このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？', { names }));
+  if (ok) allowedCode = key;
+  return ok;
+}
+
+/**
+ * scriptId はかたまりの id か「event:イベント名」（SSP と同じえらびかたで、そのイベントを動かす）か「call:関数の名前」。
+ * プロジェクトの辞書もいっしょに渡し（段階 8-7）、辞書にあるイベントは、書き出したゴーストと同じく辞書の関数を動かします
+ */
 function previewRequest(scriptId, refs) {
+  if (!codeAllowed()) return Promise.reject(new Error(t('ためすのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。')));
   const meta = Model.project.meta || {};
+  const handwritten = dicFunctionNames(Model.project);
+  if (scriptId.startsWith('event:') && handwritten.includes(scriptId.slice(6))) scriptId = 'call:' + scriptId.slice(6);
   return api('/api/preview', {
     method: 'POST',
     body: {
-      dic: toYaya(programOf(Model.project)),
+      dic: toYaya(programOf(Model.project), { handwritten }),
+      dics: (Model.project.dics || []).map((d) => ({ name: d.name, text: d.text })),
       scriptId,
       refs,
       vars: Session.vars,
       sys: { ghostName: meta.name || '', shellName: 'master' },
     },
   });
+}
+
+/** プロジェクトの辞書の関数を動かす（段階 8-7。「実行」タブの「辞書の関数」と、辞書の画面のかたまりの ▶） */
+/**
+ * 「ためす」がうまくいかなかったときの文。辞書にチェックタブの ⛔（かぶった関数・読めない行など）があると、
+ * YAYA は辞書をまるごと読まず「答えがない」としか言えないので、そのことを足します
+ */
+function previewError(e) {
+  let broken = 0;
+  dicIssues(Model.project, (level) => { if (level === 'error') broken++; });
+  return broken ? t('{message}（辞書にまちがいがあると、YAYA は辞書をまるごと読みません。チェックタブを見てください）', { message: e.message }) : e.message;
+}
+
+async function runDicFunction(name) {
+  $('#run-target').value = 'call:' + name;
+  Pages.show('talk');
+  Tabs.switchTab('run');
+  let res;
+  try {
+    res = await previewRequest('call:' + name, []);
+  } catch (e) {
+    const message = previewError(e);
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message });
+    toast(message, true);
+    return;
+  }
+  showResult(res);
 }
 
 async function runScript(script) {
@@ -95,8 +162,9 @@ async function runScript(script) {
   try {
     res = await runPreview(script);
   } catch (e) {
-    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message: e.message });
-    toast(e.message, true);
+    const message = previewError(e);
+    $('#script-preview').textContent = t('（ためせませんでした: {message}）', { message });
+    toast(message, true);
     return;
   }
   showResult(res);
@@ -111,7 +179,7 @@ async function runEvent(event, refs) {
   try {
     res = await previewRequest('event:' + event, refs || []);
   } catch (e) {
-    toast(e.message, true);
+    toast(previewError(e), true);
     return;
   }
   const where = refs && refs[4] ? `（${refs[4]}）` : '';
@@ -129,7 +197,7 @@ async function drawTalks(times = 100) {
   try {
     res = await previewRequest('draw:' + times, []);
   } catch (e) {
-    toast(e.message, true);
+    toast(previewError(e), true);
     return;
   }
   const draws = res.draws || {};
@@ -239,10 +307,12 @@ async function ghostLog(action) {
 }
 
 function init() {
-  provide({ runScript });
+  provide({ runScript, runDicFunction });
 
   $('#btn-draw').addEventListener('click', () => drawTalks(100));
   $('#btn-run').addEventListener('click', () => {
+    const value = $('#run-target').value;
+    if (value.startsWith('call:')) { runDicFunction(value.slice(5)); return; }
     const s = currentScript();
     if (s) runScript(s);
     else toast(t('実行するかたまりがありません'), true);
@@ -260,4 +330,4 @@ function init() {
   $('#btn-log-clear').addEventListener('click', () => ghostLog('clear'));
 }
 
-export const Run = { init, render: renderTargets, currentScript, refsFor, runPreview, runScript, runEvent, renderVars };
+export const Run = { init, codeAllowed, render: renderTargets, currentScript, refsFor, runPreview, runScript, runEvent, renderVars };

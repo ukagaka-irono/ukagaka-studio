@@ -54,7 +54,7 @@ JValue ReadConfig(const std::wstring& path) {
 void WriteConfig(const std::wstring& path, const std::string& key, const std::string& value) {
     JValue cfg = ReadConfig(path);
     cfg.set(key, JValue::makeStr(value));
-    WriteBinaryFile(path, cfg.dump(2));
+    WriteFileReplacing(path, cfg.dump(2));
 }
 
 std::string Unquote(const std::string& raw) {
@@ -128,7 +128,7 @@ JValue Api::LoadConfig() const { return ReadConfig(configPath_); }
 void Api::SaveConfig(const std::string& key, const JValue& value) {
     JValue cfg = ReadConfig(configPath_);
     cfg.set(key, value);
-    WriteBinaryFile(configPath_, cfg.dump(2));
+    WriteFileReplacing(configPath_, cfg.dump(2));
 }
 
 // ------------------------------------------------------------------ 配信
@@ -174,6 +174,7 @@ const Api::Route Api::kRoutes[] = {
     // api_export.cpp
     { "POST", "/api/export",         &Api::Export },
     { "POST", "/api/yaya/inspect",   &Api::InspectYaya },
+    { "POST", "/api/yaya/dics",      &Api::ReadYayaDics },
     { "POST", "/api/shell/import",   &Api::ImportShell },
     { "POST", "/api/reveal",         &Api::Reveal },
     // api_ssp.cpp

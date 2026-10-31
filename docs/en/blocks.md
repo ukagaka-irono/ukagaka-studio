@@ -98,6 +98,10 @@ The same goes for mouse filters.
 In `say` text, `\` is turned into `\\` and line breaks into `\n` automatically.
 A `%` such as `%username` passes through, so SSP's substitutions work.
 
+When the text or target of a choice or link contains `,` or `"`, it is wrapped in `"…"` so it stays one argument (`\q["Yes, please",T]`).
+Choices and links whose target starts with `script:`, and "open in the browser" with anything other than `http://` or `https://`, are not output
+(picking or opening them would run Sakura Script or files on this computer).
+
 `say` text (when it is typed text) can also hold marks: `{face:1}` changes the expression (`\s[1]`) and `{wait:500}` pauses for 500 ms
 (`\_w[500]`). The Japanese `{表情:1}` / `{待つ:500}` work the same, and a full-width colon is fine. In the editor, insert them with **☺**
 next to the speech field. Marks are split into safe commands when translated to YAYA, so a `\` in the text is still never passed through
@@ -200,6 +204,7 @@ so you can write things like “the wings can be touched only while they flap”
 | ask, and put the answer in V | `{"type":"ask","into":"V","initial":""}` → `\![open,inputbox,ikaga:V,-1,…]` |
 | call ◯ in N seconds | `{"type":"later","sec":30,"name":"talk name"}` |
 | raise event E | `{"type":"raise","event":"E","a":""}` → `\![raise,E,…]` |
+| send event E to plugin P | `{"type":"plugin","plugin":"P","event":"E","refs":"a,b"}` → `\![raiseplugin,P,E,a,b]` |
 | switch to ghost ◯ | `{"type":"change_ghost","name":"…"}` → `\![change,ghost,…]` |
 | open URL in the browser | `{"type":"open_browser","url":"…"}` → `\![open,browser,…]` |
 | run a network update | `{"type":"update"}` → `\![updatebymyself]` |
@@ -230,6 +235,12 @@ With the name `random`, it switches to a random installed ghost.
 
 **Raise event** (`raise`) is for handing over to another hat block.
 What you put in “info” arrives as `Reference0`.
+
+**Send to plugin** (`plugin`) calls a plugin installed in SSP (weather forecast, diary, stamp book and so on).
+Name the plugin by its name or its id. Separate “info” with `,` to pass as many values as you like
+(spaces around each are trimmed, empty ones are passed in their place, and only values containing `"` are wrapped in `"…"`).
+The plugin answers with an event: look under “From plugins” in the event list of the hat block.
+Which plugin takes what, and what comes back, is in [plugins.md](plugins.md).
 
 **Network update** (`update`) asks SSP to “go and check for something new”.
 If the ghost's **Update URL** (`homeurl` in `descript.txt`) is empty, nothing happens,
@@ -340,3 +351,48 @@ Reference 0 of `OnUpdateFailure` is `timeout` / `md5 miss` / `artificial` (stopp
 
 If you write no blocks for them, the ghost says a word **only when the update succeeded** and **when it failed**
 (it stays quiet about “nothing changed” and the steps in between, which would get noisy).
+
+---
+
+## Dictionary blocks (the Dictionaries page)
+
+The blocks on the Dictionaries page (stage 8) are separate from the blocks above and map **1:1 to YAYA's syntax** (`ui/js/model/yblocks.js`).
+They are not stored in `ghost.json`; they follow the project's YAYA dictionaries (the text in `project.dics`), and changing a block rewrites the
+dictionary text, pretty-printed. Numbers, strings, here-documents and variable or function names are written straight into a slot as YAYA text
+(`"hello"`, `10`, `_x`). Slot text is read as a YAYA expression, so writing `"a" + _b` and building it from operator blocks give the same thing.
+
+| Block | type | YAYA |
+|---|---|---|
+| function %name choose by %mode (hat) | `y_func` | `name : mode { … }` |
+| %value as an output candidate | `y_out` | `value` (`parallel value` and `void value` can be chosen too) |
+| -- split here and join the outputs before and after | `y_sep` | `--` |
+| %target %op %value | `y_assign` | `_x = value` (`:=` `+=` `-=` `*=` `/=` `%=` `+:=` `-:=` `*:=` `/:=` `%:=` `,=`) |
+| %target ++ / -- | `y_incdec` | `_i++` / `_i--` |
+| if %cond then | `y_if` | `if cond { … }` |
+| else if %cond then | `y_elseif` | `elseif cond { … }` (right below an “if”) |
+| else | `y_else` | `else { … }` (right below an “if”) |
+| depending on %expr (case) | `y_case` | `case value { … }` |
+| when %labels | `y_when` | `when "a", 1-3 { … }` (inside a case) |
+| otherwise (others) | `y_others` | `others { … }` (inside a case) |
+| pick item number %expr (switch) | `y_switch` | `switch value { … }` |
+| repeat while %cond | `y_while` | `while cond { … }` |
+| first %init , repeat while %cond , each time %step (for) | `y_for` | `for init ; cond ; step { … }` |
+| for each of %expr put it in %vars and repeat (foreach) | `y_foreach` | `foreach value ; _v { … }` (one or two variables) |
+| leave the loop (break) | `y_break` | `break` |
+| back to the top of the loop (continue) | `y_continue` | `continue` |
+| end the function here (return) %value | `y_return` | `return` / `return value` |
+| choose from these, by %mode | `y_block` | `mode : { … }` |
+| (comment) | `y_comment` | `// …` / `/* … */` |
+| (# line) | `y_directive` | `#define …` and so on |
+| unreadable YAYA %text | `y_raw` | a function that could not be read, kept as written |
+| %a %op %b | `y_bin` | `a + b` and so on (every binary operator except `,`) |
+| %op %a | `y_unary` | `!a` / `-a` / `+a` |
+| %a %op (++ / --) | `y_incdec_r` | `_i++` / `++_i` and so on (inside an expression) |
+| %name ( %args ) | `y_call` | `function(arg, …)` (the ▾ picks from the project's dictionary functions and YAYA's built-in functions) |
+| %target [ %args ] | `y_index` | `_a[0]` / `_a[0, 2]` |
+| %items | `y_list` | an `(a, b)` array |
+| ( %a ) | `y_paren` | `(a)` |
+| &%a | `y_ref` | `&a` (an argument when calling a function) |
+
+Comments at the end of a line and blank lines are kept too. A comment after a `}` becomes a comment on the next line, as it does when the text
+is parsed.

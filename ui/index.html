@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 読みこんでよいのは、この画面のファイルだけ（スクリプトは js/ の中だけ・ほかのサイトにはつながない）。
+     もし画面に文字がはめこまれても、よそのスクリプトを動かしたり、よそへ送ったりできないように -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>伺かスタジオ - 伺かゴーストをブロックで作る</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="img/logo.svg" type="image/svg+xml">
@@ -37,6 +40,7 @@
   <nav id="mode-bar">
     <button class="mode-tab is-active" data-page="talk">トーク</button>
     <button class="mode-tab" data-page="lines">セリフ</button>
+    <button class="mode-tab" data-page="dics">辞書</button>
     <button class="mode-tab" data-page="chara">キャラと絵</button>
     <button class="mode-tab" data-page="ghost">ゴースト情報</button>
     <button class="mode-tab" data-page="export">書き出し</button>
@@ -84,6 +88,7 @@
         <button class="side-tab" data-tab="vars">変数</button>
         <button class="side-tab" data-tab="check">チェック<span id="check-badge" class="tab-badge"></span></button>
         <button class="side-tab" data-tab="search">さがす</button>
+        <button class="side-tab" data-tab="yaya">YAYA</button>
       </nav>
 
       <div id="side-body">
@@ -156,8 +161,8 @@
         <section class="side-panel" data-panel="search">
           <div class="panel-head">
             <h2>さがす</h2>
-            <p class="hint">セリフ・変数・トーク名などから探します（Ctrl+F）。
-              クリックすると、そのブロックまで移動します。</p>
+            <p class="hint">セリフ・変数・トーク名・辞書などから探します（Ctrl+F）。
+              クリックすると、その場所まで移動します。</p>
           </div>
           <div class="run-picker">
             <input id="search-input" type="text" placeholder="さがす言葉" spellcheck="false">
@@ -166,8 +171,23 @@
             <input id="replace-input" type="text" placeholder="置きかえる言葉" spellcheck="false">
             <button id="btn-replace-all" class="btn small" disabled>すべて置きかえる</button>
           </div>
-          <p class="hint">置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）だけです。YAYA のコードの欄と変数の名前は置きかえません。</p>
+          <p class="hint">置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）と、辞書の文字列の中だけです。YAYA のコードと変数の名前は置きかえません。</p>
           <div id="search-list" class="check-list"></div>
+        </section>
+
+        <!-- ---- yaya ---- -->
+        <section class="side-panel" data-panel="yaya">
+          <div class="panel-head">
+            <h2>YAYA</h2>
+            <p class="hint">キャンバスで最後に押したかたまり（まだ押していなければ、最初に作ったかたまり）が、書き出したときになる YAYA です。ブロックを変えると、その場で書きかわります。</p>
+          </div>
+          <div class="script-out">
+            <div class="script-out-head">
+              <span id="yaya-live-title">YAYA</span>
+              <button id="btn-yaya-live-copy" class="btn tiny">コピー</button>
+            </div>
+            <pre id="yaya-live">（まだブロックがありません）</pre>
+          </div>
         </section>
       </div>
     </aside>
@@ -265,12 +285,69 @@
     </div>
   </div>
 
+  <!-- ============================================================ 辞書 -->
+  <!-- プロジェクトの YAYA の辞書と、そのテキストエディタ（panels/dictionary.js。段階 8-3） -->
+  <div class="page dics-page" data-page="dics">
+    <aside id="dic-list-pane">
+      <div class="panel-head">
+        <h2>辞書</h2>
+        <p class="hint">YAYA の辞書（.dic）です。書き出すと、ゴーストに入ります。辞書にあるイベントは、同じイベントのブロックのかわりに動きます。</p>
+      </div>
+      <div id="dic-list"></div>
+      <div class="btn-row"><button id="btn-dic-new" class="btn small">＋ 辞書をつくる</button></div>
+      <label class="field field-gap"><span>いまある YAYA ゴーストから読みこむ</span><input id="dic-import-path" type="text" spellcheck="false" placeholder="C:\ssp\ghost\…"></label>
+      <div class="btn-row"><button id="btn-dic-import" class="btn small">読みこむ</button></div>
+      <p class="hint">yaya.txt に書いてある辞書（yaya_base はのぞく）を、このプロジェクトに写します。ゴーストのファイルは変えません。</p>
+    </aside>
+    <section id="dic-main">
+      <div class="dic-tools">
+        <b id="dic-name"></b>
+        <button id="btn-dic-rename" class="btn small">名前を変える</button>
+        <button id="btn-dic-delete" class="btn small">消す</button>
+      </div>
+      <!-- 左にテキスト、右に同じ辞書のブロック（どちらを変えても、もう一方が書きかわります） -->
+      <div class="dic-split">
+        <div class="dic-editor">
+          <div class="dic-gutter-wrap"><div id="dic-gutter"></div></div>
+          <div class="dic-code">
+            <pre id="dic-highlight" aria-hidden="true"></pre>
+            <textarea id="dic-text" spellcheck="false" wrap="off" aria-label="辞書のテキスト"></textarea>
+          </div>
+        </div>
+        <div class="dic-blocks">
+          <aside id="dic-palette">
+            <div id="dic-cat-list"></div>
+            <div id="dic-palette-scroll">
+              <div id="dic-palette-blocks"></div>
+            </div>
+          </aside>
+          <section id="dic-workspace-wrap">
+            <div id="dic-workspace">
+              <div id="dic-canvas"></div>
+            </div>
+            <div id="dic-canvas-hint">
+              <b>ここに辞書のブロックが出ます</b>
+              <ol class="steps">
+                <li>左のテキストに関数を書くか、<i>関数と出力</i> のいちばん上の帽子をここにドラッグ</li>
+                <li>ブロックを変えると、テキストも書きかわります</li>
+              </ol>
+            </div>
+            <div id="dic-trash" title="ここに落とすと削除">🗑</div>
+          </section>
+        </div>
+      </div>
+      <div id="dic-errors" class="check-list"></div>
+      <p class="hint dic-empty">左の「＋ 辞書をつくる」で辞書を作ると、ここで書けます。</p>
+    </section>
+  </div>
+
   <!-- ===================================================== ゴースト情報 -->
   <div class="page page-scroll" data-page="ghost">
     <div class="page-inner card-grid">
       <section class="card">
         <div class="card-head"><h2>名前と作者</h2></div>
         <label class="field"><span>ゴーストの名前</span><input id="meta-name" type="text"></label>
+        <label class="field"><span>書き出すフォルダの名前</span><input id="meta-folder" type="text" spellcheck="false" placeholder="空ならゴーストの名前"></label>
         <label class="field"><span>本体（さくら）の名前</span><input id="meta-sakura" type="text"></label>
         <label class="field"><span>相方（うにゅう）の名前</span><input id="meta-kero" type="text"></label>
         <label class="field"><span>作者名</span><input id="meta-craftman" type="text"></label>
@@ -413,7 +490,7 @@
           <div class="card-head"><h2>キーボードとマウス</h2></div>
           <table class="key-table">
             <tr><td>Ctrl+S</td><td>保存</td></tr>
-            <tr><td>Ctrl+Z / Ctrl+Y</td><td>元にもどす / やりなおす</td></tr>
+            <tr><td>Ctrl+Z / Ctrl+Y</td><td>元にもどす / やりなおす（文字の欄で打っているときは、その欄の文字だけ）</td></tr>
             <tr><td>Ctrl+F</td><td>さがす</td></tr>
             <tr><td>/</td><td>ブロックを名前で探して置く</td></tr>
             <tr><td>Ctrl+C / Ctrl+X / Ctrl+V</td><td>ブロックのコピー / 切り取り / はりつけ</td></tr>
@@ -425,15 +502,19 @@
             <tr><td>Ctrl+ホイール</td><td>拡大・縮小</td></tr>
           </table>
           <p class="hint">Ctrl+V は、えらんでいるブロックのすぐ下（帽子をえらんでいるときは、かたまりのいちばん上）にはりつけます。</p>
+          <p class="hint">辞書の画面のブロックでも、同じキーでコピー・はりつけ・複製・削除ができます。辞書のブロックは辞書の画面に、トークのブロックはトークの画面にだけはりつけます。</p>
         </section>
 
         <section class="card">
           <div class="card-head"><h2>右クリックのメニュー</h2></div>
           <table class="key-table menu-table">
             <tr><td>ブロックの上</td><td>コピー・切り取り・すぐ下にはりつけ・複製・ここから下を部品にする・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除</td></tr>
-            <tr><td>かたまりの帽子の上</td><td>実行してみる・複製・メモを付ける・このかたまりを部品にする・YAYA を見る・削除</td></tr>
+            <tr><td>かたまりの帽子の上</td><td>実行してみる・複製・たたむ・メモを付ける・このかたまりを部品にする・YAYA を見る・削除</td></tr>
             <tr><td>パレットの部品の上</td><td>部品の名前を変える・部品を消す</td></tr>
             <tr><td>何もないところ</td><td>ここにブロックを探して置く・ここにはりつけ・整列</td></tr>
+            <tr><td>辞書のブロックの上</td><td>コピー・切り取り・すぐ下にはりつけ・複製・削除・ここから下をすべて削除</td></tr>
+            <tr><td>辞書の関数の帽子の上</td><td>実行してみる・複製・たたむ・削除</td></tr>
+            <tr><td>辞書の何もないところ</td><td>ここにはりつけ・すべてたたむ・すべてひろげる</td></tr>
           </table>
         </section>
 

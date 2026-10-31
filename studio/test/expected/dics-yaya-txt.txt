@@ -1,0 +1,9 @@
+== folder: dics / 24 ファイル
+---- ghost/master/yaya.txt (115 バイト)
+charset, UTF-8
+dicdir, yaya_base
+dic, studio_runtime.dic
+dic, studio_program.dic
+dic, talk.dic
+dic, more.dic
+

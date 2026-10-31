@@ -32,6 +32,7 @@ void Api::Export(const HttpRequest& req, HttpResponse& res) {
     ExportResult r;
     if (!linked.empty()) {
         nar = false;
+        if (!IsLocalPath(Utf8ToWide(linked))) { JsonError(res, 400, "network_path", linked); return; }
         r = ExportLinked(Utf8ToWide(linked), RuntimeDic(kit), dic);
         if (!r.ok) { JsonError(res, 400, r.error.empty() ? "export_failed" : r.error, r.detail); return; }
     } else {
@@ -62,6 +63,8 @@ void Api::InspectYaya(const HttpRequest& req, HttpResponse& res) {
     if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
     std::string raw = Unquote(body["path"].asStr());
     if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    // つないだゴーストは、プロジェクトを開いただけで調べるので、このパソコンの場所だけ
+    if (!IsLocalPath(Utf8ToWide(raw))) { JsonError(res, 400, "network_path", raw); return; }
     YayaGhostInfo info = InspectYayaGhost(Utf8ToWide(raw));
     if (!info.ok) { JsonError(res, 404, info.error, raw); return; }
     JValue o = JValue::makeObj();
@@ -81,6 +84,30 @@ void Api::InspectYaya(const HttpRequest& req, HttpResponse& res) {
     for (size_t i = 0; i < info.problems.size(); i++) probs.arr.push_back(JValue::makeStr(info.problems[i]));
     o.set("problems", probs);
     o.set("problemDetail", JValue::makeStr(info.problemDetail));
+    Json(res, 200, o);
+}
+
+// POST /api/yaya/dics … YAYA ゴーストの手書きの辞書を読む（辞書の画面の「ゴーストから読みこむ」。段階 8-6）
+//   { path } → { dics: [{ name: "master からの相対パス", text: "UTF-8" }] }
+void Api::ReadYayaDics(const HttpRequest& req, HttpResponse& res) {
+    JValue body;
+    if (!ParseBody(req, body)) { JsonError(res, 400, "bad_json"); return; }
+    std::string raw = Unquote(body["path"].asStr());
+    if (raw.empty()) { JsonError(res, 400, "no_path"); return; }
+    // 欄の最初の値は、プロジェクトのつないだゴースト（meta.ghostDir）なので、このパソコンの場所だけ
+    if (!IsLocalPath(Utf8ToWide(raw))) { JsonError(res, 400, "network_path", raw); return; }
+    std::vector<YayaDicFile> files;
+    std::string error;
+    if (!ReadYayaGhostDics(Utf8ToWide(raw), files, error)) { JsonError(res, 404, error, raw); return; }
+    JValue dics = JValue::makeArr();
+    for (size_t i = 0; i < files.size(); i++) {
+        JValue d = JValue::makeObj();
+        d.set("name", JValue::makeStr(files[i].name));
+        d.set("text", JValue::makeStr(files[i].text));
+        dics.arr.push_back(d);
+    }
+    JValue o = JValue::makeObj();
+    o.set("dics", dics);
     Json(res, 200, o);
 }
 

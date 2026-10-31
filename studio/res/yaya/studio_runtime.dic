@@ -103,6 +103,7 @@ OnGhostLoad.Studio : void
 
 	Studio.ResetRun
 	Studio.refs = IARRAY
+	Studio.asked = IARRAY
 	Studio.reqCommTo = ''
 	Studio.found = 0
 	// 「ためす」（studio_preview.dic）は 1 にして、SAORI を呼ばない
@@ -134,7 +135,7 @@ OnGhostUnload.Studio : void
 		'Studio.strokeTick', 'Studio.lastMinute', 'Studio.cand', 'Studio.drawCount', 'Studio.drawNone', 'Studio.shellName', 'Studio.ghostName', 'Studio.lastTalk', 'Studio.out', /
 		'Studio.outBytes', 'Studio.scope', 'Studio.stop', 'Studio.steps', 'Studio.stack', 'Studio.commTo', /
 		'Studio.laterSec', 'Studio.laterName', 'Studio.refs', 'Studio.reqCommTo', 'Studio.found', 'Studio.noSaori', /
-		'Studio.argA', 'Studio.argB', /
+		'Studio.argA', 'Studio.argB', 'Studio.asked', /
 		'Studio.meta.name', 'Studio.meta.sakuraName', 'Studio.meta.lang', 'Studio.set.interval', /
 		'Studio.set.enabled', 'Studio.set.noRepeat', 'Studio.s.id', 'Studio.s.fn', 'Studio.s.kind', /
 		'Studio.s.event', 'Studio.s.name', 'Studio.s.group', 'Studio.s.weight', 'Studio.s.every', /
@@ -205,6 +206,8 @@ Studio.Event
 
 	// 応答の 1 行に収める（改行は \n にする）
 	_out = REPLACE(REPLACE(_out, CHR(13), ''), CHR(10), '\n')
+	// 答えに入った文字が、yaya_base の印として読まれないようにする
+	_out = Studio.NoChainMark(_out)
 
 	if _out != '' && Studio.reqCommTo != '' {
 		_to = REPLACE(REPLACE(Studio.reqCommTo, CHR(13), ''), CHR(10), '')
@@ -329,11 +332,17 @@ Studio.Dispatch
 		}
 	}
 
-	// 入力ボックスの答え。「たずねる」ブロックが付けた ID（ikaga:変数名）なら、変数に入れる
+	// 入力ボックスの答え。「たずねる」ブロックが付けた ID（ikaga:変数名）で、いまたずねている変数なら、入れる
+	// （OnUserInput は、ほかのゴーストや SSTP からも送れるので、たずねていない変数は書きかえない）
 	if _id == 'OnUserInput' && ARRAYSIZE(Studio.refs) > 0 {
 		_box = Studio.refs[0]
 		if SUBSTR(_box, 0, 6) == 'ikaga:' && STRLEN(_box) > 6 {
-			Studio.var[SUBSTR(_box, 6, STRLEN(_box) - 6)] = Studio.Ref(1)
+			_name = SUBSTR(_box, 6, STRLEN(_box) - 6)
+			_k = ASEARCH(_name, Studio.asked)
+			if _k >= 0 {
+				Studio.var[_name] = Studio.Cap(Studio.Ref(1))
+				Studio.asked = Studio.Without(Studio.asked, _k)
+			}
 		}
 	}
 
@@ -390,10 +399,12 @@ Studio.CloseScript
 		''
 		return
 	}
+	// \\（字としての \）のあとの - や e は、\- や \e ではないので、\\ をのぞいてから探す
+	_tags = REPLACE(_s, '\\', '')
 	if _argv[1] {
-		if STRSTR(_s, '\-', 0) < 0 { _s += '\-' }
+		if STRSTR(_tags, '\-', 0) < 0 { _s += '\-' }
 	}
-	elseif STRSTR(_s, '\e', 0) < 0 && STRSTR(_s, '\-', 0) < 0 { _s += '\e' }
+	elseif STRSTR(_tags, '\e', 0) < 0 && STRSTR(_tags, '\-', 0) < 0 { _s += '\e' }
 	_s
 }
 
@@ -650,7 +661,7 @@ Studio.Max0
 	_argv[0]
 }
 
-// 名前（トーク・関数）か id で、かたまりの番号を探す。無ければ -1
+// 名前（トーク・関数）か id で、かたまりの番号を探す。無ければ -1。無効にしたかたまりは、よばない
 Studio.FindCallable
 {
 	_name = _argv[0]
@@ -660,13 +671,13 @@ Studio.FindCallable
 	}
 	_n = ARRAYSIZE(Studio.s.id)
 	for _i = 0; _i < _n; _i++ {
-		if (Studio.s.kind[_i] == 'function' || Studio.s.kind[_i] == 'talk') && Studio.s.name[_i] == _name {
+		if (Studio.s.kind[_i] == 'function' || Studio.s.kind[_i] == 'talk') && Studio.s.name[_i] == _name && !Studio.s.off[_i] {
 			_i
 			return
 		}
 	}
 	for _i = 0; _i < _n; _i++ {
-		if Studio.s.id[_i] == _name {
+		if Studio.s.id[_i] == _name && !Studio.s.off[_i] {
 			_i
 			return
 		}
@@ -1107,6 +1118,13 @@ Studio.Scope : void
 	Studio.scope = _who
 }
 
+// yaya_base は答えの中の「:chain=」（設定によっては「:eval=」も）を、続きの印として読む。
+// 答えに入った文字がその印にならないよう、= を全角の ＝ にする（studio_preview.dic の Studio.PreviewAnswer も同じ）
+Studio.NoChainMark
+{
+	REPLACE(REPLACE(_argv[0], ':chain=', ':chain＝'), ':eval=', ':eval＝')
+}
+
 // 文字をさくらスクリプトに置ける形にする（\ と改行）
 Studio.EscapeText
 {
@@ -1118,13 +1136,26 @@ Studio.TagArg
 {
 	_s = REPLACE(REPLACE(REPLACE(REPLACE(_argv[0], '[', ''), ']', ''), CHR(13), ''), CHR(10), '')
 	if _argv[1] { _s = REPLACE(_s, ',', '') }
+	// 終わりの \ が 1 つ余ると、閉じる ] が \] として読まれて、命令が閉じない（\\ は 1 つの \ なので、そのまま）
+	_len = STRLEN(_s)
+	_n = 0
+	while _n < _len && SUBSTR(_s, _len - _n - 1, 1) == '\' { _n++ }
+	if _n % 2 { _s = SUBSTR(_s, 0, _len - 1) }
 	_s
 }
 
-// \![…] の中に置ける 1 語にする（, [ ] 改行を落として、まわりの空白を取る）
+// \![…] の中に置ける 1 語にする（, [ ] " 改行を落として、まわりの空白を取る）
 Studio.TagWord
 {
-	Studio.Trim(Studio.TagArg(Studio.S(_argv[0]), 1))
+	Studio.Trim(REPLACE(Studio.TagArg(Studio.S(_argv[0]), 1), '"', ''))
+}
+
+// [ … ] の 1 つの引数にする。, や " があれば "…" でかこみ、中の " は "" にする（, で次の引数に分かれないように）
+Studio.QuoteArg
+{
+	_s = _argv[0]
+	if STRSTR(_s, ',', 0) >= 0 || STRSTR(_s, '"', 0) >= 0 { _s = '"' + REPLACE(_s, '"', '""') + '"' }
+	_s
 }
 
 //------------------------------------------------------------------------------
@@ -1198,22 +1229,31 @@ Studio.Dress : void
 Studio.Sound : void
 {
 	_f = Studio.TagArg(Studio.S(_argv[0]), 0)
-	if _f != '' { Studio.Emit('\_v[' + _f + ']') }
+	if _f != '' { Studio.Emit('\_v[' + Studio.QuoteArg(_f) + ']') }
 }
 
+// 行き先が script: ではじまると、えらんだときに、その中身がさくらスクリプトとして動くので、書かない
 Studio.Link : void
 {
-	_url = Studio.TagArg(Studio.S(_argv[0]), 0)
+	_url = Studio.Trim(Studio.TagArg(Studio.S(_argv[0]), 0))
 	_label = Studio.S(_argv[1])
 	if _label == '' { _label = _url }
-	if _url != '' { Studio.Emit('\_a[' + _url + ']' + Studio.TagArg(Studio.EscapeText(_label), 0) + '\_a') }
+	if TOLOWER(SUBSTR(_url, 0, 7)) == 'script:' {
+		Studio.Log('リンクの行き先に script: は使えません: ' + _url)
+		return
+	}
+	if _url != '' { Studio.Emit('\_a[' + Studio.QuoteArg(_url) + ']' + Studio.TagArg(Studio.EscapeText(_label), 0) + '\_a') }
 }
 
 Studio.Choice : void
 {
-	_label = Studio.TagArg(Studio.EscapeText(Studio.S(_argv[0])), 0)
-	_target = Studio.TagArg(Studio.S(_argv[1]), 1)
+	_label = Studio.QuoteArg(Studio.TagArg(Studio.EscapeText(Studio.S(_argv[0])), 0))
+	_target = Studio.Trim(Studio.TagArg(Studio.S(_argv[1]), 1))
 	if _label == '' { return }
+	if TOLOWER(SUBSTR(_target, 0, 7)) == 'script:' {
+		Studio.Log('選択肢の行き先に script: は使えません: ' + _target)
+		return
+	}
 	Studio.Emit('\q[' + _label + ',' + _target + ']')
 }
 
@@ -1231,6 +1271,9 @@ Studio.Ask : void
 {
 	_into = Studio.TagWord(_argv[0])
 	if _into == '' { return }
+	// たずねている変数（答えの OnUserInput は、これだけを受けつける）
+	if ASEARCH(_into, Studio.asked) < 0 { Studio.asked ,= _into }
+	if ARRAYSIZE(Studio.asked) > 16 { Studio.asked = Studio.Without(Studio.asked, 0) }
 	Studio.Emit('\![open,inputbox,ikaga:' + _into + ',-1,' + Studio.TagWord(_argv[1]) + ']')
 }
 
@@ -1247,10 +1290,17 @@ Studio.ChangeGhost
 	1
 }
 
+// ウェブのページ（http:// か https://）だけを開く（ほかのものは、このパソコンのファイルやプログラムを開けてしまうので）
 Studio.OpenBrowser : void
 {
 	_url = Studio.TagWord(_argv[0])
-	if _url != '' { Studio.Emit('\![open,browser,' + _url + ']') }
+	if _url == '' { return }
+	_low = TOLOWER(_url)
+	if SUBSTR(_low, 0, 7) != 'http://' && SUBSTR(_low, 0, 8) != 'https://' {
+		Studio.Log('ブラウザで開けるのは http:// か https:// のページだけです: ' + _url)
+		return
+	}
+	Studio.Emit('\![open,browser,' + _url + ']')
 }
 
 Studio.Raise : void
@@ -1260,6 +1310,25 @@ Studio.Raise : void
 	_line = '\![raise,' + _ev
 	_a = Studio.TagWord(_argv[1])
 	if _a != '' { _line += ',' + _a }
+	Studio.Emit(_line + ']')
+}
+
+// SSP のプラグインにイベントを伝える  (プラグイン名か id, イベント名, 情報)
+// 情報は , で区切ると、いくつでも付けられます（空のものも、その順番のまま渡します）。
+// " をふくむものだけ "…" でくくり、" は "" にします
+Studio.Plugin : void
+{
+	_name = Studio.TagWord(_argv[0])
+	_ev = Studio.TagWord(_argv[1])
+	if _name == '' || _ev == '' { return }
+	_line = '\![raiseplugin,' + _name + ',' + _ev
+	_refs = Studio.S(_argv[2])
+	if _refs != '' {
+		_list = SPLIT(_refs, ',')
+		foreach _list; _r {
+			_line += ',' + Studio.QuoteArg(Studio.Trim(Studio.TagArg(_r, 0)))
+		}
+	}
 	Studio.Emit(_line + ']')
 }
 

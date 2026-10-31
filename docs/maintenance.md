@@ -12,7 +12,7 @@ English: [en/maintenance.md](en/maintenance.md)（英語版。こちらの日本
 
 ```powershell
 node tools\check-blocks.js     # 1 秒。ビルド不要。ブロックがそろっているか
-.\build.ps1 -Test              # 3 分ほど。ビルドしてテスト 9 本
+.\build.ps1 -Test              # 3 分ほど。ビルドしてテスト 10 本
 ```
 
 `check-blocks.js` はビルドが要らないので、**手を入れたら、まずこれ**です。
@@ -92,15 +92,16 @@ node のテストは、しくみの辞書をリポジトリのものから読む
 
 ---
 
-## テスト 9 本と、それぞれが守っているもの
+## テスト 10 本と、それぞれが守っているもの
 
 | 走らせかた | 守っているもの |
 |---|---|
 | `node tools\check-blocks.js` | ブロックが 5 か所にそろっているか（書き忘れ探し） |
 | `node shiori\test\parity\parity.js` | ブロックごとのかたまり（`shiori\test\parity\ghost.json`）を YAYA で動かした答えが、`expected.json` と同じか。同じかたまりを「ためす」のやりかた（`yaya_host.exe`）でも動かして、SSP の動かしかたと同じ答えか |
 | `node shiori\test\behavior\behavior.js` | しくみの辞書が持っている判断（どれを選ぶか・既定の反応・間引き・ランダムトーク・通信・SAORI）。英語のゴーストの既定の反応と「いまごろ」などの値も。場面は `scenarios.js` |
-| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。`YAYA_DEFINES` が yaya_base とそろっているか、変数が次の起動に残るか、exe の書き出しがそのまま動くか、手書きのゴーストにつなぐ書き出し |
+| `node shiori\test\yaya\yaya.js` | YAYA（`third_party\yaya\yaya.dll`）が公式のビルドのまま（`third_party\README.md` の SHA-256 と同じ）で動くか。`YAYA_DEFINES` が yaya_base とそろっているか、変数が次の起動に残るか、exe の書き出しがそのまま動くか、手書きのゴーストにつなぐ書き出し、いまあるゴーストの辞書の読みこみ（13）、「ためす」で辞書の関数を動かす（14） |
 | `node studio\test\export.js` | 書き出したファイルの中身（バイトで見くらべ）。英語のゴーストの readme.txt・既定の名前・`meta.lang` も |
+| `node ui\test\yayatext.js` | YAYA の辞書を読むところ（`yayatext.js`）が YAYA の構文をすべて読めるか（文法の説明書の例）。本物の辞書がひとつ残らず読めて、整えて書きなおしてもくずれないか。読めない関数は書いたままで残すか。辞書のブロック（`yblocks.js`）にしてもどしても同じ辞書になるか、どのブロックも使われているか、YAYA に元からある関数の一覧が本物の辞書でよばれる関数をみな知っているか。書きなおした辞書が同じに動くかは `yaya.js` の 11 が本物の yaya.dll で見ます |
 | `node ui\test\editor.js` | 読みこみの整形と形の版（`model.js`）とチェックタブ（`lint.js`）、ブロックを字でさがすところ（`blockindex.js`）。お手本（日本語と英語）がチェックに引っかからないか |
 | `node ui\test\modules.js` | `ui\js\` が `main.js` からたどれて、import が層の決まりどおり・輪が無く、どれを最初に読んでも落ちず、`Xxx.yyy()` の呼び先がそろっているか。`style.css` の色がトークンを通っているか |
 | `node tools\check-imports.js` | `third_party\yaya\yaya.dll` が Windows 2000 から読みこめるか（輸入表を直に読む。版を上げたときのため） |
@@ -115,7 +116,7 @@ node のテストは、しくみの辞書をリポジトリのものから読む
 
 ### 押したら勝手に走ります
 
-`.github/workflows/build.yml` が、`main` への push・タグ（`v*`）・プルリクのたびに
+`.github/workflows/build.yml` が、`main`・`develop`・`fix/〜` への push・タグ（`v*`）・プルリクのたびに
 **手元と同じ `.\build.ps1 -Release`** を windows-latest で走らせます。
 打ち忘れても止まるようにするためのものなので、**赤くなったら直してから進んでください**。
 
@@ -161,7 +162,7 @@ ui/js/
 ├── panels/        画面   pages / tabs / run / stage / vars / search / chara / ghost / dialog / ssp / guide / language / yayalink / about / areas / touch / yayaview / lines
 ├── editor/        キャンバスとパレット   render / drag / palette / scripts / zoom / contextmenu / picker / clipboard / notes / parts
 ├── core/          画面の土台   dom / api / toast / session / title / commands / events / theme
-└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya / lines / replace / partsfile / diff / graph
+└── model/         データと規則（DOM を触らない）   blocks / model / lint / blockindex / player / sample / yaya / yayatext / dics / lines / replace / partsfile / diff / graph
 ```
 
 **import は上から下へだけ**向けます。同じ層の中どうしは構いませんが、**輪にしてはいけません**
@@ -467,8 +468,22 @@ Defender のほうを疑うなら `Get-MpThreatDetection`（何も出なけれ�
 
 ---
 
+## ブランチの分けかた
+
+| ブランチ | 置くもの | どこから作り、どこへもどすか |
+|---|---|---|
+| `main` | **配っているもの**（いちばん新しいリリース） | 直接はコミットしません。`develop` か `fix/〜` をまとめて入れます |
+| `develop` | **ふだんの作業**（ロードマップの機能など） | ここで作業してコミットします。配るときに `main` へまとめます |
+| `fix/〜` | **直し**（`fix/readme-mojibake` のように、何を直すかを名前に） | ふつうは `develop` から作り、`develop` へもどします。配っているものをすぐ直すときだけ `main` から作り、`main` と `develop` の両方へもどします |
+
+* 機能を足すのも、ロードマップを書きかえるのも `develop` です。終わったら `fix/〜` は消してかまいません。
+* `main` へまとめるときは `git switch main` → `git merge --no-ff develop` で、まとめた跡を残します（下の「版を上げて配る」の 0.）。
+* どのブランチでも、押せば Actions のテストが走ります（`build.yml`）。`main` へまとめる前に、`develop` が緑なのを確かめてください。
+
 ## 版を上げて配る
 
+0. `develop` が緑なのを確かめてから、`git switch main` → `git merge --no-ff develop` で、配るものを `main` にまとめる
+   （配っているものの直しなら、`fix/〜` を `main` にまとめて、同じものを `develop` にもまとめる）。
 1. `VERSION`（ルートの 1 行）を直す。zip の名前と exe のプロパティ、exe が画面に返す版（`version_gen.h`）は、ここだけを見ています。
    数えかたは **ふつうの semver** です（2.0.0-alpha から）。大きく変わって前のものと合わなくなったら上の桁、機能を足したら真ん中、
    直しだけなら下の桁を上げます。まだ試し版なら `-alpha`・`-beta` を付けます（タグに `-` があると Release も試し版になります）。
@@ -495,6 +510,7 @@ Defender のほうを疑うなら `Get-MpThreatDetection`（何も出なけれ�
 
 * ブロックの意味 → `docs/blocks.md`
 * `ghost.json` の形 → `docs/ghost-json.md`
+* SSP のプラグインのイベントと情報 → `docs/plugins.md`（プラグインのイベントを足したら、`ui/js/model/blocks.js` の EVENTS・EVENT_REFS と、ここの両方に書きます）
 * つかいかた・フォルダ構成・栞のしくみ → `README.md`
 * 改修の計画と、これまでに決めたこと → `docs/roadmap.md`
 * 英語版 → `README.en.md`・`docs/en/`（日本語版が正）

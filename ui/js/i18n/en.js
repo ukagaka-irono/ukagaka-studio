@@ -37,6 +37,8 @@ export const en = {
   'そのかたまりが見つかりません: {detail}': 'Script not found: {detail}',
   'YAYA の辞書がありません': 'No YAYA dictionary was sent',
   'YAYA で動かせませんでした: {detail}': 'Could not run it on YAYA: {detail}',
+  'ネットワークの場所（\\\\…）は使えません。このパソコンのフォルダ（C:\\… など）に写してから使ってください: {detail}':
+    'Network locations (\\\\…) cannot be used. Copy it to a folder on this computer (C:\\… and so on) first: {detail}',
   'YAYA のゴーストではないようです（yaya.txt がありません）: {detail}': 'This does not look like a YAYA ghost (no yaya.txt): {detail}',
   'ゴーストに yaya.dll がありません': 'The ghost has no yaya.dll',
   'ゴーストの yaya.dll が古いので、スタジオのしくみが動きません（YAYA 6 系にしてください）': "The ghost's yaya.dll is too old for the studio's runtime (use YAYA 6.x)",
@@ -128,6 +130,70 @@ export const en = {
   'このかたまりを部品にする': 'Save this script as a part',
   'ここから下を部品にする': 'Save this and below as a part',
   'YAYA を見る': 'Show YAYA',
+
+  // ---- 「辞書」の画面（段階 8-3。panels/dictionary.js・index.html）
+  '辞書': 'Dictionaries',
+  'YAYA の辞書（.dic）です。書き出すと、ゴーストに入ります。辞書にあるイベントは、同じイベントのブロックのかわりに動きます。':
+    'YAYA dictionaries (.dic). They go into the ghost on export. Events defined here run instead of the blocks for the same event.',
+  '＋ 辞書をつくる': '+ New dictionary',
+  '名前を変える': 'Rename',
+  '辞書のテキスト': 'Dictionary text',
+  '左の「＋ 辞書をつくる」で辞書を作ると、ここで書けます。': 'Create a dictionary with “+ New dictionary” on the left to write it here.',
+  'まだ辞書がありません。下の「＋ 辞書をつくる」で作れます。': 'No dictionaries yet. Create one with “+ New dictionary” below.',
+  '「{at}」は、ここには書けません': '“{at}” cannot be written here',
+  '「{at}」が要ります': '“{at}” is needed',
+  '「{at}」のところで、文が終わっていません': 'The statement does not end at “{at}”',
+  '{ に対応する } がありません': 'A { has no matching }',
+  '文字列が、閉じないまま行が終わっています': 'The line ends before the string is closed',
+  'ヒアドキュメントが閉じていません': 'The heredoc is not closed',
+  'case のうしろに { がありません': 'There is no { after case',
+  'case の中には when か others を書きます（「{at}」）': 'Inside case, write when or others (“{at}”)',
+  'when のうしろには、数か文字列だけを書けます（「{at}」）': 'Only a number or a string can follow when (“{at}”)',
+  'foreach のうしろには、変数の名前を書きます（「{at}」）': 'Write a variable name after foreach (“{at}”)',
+  '関数の名前がありません（「{at}」）': 'The function has no name (“{at}”)',
+  '「:」のうしろに、選択方式（nonoverlap など）を書きます（「{at}」）': 'Write a selection mode (such as nonoverlap) after “:” (“{at}”)',
+  '「{at}」は、ここでは使えない文字です': '“{at}” is a character that cannot be used here',
+  'YAYA として読めます（関数 {n} こ）': 'Valid YAYA ({n} functions)',
+  '{line} 行目: {message}': 'Line {line}: {message}',
+  '「.dic」で終わる、フォルダの区切りなどの無い名前にしてください': 'Use a name ending in “.dic”, without folder separators and the like',
+  'その名前の辞書はもうあります': 'A dictionary with that name already exists',
+  'あたらしい辞書の名前は？（.dic で終わる名前）': 'Name of the new dictionary? (ending in .dic)',
+  '// {name}（YAYA の辞書）\n// ここに YAYA の関数を書きます。書き出すと、ゴーストに入ります。\n':
+    '// {name} (a YAYA dictionary)\n// Write YAYA functions here. They go into the ghost on export.\n',
+  '辞書「{name}」を作りました': 'Created dictionary “{name}”',
+  '辞書の新しい名前は？': 'New name of the dictionary?',
+  '辞書「{name}」を消しますか？（元にもどすで戻せます）': 'Delete dictionary “{name}”? (Undo brings it back)',
+  '辞書「{name}」を消しました': 'Deleted dictionary “{name}”',
+
+  // ---- プロジェクトの YAYA の辞書（段階 8-2。model/dics.js）
+  '手書きのゴーストにつないでいるあいだは、プロジェクトの辞書を書き出しません': 'While linked to a hand-written ghost, the project\'s dictionaries are not exported',
+  'つないだゴーストには、スタジオのファイルだけを書きこみます。辞書の関数は、つないだゴーストの手書きの辞書に書いてください。':
+    'Only the studio\'s files are written into the linked ghost. Put dictionary functions into that ghost\'s hand-written dictionaries.',
+  '辞書の名前「{name}」は使えません': 'The dictionary name “{name}” cannot be used',
+  '「.dic」で終わる名前にしてください（フォルダの区切りや \\ / : * ? " < > | は使えません。studio_runtime.dic など、スタジオのファイルの名前も使えません）。':
+    'Use a name ending in “.dic” (no folder separators or \\ / : * ? " < > |, and not the name of a studio file such as studio_runtime.dic).',
+  '辞書「{name}」が 2 つあります': 'There are two dictionaries named “{name}”',
+  'どちらかの名前を変えてください。': 'Rename one of them.',
+  '辞書「{name}」の {line} 行目が、YAYA として読めません': 'Line {line} of dictionary “{name}” is not valid YAYA',
+  'ひとつでも読めないところがあると、YAYA は辞書をまるごと読みません。辞書の画面で直してください。':
+    'If any part cannot be read, YAYA reads none of the dictionaries. Fix it on the Dictionaries page.',
+  '辞書「{dic}」の関数「{name}」は、スタジオのしくみか yaya_base がもう使っている名前です':
+    'Function “{name}” in dictionary “{dic}” has a name the studio\'s machinery or yaya_base already uses',
+  '同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。名前を変えてください。':
+    'With two functions of the same name, YAYA reads none of the dictionaries. Rename it.',
+  '関数「{name}」が、辞書「{a}」と「{b}」の両方にあります': 'Function “{name}” is in both dictionary “{a}” and “{b}”',
+  '同じ名前の関数が 2 つあると、YAYA は辞書をまるごと読みません。どちらかを消すか、名前を変えてください。':
+    'With two functions of the same name, YAYA reads none of the dictionaries. Delete one or rename it.',
+  '{event} は、プロジェクトの辞書「{dic}」にもあります': '{event} is also in the project dictionary “{dic}”',
+  "辞書のほうが動くので、ブロックの {event} は、辞書の {event} の中で Studio.Event('{event}') をよんだときだけ動きます。":
+    "The dictionary's one runs, so the block {event} only runs when the dictionary's {event} calls Studio.Event('{event}').",
+
+  // ---- YAYA の式のたしかめ（段階 8-1）
+  '{title}の YAYA の式「{code}」が、YAYA として読めません': '{title}: the YAYA expression “{code}” is not valid YAYA',
+  '「{at}」のあたりを直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。':
+    'Fix it around “{at}”. One unreadable expression stops YAYA from reading the whole dictionary.',
+  '式を直してください。読めない式があると、YAYA が辞書をまるごと読めなくなります。':
+    'Fix the expression. One unreadable expression stops YAYA from reading the whole dictionary.',
 
   // ---- 選択肢のつながり（段階 7-7）
   'つながり': 'Links',
@@ -326,8 +392,8 @@ export const en = {
   '{n} か所置きかえました（元にもどすで、まとめて戻せます）': 'Replaced {n} places (undo puts them all back)',
   'すべて置きかえる（{n}）': 'Replace all ({n})',
   'すべて置きかえる': 'Replace all',
-  '置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）だけです。YAYA のコードの欄と変数の名前は置きかえません。':
-    'Only text fields of blocks (speech, choices and so on) are replaced. YAYA code fields and variable names are not.',
+  '置きかえるのは、ブロックの文字の欄（セリフ・選択肢など）と、辞書の文字列の中だけです。YAYA のコードと変数の名前は置きかえません。':
+    'Only text fields of blocks (speech, choices and so on) and the insides of dictionary strings are replaced. YAYA code and variable names are not.',
   '置きかえる言葉': 'Replace with',
 
   // ---- ui/js/panels/lines.js
@@ -461,6 +527,26 @@ export const en = {
   'SAORI の答えがとどいたとき': 'When a SAORI answer arrives',
   '答えが返ってきたとき': 'When an answer comes back',
   '答えをやめたとき': 'When answering is canceled',
+  'プラグインから': 'From plugins',
+  'いちばん前のウィンドウの名前がとどいたとき（GetWindowTitle）': "When the front window's title arrives (GetWindowTitle)",
+  '財布から答えがとどいたとき（Wallet of Unyu）': 'When the wallet answers (Wallet of Unyu)',
+  '今日の日記がとどいたとき（DBdiary）': "When today's diary arrives (DBdiary)",
+  '天気の情報がとどいたとき（うかてん）': 'When weather info arrives (ukaten)',
+  'えらんである地域がとどいたとき（うかてん）': 'When the chosen area arrives (ukaten)',
+  'プラグインの版がとどいたとき（うかてん）': 'When the plugin version arrives (ukaten)',
+  'プラグインが話そうとしたとき（うかてん・うかどんゅう・すどはいくゅう）': 'When a plugin is about to talk (ukaten, ukadonyu, sudohaikuyu)',
+  'お知らせがとどいたとき（うかどんゅう）': 'When a notice arrives (ukadonyu)',
+  'お知らせがとどいたとき（すどはいくゅう）': 'When a notice arrives (sudohaikuyu)',
+  'Nostr の投稿がとどいたとき（Nostrゅう）': 'When a Nostr post arrives (nostryu)',
+  'バルーンをえらぶ画面を出したとき（BalloonSelector）': 'When the balloon picker opens (BalloonSelector)',
+  'バルーンがえらばれたとき（BalloonSelector）': 'When a balloon is picked (BalloonSelector)',
+  'バルーンをえらばずに閉じたとき（BalloonSelector）': 'When the balloon picker closes without a pick (BalloonSelector)',
+  'タイムラインを開いたとき（CharameLNetwork）': 'When the timeline opens (CharameLNetwork)',
+  'スタンプ帳の中身がとどいたとき（スタンプ帳）': 'When the stamp book contents arrive (Stamp Collection)',
+  'メッセージが送られたとき（UkagakaGhostMessenger）': 'When a message is delivered (UkagakaGhostMessenger)',
+  'メッセージのようすがとどいたとき（UkagakaGhostMessenger）': 'When a message status arrives (UkagakaGhostMessenger)',
+  'メッセージの予約ができたとき（UkagakaGhostMessenger）': 'When a message is scheduled (UkagakaGhostMessenger)',
+  'メッセージの予約に失敗したとき（UkagakaGhostMessenger）': 'When scheduling a message fails (UkagakaGhostMessenger)',
   'その他（自分で書く）': 'Other (type it in)',
 
   // ---- ui\js\model\blocks.js（当たり判定・だれ）
@@ -515,6 +601,34 @@ export const en = {
   'たずねたときのID': 'question ID',
   '入力された内容': 'input text',
   'close＝閉じた / timeout＝時間切れ': 'close = closed / timeout = timed out',
+  'ウィンドウの名前': 'window title',
+  'したこと(set/get/menu)': 'what was done (set/get/menu)',
+  '残高': 'balance',
+  '今日の日記(notExist=無い / notWrite=書いていない)': "today's diary (notExist = none / notWrite = not written)",
+  'たずねた情報': 'requested info',
+  '地域の番号': 'area code',
+  '地域の名前': 'area name',
+  '版': 'version',
+  'プラグイン名': 'plugin name',
+  '種類(note)': 'kind (note)',
+  '投稿の中身': 'post text',
+  '表示名': 'display name',
+  'アイコンの URL': 'icon URL',
+  'ページ(0から)': 'page (from 0)',
+  'バルーンの名前': 'balloon name',
+  'スタンプの数': 'number of stamps',
+  '自分のスタンプがあるか(1=ある)': 'has own stamp (1 = yes)',
+  'プラグインの場所': 'plugin folder',
+  'すべてのスタンプ': 'all stamps',
+  '動いているか(1=動いている)': 'running (1 = yes)',
+  '送られたメッセージ(ゴースト・送り手・メッセージID…)': 'delivered message (ghost, sender, message ID…)',
+  '送り手のID': 'sender ID',
+  'メッセージID': 'message ID',
+  '送られた回数': 'times delivered',
+  '送られた時刻': 'delivered at',
+  '読まれた時刻(0=まだ)': 'read at (0 = not yet)',
+  'send＝予約した / cancel＝取り消した': 'send = scheduled / cancel = canceled',
+  '失敗したわけ': 'reason',
 
   // ---- ui\js\model\blocks.js（ブロックの文）
   '改行する': 'then new line',
@@ -556,6 +670,7 @@ export const en = {
   'たずねて、答えを %into に入れる（はじめから %initial と書いておく）': 'ask, and put the answer in %into (prefilled with %initial)',
   '%sec 秒後に %name をよぶ': 'call %name in %sec seconds',
   'イベント %event を自分で起こす（情報 %a を付ける）': 'raise event %event (with info %a)',
+  'プラグイン %plugin にイベント %event を伝える（情報 %refs を付ける）': 'send event %event to plugin %plugin (with info %refs)',
   '%name に交代する': 'switch to ghost %name',
   '%url をブラウザで開く': 'open %url in the browser',
   '%file を %a %b でよぶ（答えを待たずに %into に入れる）%value': 'call %file with %a %b (put the answer in %into without waiting) %value',
@@ -641,6 +756,9 @@ export const en = {
   'ブロックをつなげるか、いらなければ削除してください。': "Attach blocks, or delete it if you don't need it.",
   'イベント名が空のかたまりがあります': 'A script has no event name',
   'イベントをえらぶか、名前を直接入力してください。': 'Choose an event or type its name.',
+  'イベント名「{event}」は使えないので、このかたまりは書き出しません': 'The event name “{event}” cannot be used, so this script is not exported',
+  'On ではじまる、記号の無い名前にしてください。Studio.〜 や yaya_base の関数と同じ名前は使えません。':
+    'Use a name that starts with On and has no symbols. Names of Studio.… or yaya_base functions cannot be used.',
   '名前のないトークがあります': 'A talk has no name',
   '名前をつけないと、よび出せません。': "It can't be called without a name.",
   '{title}のえらばれやすさがマイナスです': 'The weight of {title} is negative',
@@ -676,6 +794,8 @@ export const en = {
   '名前を変えたときは、よび出し側も直してください。': 'If you renamed it, update the callers too.',
   '{title}に、イベント名が空の「自分で起こす」ブロックがあります': '{title} has a “raise event” block with no event name',
   'OnBoot のようなイベント名を入れてください。': 'Enter an event name such as OnBoot.',
+  '{title}に、プラグインかイベント名が空の「プラグインに伝える」ブロックがあります': '{title} has a “send to plugin” block with no plugin or event name',
+  'プラグイン名（か id）と、そのプラグインが受けつけるイベント名を入れてください。': "Enter the plugin's name (or id) and an event name that plugin accepts.",
   '{title}に、ひらく先が空のブロックがあります': '{title} has an “open in the browser” block with no URL',
   '{title}に、種類か名前が空の「着せ替え」ブロックがあります': '{title} has a “dress-up” block with an empty category or name',
   'キャラと絵の「うごき」で着せ替えにしたものの、種類と名前を入れてください。': 'Enter the category and name of a dress-up you made under “Animations” on the Characters page.',
@@ -965,6 +1085,8 @@ export const en = {
     "Switched SSP to the ghost. If it doesn't switch, it's a new ghost; restart SSP.",
   '書き出しました。SSP を起動（または再起動）すると反映されます。': 'Exported. Start (or restart) SSP to see it.',
   '書き出しましたが、SSP への指示は届きませんでした。': "Exported, but the instruction didn't reach SSP.",
+  '書き出しました。ゴーストの名前に [ ] \\ " , のどれかがあるので、SSP のメニューから切り替えてください。':
+    'Exported. The ghost name contains one of [ ] \\ " , so please switch to it from the SSP menu.',
   '<b>{folder}</b> を入れました（{files} ファイル）<br>': 'Installed <b>{folder}</b> ({files} files)<br>',
   'SSP に入れました': 'Installed into SSP',
   '保存して、SSP にも入れました': 'Saved, and put into SSP too',
@@ -1054,8 +1176,8 @@ export const en = {
   '記録を消して、止めます': 'Delete the log and stop',
   '好感度やフラグなど、ゴーストが覚えておく値です。終了時に自動で保存されます。': 'Values the ghost remembers, such as affection or flags. They are saved automatically when the ghost closes.',
   'おかしなところを探します。クリックすると、そのブロックまで移動します。': 'Finds things that look wrong. Click one to jump to that block.',
-  'セリフ・変数・トーク名などから探します（Ctrl+F）。 クリックすると、そのブロックまで移動します。':
-    'Search speech, variables, talk names and more (Ctrl+F). Click a result to jump to that block.',
+  'セリフ・変数・トーク名・辞書などから探します（Ctrl+F）。 クリックすると、その場所まで移動します。':
+    'Search speech, variables, talk names, dictionaries and more (Ctrl+F). Click a result to jump to that place.',
   'さがす言葉': 'Search words',
 
   // ---- ui\index.html（キャラと絵）
@@ -1099,7 +1221,15 @@ export const en = {
 
   // ---- ui\index.html（ゴースト情報）
   '名前と作者': 'Name and author',
+  'このプロジェクトは「{path}」のゴーストにつながっています。書き出すと、このゴーストにスタジオのファイルを書き、yaya.txt に行を足します。\n\n自分でつないだゴーストですか？ このゴーストに書きこみますか？':
+    'This project is linked to the ghost at “{path}”. Exporting writes Studio’s files into that ghost and adds lines to its yaya.txt.\n\nDid you link this ghost yourself? Write into it?',
+  'つないだゴーストに書きこむのをやめました。書き出しの画面の「手書きの YAYA ゴーストにつなぐ」で確かめてください。':
+    'Writing into the linked ghost was cancelled. Check “Link to a hand-written YAYA ghost” on the Export page.',
   'ゴーストの名前': 'Ghost name',
+  '「{detail}」のフォルダには、伺かスタジオで作っていないゴーストがいるので、上書きしません。ゴースト情報の「書き出すフォルダの名前」を変えてください':
+    'The “{detail}” folder holds a ghost that was not made with Ukagaka Studio, so it was not overwritten. Change “Export folder name” on the Ghost info page.',
+  '書き出すフォルダの名前': 'Export folder name',
+  '空ならゴーストの名前': 'Ghost name if empty',
   '本体（さくら）の名前': 'Main character (Sakura) name',
   '相方（うにゅう）の名前': 'Partner (Kero) name',
   '作者名': 'Author',
@@ -1161,7 +1291,7 @@ export const en = {
   'を押します。': ' again.',
   'はじめてガイドをもう一度': 'Show the first-steps guide again',
   'キーボードとマウス': 'Keyboard and mouse',
-  '元にもどす / やりなおす': 'Undo / Redo',
+  '元にもどす / やりなおす（文字の欄で打っているときは、その欄の文字だけ）': 'Undo / Redo (while typing in a text field, only that field’s text)',
   'ブロックを名前で探して置く': 'Find a block by name and place it',
   'ブロックのコピー / 切り取り / はりつけ': 'Copy / cut / paste blocks',
   'えらんだブロックを複製': 'Duplicate the selected block',
@@ -1179,7 +1309,7 @@ export const en = {
   'コピー・切り取り・すぐ下にはりつけ・複製・ここから下を部品にする・一時的に無効にする・メモを付ける・削除・ここから下をすべて削除':
     'Copy, cut, paste below, duplicate, save this and below as a part, disable for now, add a note, delete, delete this and everything below',
   'かたまりの帽子の上': "On a script's hat",
-  '実行してみる・複製・メモを付ける・このかたまりを部品にする・YAYA を見る・削除': 'Run, duplicate, add a note, save this script as a part, show YAYA, delete',
+  '実行してみる・複製・たたむ・メモを付ける・このかたまりを部品にする・YAYA を見る・削除': 'Run, duplicate, fold, add a note, save this script as a part, show YAYA, delete',
   'パレットの部品の上': 'On a part in the palette',
   '部品の名前を変える・部品を消す': 'Rename the part, delete the part',
   '何もないところ': 'On empty space',
@@ -1199,4 +1329,117 @@ export const en = {
 
   // ---- ui\js\panels\about.js
   '版 {version}': 'version {version}',
+
+  // ---- ui\js\editor\render.js（辞書のブロック）
+  '欄をへらす': 'Remove a slot',
+  '欄をふやす': 'Add a slot',
+  'プロジェクトの辞書': "Project's dictionaries",
+  'YAYA の関数 {range}': 'YAYA functions {range}',
+  'よぶ関数をえらぶ': 'Pick the function to call',
+  '同じ行のうしろのコメント': 'Comment at the end of the line',
+
+  // ---- ui\js\model\yblocks.js
+  'ランダム（指定なし）': 'random (default)',
+  '関数 %name えらびかた %mode': 'function %name choose by %mode',
+  'を出力の候補にする': 'as an output candidate',
+  'をばらして出力の候補にする（parallel）': 'split into output candidates (parallel)',
+  'を計算だけする（void）': 'evaluate only (void)',
+  '-- ここで区切って、前とうしろの出力をつなげる': '-- split here and join the outputs before and after',
+  'そうでなくて、もし %cond なら': 'else if %cond then',
+  '%expr によって分ける（case）': 'depending on %expr (case)',
+  '%labels のとき（when）': 'when %labels',
+  'どれでもないとき（others）': 'otherwise (others)',
+  '%expr 番目のものをえらぶ（switch）': 'pick item number %expr (switch)',
+  '%cond のあいだくりかえす（while）': 'repeat while %cond',
+  'はじめに %init 、%cond のあいだ、%step しながらくりかえす（for）': 'first %init , repeat while %cond , each time %step (for)',
+  '%expr のひとつずつを %vars に入れてくりかえす（foreach）': 'for each of %expr put it in %vars and repeat (foreach)',
+  'くりかえしをぬける（break）': 'leave the loop (break)',
+  'くりかえしの先頭へもどる（continue）': 'back to the top of the loop (continue)',
+  'ここで関数を終わる（return） %value': 'end the function here (return) %value',
+  'この中からえらぶ えらびかた %mode': 'choose from these, by %mode',
+  '読めない YAYA %text': 'unreadable YAYA %text',
+  '++（使ってから 1 足す）': '++ (use, then add 1)',
+  '--（使ってから 1 引く）': '-- (use, then subtract 1)',
+  '++ を前に（1 足してから使う）': '++ in front (add 1, then use)',
+  '-- を前に（1 引いてから使う）': '-- in front (subtract 1, then use)',
+  '関数と出力': 'Functions',
+  '式': 'Expressions',
+  '数・文字列・変数の名前は、欄にそのまま書きます（"こんにちは"・10・_x）。欄の文字は YAYA の式として読みます。':
+    'Write numbers, strings and variable names straight into a slot ("hello", 10, _x). Slot text is read as a YAYA expression.',
+  'コメント': 'Comments',
+
+  // ---- ui\js\panels\dictionary.js（ブロック）
+  '空の欄があります': 'A slot is empty',
+  '「{at}」は、YAYA の式として読めません': '“{at}” is not a valid YAYA expression',
+  '「{at}」は、関数の名前に使えません': '“{at}” cannot be used as a function name',
+  '「そうでなくて」「そうでなければ」は、「もし」のすぐ下につなげます': '“else if” and “else” go right below an “if”',
+  'when のうしろの「{at}」が読めません（数か文字列を , で区切ります）': 'Cannot read “{at}” after when (numbers or strings separated by ,)',
+  'foreach の「{at}」が読めません（変数の名前を 1 つか 2 つ）': 'Cannot read “{at}” in foreach (one or two variable names)',
+  'case の中には、when・others・コメントだけを入れます': 'Only when, others and comments go inside a case',
+  'when・others は、case の中に入れます': 'when and others go inside a case',
+  '演算子「{at}」が読めません': 'Cannot read the operator “{at}”',
+  'このブロックは、ここには置けません': 'This block cannot go here',
+  'ブロック: {message}（直すまで、テキストは書きかえません）': 'Blocks: {message} (the text is not updated until this is fixed)',
+  '関数の外にあるブロック {n} こは、辞書に入りません。関数の帽子の下につなげてください。':
+    '{n} block(s) outside any function are not part of the dictionary. Attach them under a function hat.',
+  '関数の外のコメント': 'comments outside functions',
+
+  // ---- ui\index.html（辞書の画面のブロック）
+  'ここに辞書のブロックが出ます': "The dictionary's blocks appear here",
+  '左のテキストに関数を書くか、': 'Write a function in the text on the left, or drag the top hat of',
+  'のいちばん上の帽子をここにドラッグ': 'here',
+  'ブロックを変えると、テキストも書きかわります': 'Changing the blocks rewrites the text too',
+  // ---- ui\js\model\dics.js（どこにも無い関数。段階 9-1）
+  '辞書「{dic}」の {line} 行目でよんでいる「{name}」は、どこにも無い関数です':
+    'Dictionary “{dic}” calls “{name}” on line {line}, but no such function exists',
+  'YAYA は、無い関数をよぶと何もせずに先へ進みます。名前の書きまちがいか、まだ作っていない関数かもしれません。':
+    'YAYA silently skips calls to functions that do not exist. The name may be misspelt, or the function not written yet.',
+
+  // ---- プログラムやファイルにさわる YAYA（ui\js\model\lint.js・ui\js\panels\run.js）
+  '「ためす」でも、書き出したゴーストでも本当に動きます。人からもらったプロジェクトなら、中身を確かめてから「ためす」や書き出しをしてください。':
+    'It really runs, both in “Try” and in the exported ghost. If someone else gave you this project, check it before trying or exporting it.',
+  '辞書「{dic}」の {line} 行目で、プログラムやファイルにさわる関数「{name}」をよんでいます':
+    'Line {line} of dictionary “{dic}” calls “{name}”, which can run programs or change files',
+  '{title}の YAYA で、プログラムやファイルにさわる関数「{name}」をよんでいます':
+    'The YAYA in {title} calls “{name}”, which can run programs or change files',
+  'このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。「ためす」でも本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、ためしてください。ためしますか？':
+    'The YAYA in this project calls functions that can run programs or change files on this computer ({names}). They really run in “Try” too.\n\nOnly try projects you wrote yourself or got from someone you trust. Try it?',
+  'ためすのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。':
+    'Try was cancelled. Check the YAYA that can run programs or change files in the Check tab.',
+  'このプロジェクトの YAYA は、このパソコンでプログラムを動かしたり、ファイルを書きかえたりできる関数（{names}）をよんでいます。SSP に入れると本当に動きます。\n\n自分で書いたものか、信頼できる人からもらったものだけ、入れてください。SSP に入れますか？':
+    'The YAYA in this project calls functions that can run programs or change files on this computer ({names}). They really run once it is in SSP.\n\nOnly install projects you wrote yourself or got from someone you trust. Install it in SSP?',
+  'SSP に入れるのをやめました。チェックタブで、プログラムやファイルにさわる YAYA を確かめてください。':
+    'Installing in SSP was cancelled. Check the YAYA that can run programs or change files in the Check tab.',
+
+  // ---- 「ためす」で辞書の関数・右の列の「YAYA」タブ（段階 8-7）
+  '辞書にその関数がありません（YAYA が辞書を読めなかったのかもしれません）: {detail}':
+    'That function is not in the dictionaries (YAYA may have failed to read them): {detail}',
+  'この関数を実行してみる': 'Run this function',
+  '辞書の関数': 'Dictionary functions',
+  '{message}（辞書にまちがいがあると、YAYA は辞書をまるごと読みません。チェックタブを見てください）':
+    '{message} (if a dictionary has a mistake, YAYA does not read the dictionaries at all; see the Check tab)',
+  'キャンバスで最後に押したかたまり（まだ押していなければ、最初に作ったかたまり）が、書き出したときになる YAYA です。ブロックを変えると、その場で書きかわります。':
+    'The YAYA that the script you last pressed on the canvas (or the first script you made, until you press one) becomes on export. It updates as you change the blocks.',
+  '（帽子ブロックの無いかたまりは、書き出さないので YAYA になりません）': '(A script without a hat block is not exported, so it has no YAYA)',
+
+  // ---- ui\js\panels\dictionary.js（ゴーストから読みこむ）
+  '読みこめる辞書がありませんでした（yaya_base とスタジオのファイルは読みこみません）':
+    'No dictionaries to import (yaya_base and Studio files are not imported)',
+  '{n} この辞書を読みこみます。\n\n{list}': 'Import {n} dictionaries?\n\n{list}',
+  '辞書を {n} こ読みこみました。かぶっている関数やイベントは、チェックタブに出ます':
+    'Imported {n} dictionaries. Clashing functions and events are listed in the Check tab',
+  'いまある YAYA ゴーストから読みこむ': 'Import from an existing YAYA ghost',
+  'yaya.txt に書いてある辞書（yaya_base はのぞく）を、このプロジェクトに写します。ゴーストのファイルは変えません。':
+    "Copies the dictionaries listed in yaya.txt (except yaya_base) into this project. The ghost's files are not changed.",
+  '辞書の画面のブロックでも、同じキーでコピー・はりつけ・複製・削除ができます。辞書のブロックは辞書の画面に、トークのブロックはトークの画面にだけはりつけます。':
+    'Blocks on the Dictionaries page take the same keys for copy, paste, duplicate and delete. Dictionary blocks paste only on the Dictionaries page, Talk blocks only on the Talk page.',
+  '辞書のブロックの上': 'On a dictionary block',
+  'コピー・切り取り・すぐ下にはりつけ・複製・削除・ここから下をすべて削除': 'Copy, cut, paste below, duplicate, delete, delete everything below',
+  '辞書の関数の帽子の上': "On a dictionary function's hat",
+  '実行してみる・複製・たたむ・削除': 'Run, duplicate, fold, delete',
+  '辞書の何もないところ': 'On empty space in a dictionary',
+  'ここにはりつけ・すべてたたむ・すべてひろげる': 'Paste here, fold all, unfold all',
+  '辞書のブロックは、辞書の画面にはりつけます': 'Dictionary blocks can only be pasted on the Dictionaries page',
+  '辞書「{dic}」の {line} 行目': 'Line {line} of dictionary “{dic}”',
+  'トークのブロックは、トークの画面にはりつけます': 'Talk blocks can only be pasted on the Talk page',
 };

@@ -60,6 +60,7 @@ function render() {
   const s = Model.project.settings;
   setVal('#ghost-name', m.name);
   setVal('#meta-name', m.name);
+  setVal('#meta-folder', m.folder || '');
   setVal('#meta-sakura', m.sakuraName);
   setVal('#meta-kero', m.keroName);
   setVal('#meta-craftman', m.craftman);
@@ -78,6 +79,7 @@ function render() {
 function init() {
   bindField('#ghost-name', (v) => { Model.project.meta.name = v; });
   bindField('#meta-name', (v) => { Model.project.meta.name = v; });
+  bindField('#meta-folder', (v) => { Model.project.meta.folder = v.trim(); });
   bindField('#meta-sakura', (v) => { Model.project.meta.sakuraName = v; });
   bindField('#meta-kero', (v) => { Model.project.meta.keroName = v; });
   bindField('#meta-craftman', (v) => { Model.project.meta.craftman = v; });

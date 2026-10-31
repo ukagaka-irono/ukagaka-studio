@@ -1,6 +1,7 @@
 /* 伺かスタジオ - プロジェクトのデータモデルと Undo */
 
 import { AREAS, EVENTS, MOUSE_EVENTS, WHO_ANY, getDef } from './blocks.js';
+import { normalizeDics } from './dics.js';
 import { t } from '../i18n/i18n.js';
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -84,6 +85,7 @@ const Model = {
   undoStack: [],
   redoStack: [],
   listeners: [],
+  commitHooks: [],
   dirty: false,
 
   uid,
@@ -124,6 +126,7 @@ const Model = {
       },
       variables: [],
       scripts: [],
+      dics: [],          // YAYA の辞書 [{ name, text }]（段階 8-2。model/dics.js）
     };
   },
 
@@ -133,14 +136,16 @@ const Model = {
    */
   normalize(src) {
     const p = upgrade(src);
-    const base = Model.newProject();
-    const out = Object.assign(base, p);
-    out.meta = Object.assign(base.meta, p.meta || {});
+    // 既定値は別に取っておく（out に p をかさねると、out.meta が p.meta そのものになり、欠けたところが埋まらない）
+    const defaults = Model.newProject();
+    const out = Object.assign(Model.newProject(), p);
+    const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    out.meta = Object.assign(defaults.meta, obj(p.meta));
     // ゴーストの言語。無いもの（前からあるプロジェクト）は日本語のゴーストです。
     // 画面の言語で埋めないこと（日本語で作ったゴーストが、英語の画面で開いただけで英語にならないように）
     if (out.meta.lang !== 'ja' && out.meta.lang !== 'en') delete out.meta.lang;
-    out.settings = Object.assign(base.settings, p.settings || {});
-    out.shell = Object.assign(base.shell, p.shell || {});
+    out.settings = Object.assign(defaults.settings, obj(p.settings));
+    out.shell = Object.assign(defaults.shell, obj(p.shell));
     out.shell.images = (Array.isArray(out.shell.images) ? out.shell.images : [])
       .filter((x) => x && x.path && Number.isFinite(Number(x.id)))
       .map((x) => ({
@@ -163,6 +168,7 @@ const Model = {
         }));
     }
     out.shell.areas = areas;
+    out.dics = normalizeDics(out.dics);
     out.variables = Array.isArray(out.variables) ? out.variables : [];
     out.variables = out.variables
       .filter((v) => v && v.name)
@@ -214,9 +220,13 @@ const Model = {
 
     out.scripts = Array.isArray(out.scripts) ? out.scripts : [];
     let y = 40;
-    out.scripts = out.scripts.map((s) => {
+    out.scripts = out.scripts.filter((s) => s && typeof s === 'object').map((s) => {
       const script = Object.assign({ kind: 'event', blocks: [] }, s);
       script.id = script.id || uid('s');
+      // 名前やイベント名が文字でないと、題を作るところで止まって、画面が描けなくなる（人からもらったファイル）
+      for (const k of ['id', 'kind', 'event', 'name']) {
+        if (script[k] != null && typeof script[k] !== 'string') script[k] = String(script[k]);
+      }
       script.blocks = Array.isArray(script.blocks) ? script.blocks : [];
       if (typeof script.x !== 'number') script.x = 60;
       if (typeof script.y !== 'number') { script.y = y; y += 180; }
@@ -276,6 +286,7 @@ const Model = {
   /** プロジェクトを開く。読めない形なら Error を投げ、いま開いているものはそのまま残します */
   init(project) {
     Model.project = Model.normalize(project);   // 投げるならここ（まだ何も書きかえていない）
+    Model.generation = (Model.generation || 0) + 1;   // 開きなおすたびに変わる（保存の最中に開きなおしたか。panels/dialog.js）
     Model.undoStack = [];
     Model.redoStack = [];
     Model.dirty = false;
@@ -285,6 +296,12 @@ const Model = {
   // --------------------------------------------------------------- events
   onChange(fn) { Model.listeners.push(fn); },
   emit() { Model.listeners.forEach((fn) => fn(Model.project)); },
+  /**
+   * 「元にもどす」に積む前に、画面の側で持っているものをプロジェクトに書きもどす
+   * （辞書の画面のブロックは、プロジェクトの外に持っていて、変わったら辞書のテキストに書きます。panels/dictionary.js）
+   */
+  onCommit(fn) { Model.commitHooks.push(fn); },
+  flush() { Model.commitHooks.forEach((fn) => fn()); },
 
   /** すべての変更はこれを通す（Undo 用のスナップショットを取る） */
   act(fn) {
@@ -292,6 +309,7 @@ const Model = {
     let result;
     try {
       result = fn();
+      Model.flush();
     } catch (e) {
       console.error(e);
       Model.project = snap;
@@ -310,6 +328,7 @@ const Model = {
   /** 入力欄の編集など、すでに書き換えたあとで Undo 履歴だけ積みたいとき */
   pushUndo(snapshot) {
     if (!snapshot) return;
+    Model.flush();
     if (JSON.stringify(snapshot) === JSON.stringify(Model.project)) return;
     Model.undoStack.push(snapshot);
     if (Model.undoStack.length > 80) Model.undoStack.shift();
@@ -430,9 +449,11 @@ const Model = {
     const v = Model.project.variables.find((x) => x.name === oldName);
     if (!v) return false;
     v.name = newName;
+    // 変数の名前をえらぶ欄（var・set・change の name、ask・saori_call の into など）をぜんぶ
     Model.walkBlocks((b) => {
-      if ((b.type === 'var' || b.type === 'set' || b.type === 'change') && b.name === oldName) {
-        b.name = newName;
+      const def = getDef(b);
+      for (const [arg, a] of Object.entries((def && def.args) || {})) {
+        if (a.kind === 'varname' && b[arg] === oldName) b[arg] = newName;
       }
     });
     return true;

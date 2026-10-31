@@ -106,7 +106,7 @@ void Api::GetShellFile(const HttpRequest& req, HttpResponse& res) {
     std::wstring path = it == req.query.end() ? std::wstring() : Utf8ToWide(it->second);
     std::string data;
     int w = 0, h = 0;
-    if (path.empty() || !ReadBinaryFile(path, data) || !PngSize(data, &w, &h)) {
+    if (path.empty() || !IsLocalPath(path) || !ReadBinaryFile(path, data) || !PngSize(data, &w, &h)) {
         JsonError(res, 404, "image_unreadable");
         return;
     }

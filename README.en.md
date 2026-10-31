@@ -111,10 +111,22 @@ It makes no outside connections either (it only connects to `127.0.0.1:9801` to 
 (greetings, reactions to double clicks and pats, random talks, an alarm, an anniversary, an item in SSP's menu), and you start with
 those blocks already placed. With nothing picked, you start from an empty canvas.
 
-Right below the top bar you switch between the **Talk / Speech / Characters / Ghost info / Export** pages.
+Right below the top bar you switch between the **Talk / Speech / Dictionaries / Characters / Ghost info / Export** pages.
 **☺** next to the speech field of a “says” block inserts, at the cursor, a mark that changes the expression (`{face:1}`) or pauses (`{wait:500}`).
 The **Speech** page lists the speech of every “says” block so you can edit it right there. Export it to CSV, edit it in a
 spreadsheet and open it again to write back only the lines that changed.
+On the **Dictionaries** page you create YAYA dictionaries (.dic) inside the project and write them as text, with line numbers and
+colouring; lines that are not valid YAYA are marked beside their numbers and listed below (click one to go there). They go into the ghost
+on export, and events defined there run instead of the blocks for the same event. Beside the text, the same dictionary is shown as blocks (one block per YAYA construct). Typing in the text rewrites the blocks, and changing
+the blocks rewrites the text (pretty-printed when a block changes; comments are kept). Blocks call their functions with “call YAYA function F with A B”. Besides unreadable lines and clashing functions, the Check tab points out
+calls to functions that exist nowhere (click one to go to that line). Dictionary blocks take the same keys and right-click menu as Talk
+blocks for copy, paste, duplicate and delete (dictionary blocks paste only on the Dictionaries page, Talk blocks only on the Talk page).
+The Search tab searches dictionaries too, and “Replace all” also replaces inside dictionary strings (the speech; code and names are left alone).
+Entering a ghost folder under “Import from an existing YAYA ghost” and pressing “Import” copies that ghost's dictionaries (those listed in yaya.txt, except yaya_base) into the project,
+converting Shift_JIS dictionaries to UTF-8; the ghost's files are not changed.
+Dictionary functions also run in “Try” (“Dictionary functions” in the Try tab, or the ▶ on a function hat on the Dictionaries page), and events
+defined in the dictionaries run from the dictionary in Try, as they do in the exported ghost. The **YAYA** tab in the Talk page's right column
+shows the YAYA that the script you last pressed on the canvas becomes on export, updating as you change the blocks.
 Under “Thumbnail and readme” on the **Ghost info** page you choose the picture shown in SSP's ghost list (thumbnail.png) and
 the text of readme.txt (leave the readme empty to have it made from the name, author, version and description).
 You build with blocks on the **Talk** page. How to use it and the keyboard shortcuts are under the **?** at the top right.
@@ -305,21 +317,22 @@ The version number is the single line in the **`VERSION` file at the root**. Cha
 updates both the zip name and the exe's properties (right-click → Properties → Details).
 Add what changed to `CHANGELOG.md`.
 
-With `-Test`, nine tests run.
+With `-Test`, ten tests run.
 
 | | |
 |---|---|
 | **Block coverage** (`tools\check-blocks.js`) | Whether every block is present in the definitions, the YAYA translation, the docs (Japanese and English) and the tests. It needs no build, so it runs first |
 | **Parity test** (`shiori\test\parity\parity.js`) | Translates one script per block into YAYA, runs it, and checks that the Sakura Script that comes out matches the answers fixed in advance (`expected.json`). It also runs the same scripts the way “Try” does (`yaya_host.exe`) to check that **“Try” and SSP give the same answers** |
 | **Behavior test** (`shiori\test\behavior\behavior.js`) | The decisions the runtime dictionary makes — which script to pick when an event has several, the default reactions when there are no blocks (in English for English ghosts), `\-` on `OnClose`, thinning out “every N seconds”, random talk, making petting events, where talk-to messages go, SAORI (it actually calls a deliberately slow test DLL) |
-| **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`) is still the official build and runs; whether variables survive a restart, the exe's export runs on YAYA as it is, and exporting into a linked hand-written YAYA ghost leaves the hand-written files byte for byte unchanged |
+| **YAYA test** (`shiori\test\yaya\yaya.js`) | Whether YAYA (`third_party\yaya\`) is still the official build and runs; whether variables survive a restart, the exe's export runs on YAYA as it is, exporting into a linked hand-written YAYA ghost leaves the hand-written files byte for byte unchanged, an existing YAYA ghost's dictionaries can be imported as UTF-8, and dictionary functions run in “Try” |
 | **Export test** (`studio\test\export.js`) | Whether exported files (`surfaces.txt` / `descript.txt` / `ghost.json` / `install.txt` / `yaya.txt` / `studio_program.dic`, and the file list) are as expected. `updates2.dau` is checked against MD5 from node's `crypto` |
+| **YAYA text test** (`ui\test\yayatext.js`) | That reading YAYA dictionaries (the parser) and pretty-printing them covers all of YAYA's syntax; that yaya_base, the runtime dictionaries and the hand-written test ghost all parse and survive being printed again; that a function that cannot be read is kept verbatim while the rest is still read; and that turning a dictionary into dictionary blocks and back gives the same dictionary |
 | **Editor test** (`ui\test\editor.js`) | Normalizing loaded projects and checking format versions (`model.js`), the warnings of the Check tab (`lint.js`), searching blocks by text, that every example is clean, and that the notice in Help's “About this software” is the same text as in the README and LICENSE |
 | **Import check** (`tools\check-imports.js`) | Reads the import table of the `yaya.dll` that goes into exported ghosts directly to catch **APIs that Windows 2000 does not have**. With one of those, the DLL fails to load at all below that Windows (this is for when you upgrade it) |
 | **UI file check** (`ui\test\modules.js`) | Whether every `ui\js\*.js` (ES module) is reachable from the entry `main.js`, loads first without failing, and every `Xxx.yyy()` call has a target. It catches **things left behind when splitting files**. It also checks that every color in `style.css` goes through a token (so nothing loses its color in the dark theme) |
 | **UI language check** (`ui\test\i18n.js`) | Whether all Japanese UI text goes through `t()` and has an English translation (so no Japanese is left on the English screen), whether the dictionary has stale entries or mismatched `{placeholders}`, whether every error code the exe returns has UI text, and whether every document has an English version |
 
-Only these nine use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
+Only these ten use **Node.js** (22.12 or later; skipped if it is not installed. The app itself does not need it).
 The behavior test waits on purpose in one place (a slow SAORI overlapping with closing),
 so it takes about 10 seconds.
 When you add blocks or behavior, update the inputs and expected results in `shiori\test\`, `studio\test\` and `ui\test\`
@@ -329,7 +342,7 @@ regenerate the expected files with `node studio\test\export.js --update` / `node
 **The steps for adding one block** (which file gets what) and the common pitfalls are collected in
 [`docs/en/maintenance.md`](docs/en/maintenance.md).
 
-These nine also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
+These ten also **run automatically on GitHub** (pushes to `main`, `v*` tags, pull requests),
 so they stop you even if you forget. The settings are in `.github/workflows/build.yml`.
 
 To build one part, use `shiori\build.ps1` (the 32-bit helper and the test consoles) / `studio\build.ps1`.
@@ -431,6 +444,7 @@ ukagaka-studio/
 │   ├── samples/            examples (“Start from an example”); the English ones are in samples/en/
 │   ├── test/               tests that run without showing the UI
 │   │                         editor.js  … normalizing, format versions, Check tab, block search, examples, About
+│   │                         yayatext.js … reading and pretty-printing YAYA text
 │   │                         modules.js … loading, layer direction, call targets, color tokens
 │   │                         i18n.js    … unwrapped t(), the English dictionary, exe error codes, English docs
 │   └── js/                 ES modules (index.html reads only main.js)
@@ -444,8 +458,11 @@ ukagaka-studio/
 │       │   ├── blockindex.js  searching blocks by text (the / “find and place”)
 │       │   ├── player.js   unpacks Sakura Script (YAYA does the running)
 │       │   ├── yaya.js     translates blocks into a YAYA dictionary
+│       │   ├── yayatext.js reading (parsing) and pretty-printing YAYA dictionary text
+│       │   ├── dics.js     YAYA dictionaries inside the project (name rules, clashing functions, calls to missing functions)
+│       │   ├── yblocks.js  dictionary blocks (one per YAYA construct) and converting them to and from the dictionary tree
 │       │   ├── lines.js    the speech list and CSV in/out
-│       │   ├── replace.js  replacing text in bulk
+│       │   ├── replace.js  replacing text in bulk (block text fields and dictionary strings)
 │       │   ├── partsfile.js parts files (.parts.json) out and in
 │       │   ├── diff.js     differences between an earlier version and the project now
 │       │   ├── graph.js    how choices and calls connect
@@ -465,6 +482,7 @@ ukagaka-studio/
 │           ├── ghost.js    “Ghost info” (names, author, talk interval, network update, ghost language, thumbnail and readme)
 │           ├── dialog.js   save / open and export
 │           ├── starter.js  the starter wizard behind “New” in the top bar
+│           ├── dictionary.js “Dictionaries” (the project's YAYA dictionaries, their text editor and blocks)
 │           ├── graph.js    “Links” below the canvas (the diagram of where choices lead)
 │           ├── ssp.js      working with a running SSP
 │           └── yayalink.js “Link to a hand-written YAYA ghost” on the Export page
@@ -478,6 +496,7 @@ ukagaka-studio/
     ├── blocks.md           the block reference
     ├── ghost-json.md       the ghost.json specification
     ├── maintenance.md      a guide for working on the code (adding blocks, pitfalls)
+    ├── plugins.md          a quick reference for working with SSP plugins
     ├── roadmap.md          the rework plan
     └── en/                 English translations of the above (the Japanese ones are authoritative)
 ```
@@ -573,6 +592,9 @@ What you can do:
 * Switching to a third or later character (`\p[n]`)
 * Calling external modules (**SAORI**) — 32-bit DLLs placed in the ghost folder
   (there is a “call without waiting for the answer” block, but YAYA waits for the answer, so the ghost stops meanwhile)
+* **Working with SSP plugins** — a “send event to plugin” block (`\![raiseplugin,…]`) and hat blocks
+  for the events plugins send back (weather forecast, diary, stamp book, balloon picker, messages, Nostr and more).
+  How to use each plugin is in [docs/en/plugins.md](docs/en/plugins.md)
 * **Adding blocks to a hand-written YAYA ghost**, and **using hand-written YAYA functions and expressions** from blocks
 * **Animations** (SERIKO) — flipping through surfaces, made on the Characters page
   (each frame can be shifted and given a drawing method such as `interpolate` or `blend-*`;

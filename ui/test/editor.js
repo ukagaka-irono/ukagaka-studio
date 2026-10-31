@@ -70,6 +70,41 @@ section('読みこんだプロジェクトの整形 (model.normalize)');
 }
 
 {
+  // 欠けたところは既定値で埋める（meta や settings があっても）。言語は埋めない
+  const p = Model.normalize({ meta: { name: 'x' }, settings: {} });
+  check('meta・settings があっても、欠けた項目は既定値', [p.meta.name, p.meta.version, p.meta.lang, p.settings.randomTalkInterval],
+    ['x', '1.0.0', undefined, 180]);
+}
+
+{
+  // 変数の名前を変えると、変数をえらぶ欄はみな変わる（たずねる・SAORI の答えを入れる先も）
+  Model.init({ format: 'ikaga/1', meta: { name: 'V' }, variables: [{ name: 'ans', value: '' }], scripts: [{
+    id: 's', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'ask', into: 'ans', initial: '' }, { type: 'set', name: 'ans', value: 1 },
+      { type: 'saori_call', file: 'a.dll', a: '', b: '', into: 'ans', value: -1 },
+    ] }] });
+  Model.renameVariable('ans', 'こたえ');
+  check('変数の名前を変える', Model.project.scripts[0].blocks.map((b) => b.into || b.name), ['こたえ', 'こたえ', 'こたえ']);
+}
+
+{
+  // 人からもらったファイルの、形のおかしいかたまりとブロックで、チェックタブや題が止まらない
+  const { getDef } = require('../js/model/blocks.js');
+  const project = {
+    scripts: [null, 7, { id: 1, kind: 'event', event: 5, blocks: [
+      { type: 'constructor' }, { type: '__proto__' }, { type: 'toString' }, { type: 'say', who: 0, text: 'a', nl: 0 },
+    ] }],
+  };
+  const p = Model.normalize(project);
+  let error = '';
+  try { Model.project = p; Lint.run(p); } catch (e) { error = e.message; }
+  check('かたまりでないものは落とし、名前やイベント名は文字にし、Object の中身の名前はブロックにしない',
+    [p.scripts.length, p.scripts[0].id, p.scripts[0].event, typeof Model.scriptTitle(p.scripts[0]),
+      p.scripts[0].blocks.map((b) => !!getDef(b)), error],
+    [1, '1', '5', 'string', [false, false, false, true], '']);
+}
+
+{
   const p = Model.normalize({
     variables: [{ name: 'すき', value: 3 }, { name: '', value: 1 }, { value: 9 }],
   });
@@ -308,6 +343,41 @@ check('◯秒後によぶ先が無いトーク',
 check('◯秒後によぶ先が空',
   issuesOf(withScript([{ type: 'later', sec: 5, name: '' }]), '行き先がえらばれていません'),
   ['error']);
+
+// --- 段階 8-2: プロジェクトの YAYA の辞書
+{
+  const { dicNameOk, dicFunctionNames } = require('../js/model/dics.js');
+  check('辞書の名前', ['talk.dic', 'ＡＩ.DIC', '../x.dic', 'a\\b.dic', 'x.txt', '.dic', 'studio_runtime.dic', 'Studio_Program.dic'].map(dicNameOk),
+    [true, true, false, false, false, false, false, false]);
+  check('8.3 の短い名前・yaya.txt の区切り・Windows の機械の名前は使えない（Console.dic はよい）',
+    ['STUDIO~1.DIC', 'a,b.dic', 'NUL.dic', 'com1.dic', 'LPT¹.dic', 'con .dic', 'Console.dic'].map(dicNameOk),
+    [false, false, false, false, false, false, true]);
+  const p = Model.normalize({ scripts: [], dics: [{ name: 'a.dic', text: 'X\r\n{\r\n\t1\r\n}\r\n' }, { name: 3 }, 'x', { name: 'b.dic' }] });
+  check('読みこんだ辞書は、決まった形にする（改行は \\n、名前の無いものは落とす）', p.dics, [{ name: 'a.dic', text: 'X\n{\n\t1\n}\n' }, { name: 'b.dic', text: '' }]);
+  check('新しいプロジェクトの辞書は空', Model.newProject().dics, []);
+  const proj = (dics, extra) => Object.assign({ meta: {}, variables: [], scripts: [], dics }, extra || {});
+  const msgs = (pr) => { Model.project = Model.normalize(pr); return Lint.run(Model.project).filter((i) => /辞書/.test(i.message)).map((i) => `${i.level}: ${i.message}`); };
+  check('書きまちがいは、辞書と行で知らせる', msgs(proj([{ name: 'a.dic', text: 'X\n{\n\tif {\n\t}\n}\n' }])),
+    ['error: 辞書「a.dic」の 3 行目が、YAYA として読めません']);
+  check('スタジオや yaya_base の名前はかぶりとして知らせる',
+    msgs(proj([{ name: 'a.dic', text: 'Studio.Event\n{\n\t1\n}\nOnRequest\n{\n\t1\n}\n' }])),
+    ['error: 辞書「a.dic」の関数「Studio.Event」は、スタジオのしくみか yaya_base がもう使っている名前です',
+      'error: 辞書「a.dic」の関数「OnRequest」は、スタジオのしくみか yaya_base がもう使っている名前です']);
+  check('辞書どうしのかぶり・使えない名前・同じ名前の辞書',
+    msgs(proj([{ name: 'a.dic', text: 'F\n{\n\t1\n}\n' }, { name: 'b.dic', text: 'F\n{\n\t2\n}\n' }, { name: '../c.dic', text: '' }, { name: 'A.DIC', text: '' }])),
+    ['error: 関数「F」が、辞書「a.dic」と「b.dic」の両方にあります', 'error: 辞書の名前「../c.dic」は使えません', 'error: 辞書「A.DIC」が 2 つあります']);
+  check('ブロックと同じイベントは、辞書が動くと知らせる',
+    msgs(proj([{ name: 'a.dic', text: 'OnBoot\n{\n\t"x"\n}\n' }], { scripts: [{ id: 's', kind: 'event', event: 'OnBoot', blocks: [{ type: 'say', who: 0, text: 'やあ' }] }] })),
+    ['warn: OnBoot は、プロジェクトの辞書「a.dic」にもあります']);
+  check('つないでいるあいだは書き出さないと知らせる',
+    msgs(proj([{ name: 'a.dic', text: '' }], { meta: { ghostDir: 'C:\\g' } })), ['warn: 手書きのゴーストにつないでいるあいだは、プロジェクトの辞書を書き出しません']);
+  check('辞書の関数は「手書き」として書き出しにわたす', dicFunctionNames(Model.normalize(proj([{ name: 'a.dic', text: 'OnBoot\n{\n\t1\n}\nH\n{\n\t2\n}\n' }]))), ['OnBoot', 'H']);
+}
+
+// --- 段階 8-1: YAYA の式が YAYA として読めるか
+check('読めない YAYA の式は言う', issuesOf(withScript([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: '1 + (2' } }]), 'YAYA として読めません'), ['warn']);
+check('読める YAYA の式なら言わない',
+  issuesOf(withScript([{ type: 'say', who: 0, text: { type: 'yaya_expr', code: 'STRLEN(Studio.var["x"]) * 2 + (1, 2)[0]' } }]), 'YAYA として読めません'), []);
 
 // --- 段階 7-7: 選択肢のつながり
 {
@@ -677,6 +747,20 @@ section('プロジェクトをまたいだコピー (clipboard)');
   check('部品は、名前（前後の空白なし）・ブロックの写し・使っている変数の初期値を持つ',
     [part.name, part.blocks.length, part.blocks[0].who, part.variables],
     ['あいさつ', 2, 0, [{ name: 'なまえ', value: 'きみ' }, { name: '好感度', value: 5 }]]);
+
+  // 辞書のブロックは辞書の画面に、トークのブロックはトークの画面にだけはりつける（段階 9-2）
+  const dicStack = [{ type: 'y_out', value: '"a"', prefix: '' }];
+  Clipboard.copy(dicStack[0]);
+  const talkStack = [];
+  const intoTalk = Clipboard.paste(talkStack, 0);
+  const refusedTalk = say();
+  const intoDic = Clipboard.paste(dicStack, 1, { dic: true });
+  Clipboard.copy({ type: 'say', who: 0, text: 'やあ' });
+  const intoDic2 = Clipboard.paste(dicStack, 0, { dic: true });
+  const refusedDic = say();
+  check('辞書のブロックはトークの列にははらず、辞書の列にははる。トークのブロックは辞書の列にははらない',
+    [intoTalk, talkStack.length, refusedTalk, intoDic, dicStack.length, intoDic2, refusedDic],
+    [false, 0, '辞書のブロックは、辞書の画面にはりつけます', true, 2, false, 'トークのブロックは、トークの画面にはりつけます']);
   globalThis.setTimeout = realTimeout;
   delete globalThis.document;
   delete globalThis.localStorage;
@@ -750,6 +834,13 @@ section('さがして置きかえる (replace)');
     [n, b[0].text, b[1].text.a, b[2].name, b[2].a, b[3].ms],
     [4, 'いぬ$&が好き。いぬ$&！', 'いぬ$&', 'Hand.ねこ', 'いぬ$&', 500]);
   check('空の言葉では何もしない', [countText(Model.project, ''), replaceText(Model.project, '', 'x')], [0, 0]);
+  // 辞書は、文字列の中だけ（段階 9-3）。関数の名前・変数・コメントは置きかえない
+  Model.init({ format: 'ikaga/1', meta: { name: 'R2' }, scripts: [], dics: [{ name: 'a.dic',
+    text: 'ねこ.Say // ねこ\n{\n\t_ねこ = "ねこだよ" + \'ねこ\'\n\t_s = <<"\n\tねこの行\n">>\n}\n' }] });
+  check('辞書は、文字列とヒアドキュメントの中だけを数える', countText(Model.project, 'ねこ'), 3);
+  const m = replaceText(Model.project, 'ねこ', 'いぬ');
+  check('辞書の文字列の中だけを置きかえる', [m, Model.project.dics[0].text],
+    [3, 'ねこ.Say // ねこ\n{\n\t_ねこ = "いぬだよ" + \'いぬ\'\n\t_s = <<"\n\tいぬの行\n">>\n}\n']);
 }
 
 section('このソフトについて (about)');
@@ -768,6 +859,174 @@ section('このソフトについて (about)');
   const html = fs.readFileSync(path.join(root, 'ui', 'index.html'), 'utf8');
   check('ヘルプの画面に、表示を入れる場所と元のページを開くボタンがある',
     [html.includes('id="about-notice"'), html.includes('id="btn-about-origin"')], [true, true]);
+}
+
+section('使えないイベント名 (eventNameOk。しくみ・yaya_base の関数と同じ名前)');
+{
+  const { toYaya, programOf } = require('../js/model/yaya.js');
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'E' }, variables: [],
+    scripts: ['ChainTalk', 'Studio.Event', 'OnBoot'].map((event, i) => ({ id: 'e' + i, kind: 'event', event,
+      blocks: [{ type: 'say', who: 0, text: 'a', nl: 0 }] })),
+  });
+  const dic = toYaya(programOf(Model.project));
+  const defined = (name) => dic.split(/\r?\n/).includes(name);
+  check('しくみ・yaya_base の関数と同じ名前の入り口は書かない（OnBoot は書く）',
+    [defined('ChainTalk'), defined('Studio.Event'), defined('OnBoot')], [false, false, true]);
+  {
+    // とても大きな数を 1e+21 と書くと、YAYA は 21 と読むので、そう書かない
+    const big = Model.normalize({ format: 'ikaga/1', meta: { name: 'N' }, variables: [], scripts: [{ id: 'n', kind: 'event', event: 'OnBoot',
+      blocks: [{ type: 'say', who: 0, text: '{待つ:1000000000000000000000}', nl: 0 }] }] });
+    const out = toYaya(programOf(big));
+    check('とても大きな数は、e の書きかたにしない', [/e\+/.test(out), out.includes('Studio.Wait(9007199254740991)')], [false, true]);
+  }
+  const { eventNameOk } = require('../js/model/yaya.js');
+  check('YAYA の言葉・ローカル変数の形・元からある関数・yaya_base の大域変数・#globaldefine の名前をふくむものも使えない',
+    ['if', 'others', '_x', 'STRLEN', 'reference', 'reference3', 'OnTALK_INTERVALx', 'OnBoot', 'OnMyEvent'].map(eventNameOk),
+    [false, false, false, false, false, false, false, true, true]);
+  const warns = Lint.run(Model.project).filter((i) => /使えないので、このかたまりは書き出しません/.test(i.message)).map((i) => i.message);
+  check('チェックタブで知らせる', warns.length, 2);
+}
+
+section('プログラムやファイルにさわる YAYA (Lint.riskyCode。「ためす」の前に確かめる)');
+{
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'R' }, variables: [],
+    dics: [{ name: 'a.dic', text: 'A\n{\n\t_x = STRLEN("FDEL(1)") // EXECUTE(1)\n\tFDEL("x")\n\tFDEL("y")\n}\n' }],
+    scripts: [{ id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+      { type: 'say', who: 0, text: { type: 'yaya_expr', code: 'MKDIR("x")' }, nl: 0 },
+      { type: 'yaya_call', name: 'LOADLIB', a: '', b: '' },
+      { type: 'yaya_call', name: 'Hand.Hi', a: '', b: '' },
+      { type: 'yaya_expr', code: 'EVAL("1")', disabled: true },
+    ] }],
+  });
+  const risky = Lint.riskyCode(Model.project).map((r) => [r.name, r.dic || r.block.type, r.line || 0]);
+  check('辞書（文字列とコメントの中も見る。名前ごとに 1 か所）と、YAYA の式・関数をよぶブロック（無効にしたものも）',
+    risky, [['FDEL', 'a.dic', 3], ['EXECUTE', 'a.dic', 3], ['MKDIR', 'yaya_expr', 0], ['LOADLIB', 'yaya_call', 0], ['EVAL', 'yaya_expr', 0]]);
+  const warns = Lint.run(Model.project).filter((i) => /プログラムやファイルにさわる/.test(i.message)).map((i) => i.message);
+  check('チェックタブに、どこで何をよんでいるかが出る', warns.length, 5);
+
+  // 人からもらったファイルで、確かめをすりぬけようとする書きかた
+  const { riskyCalls, dicDefines } = require('../js/model/dics.js');
+  const names = (text, defines) => riskyCalls(text, defines).map((r) => r.name + '@' + r.line);
+  check('行の頭に書いた文・( が次の行・/ でつないだ名前',
+    [names('OnBoot\n{\nEXECUTE("calc.exe")\n}'), names('A\n{\n\tEXECUTE /\n\t("x")\n}'), names('A\n{\n\t_x = EXEC/\nUTE("x")\n}')],
+    [['EXECUTE@3'], ['EXECUTE@3'], ['EXECUTE@3']]);
+  check('#define で名前を書きかえたもの（ほかの辞書の #globaldefine も）',
+    [names('#define RUN EXECUTE\nA\n{\n\tRUN("x")\n}', dicDefines(['#define RUN EXECUTE'])),
+      names('A\n{\n\tGO("x")\n}', dicDefines(['#globaldefine GO EXE', '#globaldefine EXE EXECUTE']))],
+    [['EXECUTE@1'], ['EXECUTE@3']]);
+  check('yaya_base やしくみの、上のものをよぶ関数と、SAORI を止める印',
+    names('A\n{\n\tCALLBYNAME("x")\n\tFUNCTIONLOAD("x")\n\tStudio.noSaori = 0\n\tAyaTest.Eval("x")\n}'),
+    ['CALLBYNAME@3', 'FUNCTIONLOAD@4', 'Studio.noSaori@5', 'AyaTest.Eval@6']);
+  check('ふつうの文は知らせない', names('A\n{\n\t_x = STRLEN("EXECUTED") + EXECUTE_COUNT\n\tStudio.Say(0, "x")\n}'), []);
+
+  Model.init({
+    format: 'ikaga/1', meta: { name: 'R2' }, variables: [], dics: [],
+    scripts: [
+      { id: 's1', kind: 'event', event: 'OnBoot', blocks: [
+        { type: 'say', who: 0, text: 'hi', nl: 0, surface: { type: 'yaya_expr', code: 'EXECUTE("a")' } },
+        { type: 'call', target: { type: 'yaya_call', name: 'FUNCTIONLOAD', a: '', b: '' } },
+      ] },
+      { id: 's2', kind: 'talk', name: 'hidden', disabled: true, blocks: [{ type: 'yaya_call', name: 'Studio.YayaExpr', a: '', b: '' }] },
+    ],
+  });
+  check('ブロックの形にない欄にはめたものと、無効にしたトークの中も見る',
+    Lint.riskyCode(Model.project).map((r) => r.name), ['EXECUTE', 'FUNCTIONLOAD', 'Studio.YayaExpr']);
+}
+
+section('yaya_base としくみの関数で、RISKY_FUNCTIONS をよぶものは、それ自体も RISKY_FUNCTIONS にあるか、決まったものだけをよぶ');
+{
+  const fs = require('fs');
+  const path = require('path');
+  const { RISKY_FUNCTIONS } = require('../js/model/dics.js');
+  // 渡された文字ではなく、決まった名前・決まったファイルだけに使っているもの（中を読んで確かめたもの）
+  const FIXED = new Set([
+    // studio_runtime.dic
+    'Studio.Log', 'Studio.TalkOk', 'Studio.RunOne', 'Studio.CallIndex', 'Studio.Saori',
+    // studio_preview.dic（「ためす」の入り口。どのかたまりを動かすかは ISFUNC で確かめた名前だけ）
+    'OnStudioPreview',
+    // yaya_base
+    'SHIORI3FW.AssembleReferenceHeader', 'ChainTalk', 'SHIORI3FW.Lint.Run', 'SHIORI3FW.Lint.ReadTexts', 'request',
+    'SHIORI3FW.TranslateEvent', 'SHIORI3FW.MakeReferenceAndPassThruInsVariable', 'SHIORI3FW.MakeValueexVariable',
+    'SHIORI3FW.GetGhostNameFromDescriptTxt', 'SHIORI3FW.GetCharsetFromDescriptTxt', 'SHIORI3FW.InternalSaoriAvailable',
+    'GET_PROPERTY', 'SHIORI3FW.SaoriUnloadAll', 'SHIORI3EV.On_hwnd', 'SHIORI3EV.OnNotifySelfInfo', 'SHIORI3EV.OnShellChanged',
+    'SHIORI3EV.OnBalloonChange', 'SHIORI3EV.OnAITalkNewEvent', 'SHIORI3EV.On_enable_log', 'DUMP', 'load', 'unload',
+    'SHIORI3FW.Dl2ToDll', 'SHIORI3FW.SendGETVersion',
+  ]);
+  const root = path.join(__dirname, '..', '..');
+  const files = [
+    ...fs.readdirSync(path.join(root, 'third_party', 'yaya-dic', 'yaya_base')).filter((f) => f.endsWith('.dic'))
+      .map((f) => path.join(root, 'third_party', 'yaya-dic', 'yaya_base', f)),
+    path.join(root, 'studio', 'res', 'yaya', 'studio_runtime.dic'),
+    path.join(root, 'studio', 'res', 'yaya', 'studio_preview.dic'),
+  ];
+  const missing = [];
+  for (const file of files) {
+    let fn = '';
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+      const head = /^([A-Za-z_][A-Za-z0-9_.]*)\s*(?::.*)?$/.exec(line);
+      if (head && !/^(if|else|elseif|while|for|foreach|switch|case|when|others)$/.test(head[1])) { fn = head[1]; continue; }
+      const code = line.replace(/\/\/.*$/, '');
+      if (!fn || RISKY_FUNCTIONS.has(fn) || FIXED.has(fn)) continue;
+      for (const name of RISKY_FUNCTIONS) {
+        if (new RegExp('(^|[^A-Za-z0-9_.])' + name.replace(/\./g, '\\.') + '\\s*\\(').test(code)) {
+          missing.push(`${path.basename(file)}: ${fn} → ${name}`);
+        }
+      }
+    }
+  }
+  check('漏れ', [...new Set(missing)], []);
+}
+
+section('辞書でよんでいる、どこにも無い関数 (dicIssues。段階 9-1)');
+{
+  const { dicIssues } = require('../js/model/dics.js');
+  const found = (dics, opts) => {
+    const out = [];
+    dicIssues({ dics }, (level, msg, hint, where) => { if (/どこにも無い関数/.test(msg)) out.push([level, where.dic, where.line, msg.match(/「([^」]+)」は/)[1]]); }, opts);
+    return out;
+  };
+  const text = 'Greet\n{\n\t_n = STRLEN("a(b") + Helper(1) // Nope0(1)\n\tStudio.Event("OnBoot")\n\tif (_n) { Nope1(2) }\n\tSHIORI3FW.RegisterTempVar("x")\n\tNope1(3)\n\tOnBoot()\n}\nHelper\n{\n\t1\n}\n';
+  check('元からある関数・辞書の関数・しくみ・yaya_base・ブロックのイベントはよい。無いものは最初の 1 か所だけ（コメントと文字列はのぞく）',
+    found([{ name: 'a.dic', text }], { blockEvents: ['OnBoot'] }), [['warn', 'a.dic', 5, 'Nope1']]);
+  check('ほかの辞書の関数もよい', found([{ name: 'a.dic', text: 'A\n{\n\tB()\n}\n' }, { name: 'b.dic', text: 'B\n{\n\t1\n}\n' }]), []);
+  check('つないでいるあいだと、読めない辞書では見ない',
+    [found([{ name: 'a.dic', text: 'A\n{\n\tX()\n}\n' }], { linked: true }).length, found([{ name: 'a.dic', text: 'A\n{\n\tX(\n}\n' }]).length], [0, 0]);
+}
+
+section('ゴーストの辞書を読みこむときの名前 (importDicName)');
+{
+  const { importDicName, dicNameOk } = require('../js/model/dics.js');
+  const names = [importDicName('dic/aitalk.dic', []), importDicName('Talk.dic', ['talk.dic', 'talk_2.dic']),
+    importDicName('studio_runtime.dic', []), importDicName('a:b.dic', []), importDicName('readme', [])];
+  check('フォルダの区切り・かぶり（大文字小文字も）・スタジオのファイル・使えない文字・.dic の無い名前',
+    names, ['dic_aitalk.dic', 'Talk_3.dic', 'imported_studio_runtime.dic', 'a_b.dic', 'readme.dic']);
+  const long = 'x'.repeat(70) + '.dic';
+  names.push(importDicName(long, [importDicName(long, [])]));
+  check('どれも辞書の名前に使える（長い名前に _2 を付けても 64 字まで）', [names.every(dicNameOk), names[5].length, names[5].endsWith('_2.dic')], [true, 64, true]);
+  const odd = [importDicName('aitalk~1.dic', []), importDicName('a,b.dic', []), importDicName('nul.dic', [])];
+  check('~ と , は _ にし、機械の名前には _ を前に付ける', [odd, odd.every(dicNameOk)],
+    [['aitalk_1.dic', 'a_b.dic', '_nul.dic'], true]);
+}
+
+section('「元にもどす」に積む前に、画面の側のものを書きもどす (Model.onCommit。辞書の画面のブロック)');
+{
+  // 辞書の画面は、ブロックをプロジェクトの外に持ち、変わったら辞書のテキストに書きます（panels/dictionary.js）。
+  // ここでは「外のもの」を out にして、act・pushUndo が積む前に書きもどすことと、元にもどすで前にもどることを見ます
+  Model.init({ format: 'ikaga/1', meta: { name: 'D' }, dics: [{ name: 'a.dic', text: 'A' }], scripts: [] });
+  const out = { text: 'A' };
+  Model.commitHooks.length = 0;
+  Model.onCommit(() => { Model.project.dics[0].text = out.text; });
+  Model.act(() => { out.text = 'B'; });
+  check('act: 外で変えたものが、プロジェクトに入る', Model.project.dics[0].text, 'B');
+  const snap = Model.clone(Model.project);
+  out.text = 'C';
+  Model.pushUndo(snap);
+  check('pushUndo: 外で変えたものを書きもどしてからくらべるので、記録が積まれる', [Model.project.dics[0].text, Model.undoStack.length], ['C', 2]);
+  Model.undo();
+  check('元にもどすと、前のテキスト', Model.project.dics[0].text, 'B');
+  Model.commitHooks.length = 0;
 }
 
 // ------------------------------------------------------------------ おしまい

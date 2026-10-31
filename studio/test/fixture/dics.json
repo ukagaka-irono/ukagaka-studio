@@ -1,0 +1,26 @@
+{
+  "format": "ikaga/1",
+  "_comment": [
+    "プロジェクトの YAYA の辞書（段階 8-2）。talk.dic と more.dic を書き出し、yaya.txt に足すはず。",
+    "../evil.dic（フォルダの外）・studio_runtime.dic（スタジオのファイル）・Talk.DIC（大文字小文字だけちがう 2 つめ）は書かないはず。",
+    "辞書に OnBoot があるので、ブロックの OnBoot の入り口は書かず（手書きと同じ）、辞書のほうが動くはず。"
+  ],
+  "meta": { "name": "じしょ", "folder": "dics" },
+  "scripts": [
+    {
+      "id": "d_boot", "kind": "event", "event": "OnBoot",
+      "blocks": [{ "type": "say", "who": 0, "text": "ブロックの起動", "nl": 0 }]
+    },
+    {
+      "id": "d_call", "kind": "event", "event": "OnCallDic",
+      "blocks": [{ "type": "yaya_call", "name": "Hand.Hello", "a": "", "b": "" }]
+    }
+  ],
+  "dics": [
+    { "name": "talk.dic", "text": "// プロジェクトの辞書\nOnBoot\n{\n\t\"\\0辞書の起動\\e\"\n}\n\nHand.Hello\n{\n\t\"やあ\"\n}\n" },
+    { "name": "more.dic", "text": "Hand.Bye\n{\n\t\"またね\"\n}\n" },
+    { "name": "../evil.dic", "text": "Evil\n{\n\t1\n}\n" },
+    { "name": "studio_runtime.dic", "text": "Evil2\n{\n\t1\n}\n" },
+    { "name": "Talk.DIC", "text": "Evil3\n{\n\t1\n}\n" }
+  ]
+}

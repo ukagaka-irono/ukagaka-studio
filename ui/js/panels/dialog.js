@@ -22,13 +22,31 @@ import { Pages } from './pages.js';
 /**
  * プロジェクトを保存する。上書きする前のものは、exe が前の版として残します（studio/src/project_history.h）。
  * auto は 1 分ごとの自動保存のしるし（前の版は 10 分おきにだけ残します）
+ *
+ * 書く先は、開いているファイル（Session.projectName）です。ゴーストの名前を変えても、ほかのプロジェクトには書きません。
+ * 新しく作ったもの・お手本・読みこんだもの（Session.projectName が空）は、名前から新しいファイルを作ります
+ * （同じ名前のファイルがあれば、exe が「名前 (2)」のようにずらします）。
  */
+let saving = null;   // 保存している最中（重なると、新しいものが 2 つのファイルに分かれるので、順番に）
 async function saveProject(silent, auto = false) {
+  while (saving) { try { await saving; } catch { /* 前の保存の失敗は、その保存が知らせます */ } }
+  saving = saveOnce(silent, auto);
+  try { return await saving; } finally { saving = null; }
+}
+async function saveOnce(silent, auto) {
   const name = Model.project.meta.name || t('ゴースト');
+  const project = Model.project;
+  const sent = JSON.stringify(project);
+  const opened = Model.generation;
+  const keep = !!Session.projectName && Session.keepVersionOf === Session.projectName;
   try {
-    const r = await api('/api/project', { method: 'POST', body: { name, project: Model.project, auto } });
+    const r = await api('/api/project', { method: 'POST', body: { file: Session.projectName, name, project, auto, keep } });
+    // 保存しているあいだに、ほかのプロジェクトを開いていたら、そちらの名前や印にはさわらない
+    if (Model.generation !== opened) return true;
+    if (keep) Session.keepVersionOf = '';
     Session.projectName = r.saved;
-    Model.dirty = false;
+    // 保存しているあいだに変えたものは、まだ保存していない
+    Model.dirty = JSON.stringify(Model.project) !== sent;
     updateTitle();
     if (!silent) toast(t('「{name}」を保存しました', { name: r.saved }));
     // 手で保存したときだけ知らせる（自動保存・閉じるときの保存では、SSP に入れない。panels/ssp.js）
@@ -40,10 +58,21 @@ async function saveProject(silent, auto = false) {
   }
 }
 
-/** ウィンドウを閉じるとき、アプリ本体から呼ばれる（保存し終わったら合図を返す） */
+/**
+ * ウィンドウを閉じるとき、アプリ本体から呼ばれる。保存し終わったら 'saved'、できなかったら 'save_failed' を返す
+ * （できなかったときは、アプリ本体が、保存しないで閉じてよいかをたずねます。studio/src/main.cpp）
+ */
 async function requestSaveAndClose() {
-  try { await saveProject(true); } catch (e) { /* 保存できなくても閉じる */ }
-  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage('saved');
+  let ok = false;
+  try { ok = await saveProject(true); } catch { ok = false; }
+  if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage(ok ? 'saved' : 'save_failed');
+}
+
+/** 閉じる前に、保存していない変更があるか（打っている最中の欄は、離れたことにして、プロジェクトに入れてから見る） */
+function isDirty() {
+  const el = document.activeElement;
+  if (el && el !== document.body && typeof el.blur === 'function') el.blur();
+  return Model.dirty;
 }
 
 // opts.wide … 図のような広いものを出すときに、窓を広くする（panels/graph.js）
@@ -75,7 +104,8 @@ async function openProjectDialog() {
   if (!state.projects.length) list.appendChild(Render.div('hint', t('まだ保存したプロジェクトがありません。')));
   for (const p of state.projects) {
     const row = Render.div('proj-row');
-    row.appendChild(Render.div('t', p.title));
+    // 名前の同じプロジェクトも見分けられるように、ファイル名が名前とちがえば添える
+    row.appendChild(Render.div('t', p.file === p.title ? p.title : `${p.title} — ${p.file}`));
     row.appendChild(Render.div('d', new Date(p.updated).toLocaleString('ja-JP')));
     const past = Render.el('button', 'x', '🕘');
     past.title = t('前の版');
@@ -90,7 +120,15 @@ async function openProjectDialog() {
     x.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!confirm(t('「{title}」を削除しますか？', { title: p.title }))) return;
-      await api('/api/project/delete', { method: 'POST', body: { name: p.file } });
+      try {
+        await api('/api/project/delete', { method: 'POST', body: { name: p.file } });
+      } catch (err) { toast(err.message, true); return; }
+      // 開いているものを消したら、自動保存で作りなおさない（このあと変えて保存すると、新しいファイルになります）
+      if (p.file === Session.projectName) {
+        Session.projectName = '';
+        Model.dirty = false;
+        updateTitle();
+      }
       closeModal();
       openProjectDialog();
     });
@@ -151,6 +189,7 @@ async function openHistoryDialog(file, title) {
         Session.projectName = file;
         Session.vars = {};
         Model.dirty = true;     // 保存すると、いまの版のかわりになります（いまの版も前の版として残ります）
+        Session.keepVersionOf = file;   // 見るだけで開いても、自動保存がいまの版を消さないように
         updateTitle();
         closeModal();
         toast(t('{time} の版を開きました。保存すると、これがいまの版になります（いまの版も前の版として残ります）', { time: timeText(v.time) }));
@@ -333,10 +372,11 @@ function init() {
     try {
       const r = await api('/api/import', { method: 'POST', body: { path: p } });
       Model.init(r.project);
+      Session.projectName = '';          // 保存すると、新しいファイルを作る（同じ名前のプロジェクトは上書きしない）
       Session.vars = {};
       toast(t('読み込みました'));
     } catch (e) { toast(e.message, true); }
   });
 }
 
-export const Dialog = { init, saveProject, requestSaveAndClose, openProjectDialog, openHistoryDialog, openSampleDialog, doExport, modal, closeModal };
+export const Dialog = { init, saveProject, requestSaveAndClose, isDirty, openProjectDialog, openHistoryDialog, openSampleDialog, doExport, modal, closeModal };

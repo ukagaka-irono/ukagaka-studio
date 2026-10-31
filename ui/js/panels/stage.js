@@ -89,7 +89,7 @@ async function playSakura(script) {
       case 'clickwait': {
         const mark = Render.el('span', 'balloon-wait', ' ▼');
         target.querySelector('.balloon-text').appendChild(mark);
-        await Promise.race([sleep(2500), waitForStageClick()]);
+        await waitForStageClick(2500);
         mark.remove();
         break;
       }
@@ -114,11 +114,14 @@ async function playSakura(script) {
   }
 }
 
-function waitForStageClick() {
+/** ステージがクリックされるか、ms たつまで待つ（どちらでも、待つのに付けたものは外す） */
+function waitForStageClick(ms) {
   return new Promise((resolve) => {
     const stage = $('#stage');
-    const fn = () => { stage.removeEventListener('click', fn); resolve(); };
-    stage.addEventListener('click', fn);
+    let timer = 0;
+    const done = () => { stage.removeEventListener('click', done); clearTimeout(timer); resolve(); };
+    stage.addEventListener('click', done);
+    timer = setTimeout(done, ms);
   });
 }
 

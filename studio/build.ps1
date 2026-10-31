@@ -92,7 +92,9 @@ function Build-Exe {
     }
 
     Write-Host "[studio] $Label をリンク中..." -ForegroundColor Cyan
-    $linkArgs = @('/nologo', "/OUT:$Out", "/SUBSYSTEM:$Subsystem", '/OPT:REF', '/OPT:ICF') +
+    # /DEPENDENTLOADFLAG:0x800 … 起動のときに読む DLL（dwmapi.dll など）を System32 からだけ探す
+    # （exe と同じフォルダに同じ名前の DLL が置かれていても、それを読まないように）
+    $linkArgs = @('/nologo', "/OUT:$Out", "/SUBSYSTEM:$Subsystem", '/OPT:REF', '/OPT:ICF', '/DEPENDENTLOADFLAG:0x800') +
                 $objs + $Extra + $Lib
     & link @linkArgs
     if ($LASTEXITCODE -ne 0) { throw "$Label のリンクに失敗しました。" }

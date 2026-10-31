@@ -12,6 +12,9 @@
  * DOM を触らないので、node のテストからそのまま使えます。
  */
 
+import { reservedFunction, yayaSystemFunction } from './dics.js';
+import { KEYWORDS } from './yayatext.js';
+
 /** yaya_base（third_party/yaya-dic/yaya_base）の #globaldefine の名前。
  *  YAYA は、この名前を文字列の中でも置きかえてしまうので、人の書いた文に出てきたら
  *  文字列を 2 つに分けて、置きかえられないようにします（shiori\test\yaya\ が、この一覧が
@@ -39,12 +42,14 @@ const RESERVED_PREFIX = ['OnSHIORI3FW.', 'OnSystemLoad', 'OnSystemUnload', 'OnGh
   'OnGhostUnload', 'OnGhostEventTranslate', 'OnTranslateInternal', 'SHIORI3'];
 
 /** 書き出すゴーストの yaya.txt（はじめて作るとき） */
-export function yayaTxt() {
+// dics … プロジェクトの YAYA の辞書の名前（段階 8-2。exe の YayaTxt と同じ並び）
+export function yayaTxt(dics = []) {
   return [
     'charset, UTF-8',
     'dicdir, yaya_base',
     'dic, studio_runtime.dic',
     'dic, studio_program.dic',
+    ...dics.map((name) => `dic, ${name}`),
     '',
   ].join('\r\n');
 }
@@ -67,7 +72,7 @@ function sayWithMarks(b, L) {
   for (const m of b.text.matchAll(SAY_MARKS)) {
     const part = b.text.slice(last, m.index);
     if (part) out.push(L(`Studio.Say(${who}, ${yayaStr(part)}, 0)`));
-    const n = Number(m[2]);
+    const n = roundInt(Number(m[2]));
     out.push(m[1] === '表情' || m[1] === 'face' ? L(`Studio.Surface(${who}, ${n})`) : L(`Studio.Wait(${n})`)); // i18n-ignore（印の名前）
     last = m.index + m[0].length;
   }
@@ -125,8 +130,10 @@ function asNum(v, def = 0) {
   return def;
 }
 
+// 整数にする。とても大きな数は 1e+21 のような書きかたになり、YAYA が 21 と読むので、そうならない大きさまでにする
 function roundInt(v) {
-  return Math.trunc(v < 0 ? v - 0.5 : v + 0.5);
+  const n = Math.trunc(v < 0 ? v - 0.5 : v + 0.5);
+  return Number.isFinite(n) ? Math.max(-Number.MAX_SAFE_INTEGER, Math.min(Number.MAX_SAFE_INTEGER, n)) : 0;
 }
 
 function asInt(v, def = 0) {
@@ -169,6 +176,7 @@ export function yayaStr(s) {
   for (const ch of s) {
     const c = ch.codePointAt(0);
     if (ch === "'") { flush(); parts.push('"\'"'); }
+    else if (c === 0) continue;   // NUL の字があると、YAYA の文字列も SSP への答えもそこで切れるので落とす
     else if (c < 0x20 || c === 0x7f) { flush(); parts.push(`CHR(${c})`); }
     else run += ch;
   }
@@ -204,10 +212,18 @@ export function yayaNameOk(name) {
   return !/[\s!"#$%&'()*+,\-/:;<=>?@[\\\]^`{|}~]/.test(name);
 }
 
-/** イベントの名前が、そのまま YAYA の関数名にできるか */
-function eventNameOk(ev) {
+/**
+ * イベントの名前が、そのまま YAYA の関数名にできるか。
+ * しくみ（Studio.〜）や yaya_base の関数（ChainTalk など）と同じ名前だと、同じ関数が 2 つになって
+ * YAYA が辞書をまるごと読まなくなるので、それも使えない（model/dics.js の reservedFunction。辞書の関数と同じ決まり）
+ */
+export function eventNameOk(ev) {
   if (!yayaNameOk(ev)) return false;
-  if (RESERVED_EVENT.includes(ev)) return false;
+  if (RESERVED_EVENT.includes(ev) || reservedFunction(ev)) return false;
+  // if などの言葉・_ ではじまる名前（ローカル変数）は、関数の名前にすると YAYA が辞書を読まない。
+  // YAYA にもとからある関数と同じ名前は、よんでもそちらが動く。#globaldefine の名前が入ると、名前が書きかわる
+  if (KEYWORDS.has(ev) || ev === '_in_' || ev.startsWith('_') || yayaSystemFunction(ev)) return false;
+  if (YAYA_DEFINES.some((d) => ev.includes(d))) return false;
   return !RESERVED_PREFIX.some((p) => ev.startsWith(p));
 }
 
@@ -352,6 +368,7 @@ function stmtOf(b, ind, ctx) {
     case 'change_ghost': return [L(`if Studio.ChangeGhost(${expr(b.name)}) { return }`)];
     case 'open_browser': return [L(`Studio.OpenBrowser(${expr(b.url)})`)];
     case 'raise': return [L(`Studio.Raise(${expr(b.event)}, ${expr(b.a)})`)];
+    case 'plugin': return [L(`Studio.Plugin(${expr(b.plugin)}, ${expr(b.event)}, ${expr(b.refs)})`)];
     case 'later': return [L(`Studio.Later(${expr(b.name)}, ${intArg(b.sec, 10)})`)];
     case 'saori_call': {
       const args = [yayaStr(asStr(b.into)), yayaInt(asInt(b.value, -1)), expr(b.file), ...saoriArgs(b)];

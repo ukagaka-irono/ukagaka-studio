@@ -133,6 +133,10 @@ const cases = [
   ['en.json', 'ghost/master/studio_program.dic', 'en-studio_program.dic'],
   // ファイルの一覧（YAYA 一式が ghost/master/ に入ること）。大きさは、しくみの辞書を直すたびに変わるので見ない
   ['ghost.json', '', 'files.txt', 'namesOnly'],
+  // プロジェクトの YAYA の辞書（段階 8-2）。使える名前のものだけを書き、yaya.txt に足す（改行は CRLF）
+  ['dics.json', 'ghost/master/yaya.txt', 'dics-yaya-txt.txt'],
+  ['dics.json', 'ghost/master/talk.dic', 'dics-talk.txt'],
+  ['dics.json', '', 'dics-files.txt', 'namesOnly'],
 ];
 
 console.log('  ---- 書き出したファイルの中身');
@@ -142,6 +146,218 @@ for (const [fixture, want, expected, how] of cases) {
   let got = run([...args, '--dic', dicFor(fixture)]);
   if (how === 'namesOnly') got = Buffer.from(got.toString('utf8').replace(/ \(\d+ バイト\)/g, ''), 'utf8');
   compare(expected, got);
+}
+
+// ------------------------------------------------- 大きな surfaces.txt
+//
+// 見出しに番号をたくさん並べた surfaces.txt でも、読みこみがすぐ終わること（広げる番号は 1 つの見出しで 2000 まで）
+console.log('  ---- 大きな surfaces.txt の読みこみ');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-big-'));
+  try {
+    const ranges = [];
+    for (let i = 0; i < 10; i++) ranges.push(`${i * 2000}-${i * 2000 + 1999}`);
+    const body = [];
+    for (let i = 0; i < 5; i++) body.push(`animation${i}.interval,always`, `animation${i}.pattern0,overlay,100,50,0,0`);
+    for (let i = 0; i < 5; i++) body.push(`collision${i},0,0,10,10,Area${i}`);
+    fs.writeFileSync(path.join(dir, 'surfaces.txt'), [`surface${ranges.join(',')}`, '{', ...body, '}'].join('\r\n'));
+    checked++;
+    const started = Date.now();
+    let out = '';
+    try {
+      out = execFileSync(host, ['--shell', dir], { encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60000 });
+    } catch (e) {
+      out = '';
+    }
+    const ms = Date.now() - started;
+    const anims = out.split(/\r?\n/).filter((l) => l.startsWith('animation: ')).length;
+    if (out && ms < 20000 && anims === 2000 * 5) {
+      console.log(`${green}  OK  ${off}見出しの番号は 2000 までにして、すぐ読み終わる（${ms} ミリ秒）`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ 大きな surfaces.txt（${ms} ミリ秒、うごき ${anims} こ）${off}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// 1 つの見出し（2000 こ）の中に、こまや当たり判定の行をたくさん並べても、番号ごとに写すぶんで
+// メモリがあふれず、すぐ読み終わること（読むこま・当たり判定は、ぜんぶで kMaxStoredItems まで）。
+// シェルの descript.txt の着せ替えの行がたくさんあっても止まらないこと。負の番号の見出しは読まないこと
+console.log('  ---- こまや当たり判定の多い surfaces.txt の読みこみ');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-many-'));
+  try {
+    const body = ['animation0.interval,bind'];
+    for (let k = 0; k < 3000; k++) body.push(`animation0.pattern${k},overlay,1,50,0,0`);
+    for (let k = 0; k < 3000; k++) body.push(`collision${k},0,0,10,10,A${k}`);
+    fs.writeFileSync(path.join(dir, 'surfaces.txt'),
+      ['surface0-1999', '{', ...body, '}', 'surface-5', '{', 'animation1.interval,always', 'animation1.pattern0,overlay,1,50,0,0', '}'].join('\r\n'));
+    const desc = [];
+    for (let k = 0; k < 200000; k++) desc.push(`sakura.bindgroup0.addid,${'1,'.repeat(50)}1`);
+    fs.writeFileSync(path.join(dir, 'descript.txt'), desc.join('\r\n'));
+    checked++;
+    const started = Date.now();
+    let out = '';
+    try {
+      out = execFileSync(host, ['--shell', dir], { encoding: 'utf8', maxBuffer: 1 << 30, timeout: 60000 });
+    } catch (e) {
+      out = '';
+    }
+    const ms = Date.now() - started;
+    const lines = out.split(/\r?\n/);
+    const anims = lines.filter((l) => l.startsWith('animation: ')).map((l) => JSON.parse(l.slice(11)));
+    const stored = anims.reduce((n, a) => n + a.patterns.length, 0) +
+      Object.values(JSON.parse((lines.find((l) => l.startsWith('areas: ')) || 'areas: {}').slice(7))).reduce((n, l) => n + l.length, 0);
+    const negative = anims.some((a) => a.base < 0) || lines.some((l) => /^composite: -/.test(l));
+    if (out && ms < 20000 && stored > 0 && stored <= 200000 && !negative) {
+      console.log(`${green}  OK  ${off}こまと当たり判定は ${stored} こで止めて、すぐ読み終わる（${ms} ミリ秒）。負の番号は読まない`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ こまや当たり判定の多い surfaces.txt（${ms} ミリ秒、${stored} こ、負の番号 ${negative}）${off}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// ------------------------------------------------- Windows の機械の名前
+//
+// ゴーストの名前が CON・NUL・COM1 などだと、そのままではフォルダもファイルも作れないので、前に _ を付ける
+console.log('  ---- Windows の機械の名前（CON・NUL など）');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-dev-'));
+  try {
+    const folders = [];
+    for (const name of ['NUL', 'con.txt', 'COM1', 'Console', 'LPT0', 'COM²']) {
+      const file = path.join(dir, 'p.json');
+      fs.writeFileSync(file, JSON.stringify({ format: 'ikaga/1', meta: { name }, scripts: [] }));
+      const out = run([file, '--dic', dicFor('plain.json')]).toString('utf8');
+      folders.push((/== folder: (.*?) \//.exec(out) || [])[1]);
+    }
+    checked++;
+    const want = ['_NUL', '_con.txt', '_COM1', 'Console', '_LPT0', '_COM²'];
+    if (JSON.stringify(folders) === JSON.stringify(want)) {
+      console.log(`${green}  OK  ${off}CON・NUL・COM1 には _ を付け、ほかの名前はそのまま`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ Windows の機械の名前${off}`);
+      console.log(`        ほしい: ${JSON.stringify(want)}`);
+      console.log(`        出た  : ${JSON.stringify(folders)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// ------------------------------------------------- ほかのゴーストのフォルダ
+//
+// 書き出すフォルダの名前は人からもらったプロジェクトでも決められるので、同じ名前のフォルダに
+// 伺かスタジオで作っていないゴーストがいたら、上書きしない（IsForeignGhostFolder）
+console.log('  ---- ほかのゴーストのフォルダには書かない');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-foreign-'));
+  try {
+    const make = (rel, file) => {
+      fs.mkdirSync(path.join(dir, rel), { recursive: true });
+      if (file) fs.writeFileSync(path.join(dir, rel, file), 'x');
+    };
+    make('empty');
+    make(path.join('other', 'ghost', 'master'), 'yaya.txt');
+    make(path.join('studio', 'ghost', 'master'), 'ghost.json');
+    make('loose', 'note.txt');
+    const got = run(['--foreign', ...['none', 'empty', 'other', 'studio', 'loose'].map((n) => path.join(dir, n))])
+      .toString('utf8').trim().split(/\r?\n/);
+    checked++;
+    const want = ['0', '0', '1', '0', '1'];
+    if (JSON.stringify(got) === JSON.stringify(want)) {
+      console.log(`${green}  OK  ${off}無い・空・伺かスタジオのゴーストには書け、ほかのゴーストやファイルのあるフォルダには書かない`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ ほかのゴーストのフォルダ${off}`);
+      console.log(`        ほしい: ${JSON.stringify(want)}`);
+      console.log(`        出た  : ${JSON.stringify(got)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// ------------------------------------------------- うごきの interval
+//
+// interval は画面ではえらぶだけだが、ファイルには何でも書けるので、改行や { } で surfaces.txt に行を足せないこと
+console.log('  ---- うごきの interval の字');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-interval-'));
+  try {
+    const pattern = [{ method: 'overlay', surface: 100, wait: 50, x: 0, y: 0 }];
+    const project = {
+      format: 'ikaga/1', meta: { name: 'iv' }, scripts: [],
+      animations: [
+        { id: 1, base: 0, interval: 'never\r\n}\r\nsurface5\r\n{\r\nelement0,overlay,x.png,0,0', patterns: pattern },
+        { id: 2, base: 0, interval: 'Bind+Random', every: 3, patterns: pattern },
+      ],
+    };
+    const file = path.join(dir, 'iv.json');
+    fs.writeFileSync(file, JSON.stringify(project));
+    checked++;
+    const out = run([file, 'shell/master/surfaces.txt', '--dic', dicFor('ghost.json')]).toString('utf8');
+    if (out.includes('animation1.interval,never\r\n') && out.includes('animation2.interval,bind+random\r\n')
+        && !out.includes('surface5') && !out.includes('element0')) {
+      console.log(`${green}  OK  ${off}使えない字のある interval は never にし、大文字は小文字にする`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ うごきの interval${off}`);
+      console.log(`        出た  : ${out.slice(0, 400)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// ------------------------------------------------- 長い当たり判定の名前
+//
+// うごきの当たり判定の名前は長さが決まっていないので、長くても書き出しが止まらず、1 行がそのまま書けること
+// （前は決まった大きさの入れものに書いていて、長い名前で exe ごと止まりました）
+console.log('  ---- うごきの当たり判定の長い名前');
+{
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ikaga-long-'));
+  try {
+    const name = 'N'.repeat(400);
+    const project = {
+      format: 'ikaga/1', meta: { name: 'long' }, scripts: [],
+      animations: [{ id: 1, base: 0, interval: 'always', patterns: [{ method: 'overlay', surface: 100, wait: 50, x: 0, y: 0 }],
+        collisions: [
+          { name, shape: 'rect', x1: 0, y1: 0, x2: 10, y2: 10 },
+          { name, shape: 'ellipse', x1: 1, y1: 2, x2: 3, y2: 4 },
+          { name, shape: 'circle', x1: 5, y1: 6, x2: 7 },
+        ] }],
+    };
+    const file = path.join(dir, 'long.json');
+    fs.writeFileSync(file, JSON.stringify(project));
+    checked++;
+    let out = '';
+    try {
+      out = run([file, 'shell/master/surfaces.txt', '--dic', dicFor('ghost.json')]).toString('utf8');
+    } catch (e) {
+      out = `（止まりました: ${e.status}）`;
+    }
+    const want = [
+      `animation1.collision0,0,0,10,10,${name}`,
+      `animation1.collisionex0,${name},ellipse,1,2,3,4`,
+      `animation1.collisionex1,${name},circle,5,6,7`,
+    ];
+    if (want.every((l) => out.includes(l + '\r\n'))) {
+      console.log(`${green}  OK  ${off}400 字の名前でも止まらず、四角・楕円・円の行がそのまま書ける`);
+    } else {
+      failed++;
+      console.log(`${red}  だめ 長い当たり判定の名前${off}`);
+      console.log(`        出た  : ${out.slice(0, 200)}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 // ------------------------------------------------- ネットワーク更新の照合表
@@ -250,6 +466,17 @@ console.log('  ---- サムネイルと readme');
         .startsWith('みかんのゴーストです。\r\nよろしくね。\r\n\r\n----\r\n')],
       ['サムネイルをえらんでいなければ thumbnail.png は無い', () => !run([path.join(fixtureDir, 'plain.json'), '--dic', dic])
         .toString('utf8').includes('thumbnail.png')],
+      // プロジェクトに書いてあるネットワークの場所（\\…）は読まない（同じ PNG を \\localhost\C$\… でさしても入らない）
+      ['ネットワークの場所のサムネイルと立ち絵は読まない', () => {
+        const unc = '\\\\localhost\\' + path.join(dir, 'thumb.png').replace(/^([A-Za-z]):/, '$1$');
+        const p2 = JSON.parse(fs.readFileSync(fx, 'utf8'));
+        p2.meta.thumbnail.path = unc;
+        p2.shell = Object.assign({}, p2.shell, { images: [{ id: 0, path: unc, name: 'thumb.png', w: 4, h: 3 }] });
+        const fx2 = path.join(dir, 'project-unc.json');
+        fs.writeFileSync(fx2, JSON.stringify(p2));
+        const list = run([fx2, '--dic', dic]).toString('utf8');
+        return !list.includes('thumbnail.png') && !list.includes(`---- shell/master/surface0.png (${thumb.length} バイト)`);
+      }],
     ];
     for (const [label, fn] of steps) {
       checked++;
